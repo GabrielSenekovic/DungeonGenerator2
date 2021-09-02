@@ -76,7 +76,7 @@ public class Grass : MonoBehaviour
             int x = (int)(i % (float)area.x) + (int)transform.position.x;
             int y = (int)(i / (float)area.y) + (int)transform.position.y;
 
-            if(template.positions[i].identity == 0){continue;}
+            //if(template.positions[i].identity == 0){continue;}
 
             for(int j = 0; j < grassPerTile; j++) //Make a set amount of grass for this one tile
             {

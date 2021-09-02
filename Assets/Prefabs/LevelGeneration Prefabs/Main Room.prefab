@@ -152,11 +152,9 @@ MonoBehaviour:
     stepsAwayFromMainRoom: 0
     IsBuilt: 0
   debug:
-    CheckTemplate: 1
-    floorColor: {r: 0.31394625, g: 0.3646107, b: 0.7830189, a: 0}
-    wallColor: {r: 1, g: 0.6474483, b: 0, a: 0}
-  debugFloor: {fileID: 276153233515342873, guid: 90fe3850cb043224cb6e76c7e61cb8df,
-    type: 3}
+    floorColor: {r: 0.31394625, g: 0.3646107, b: 0.7830189, a: 1}
+    wallColor: {r: 1, g: 0.6474483, b: 0, a: 1}
+  templateDEBUG: {fileID: 0}
   section: 0
 --- !u!1001 &580324093850981416
 PrefabInstance:

@@ -3,6 +3,38 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using UnityEngine.Rendering;
+using UnityEditor;
+
+[CustomEditor(typeof(Room))]
+public class RoomEditor:Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+        Room room = (Room)target;
+        //GUI.DrawTexture(new Rect(0,0,room.templateDEBUG.width * 30, room.templateDEBUG.height * 30), room.templateDEBUG);
+        RenderTexture("Template", room.templateDEBUG);
+        //GUILayout.Label(RenderTexture("Template", room.templateDEBUG));
+    }
+    void RenderTexture(string name, Texture2D texture)
+    {
+        GUILayout.BeginVertical();
+        var style = new GUIStyle(GUI.skin.label);
+        style.alignment = TextAnchor.UpperCenter;
+        style.fixedWidth = 400;
+        GUILayout.Label(name, style);
+
+        style.fixedWidth = texture.height > texture.width? ((float)texture.width / (float)texture.height) * 400 :400;
+        style.fixedHeight = texture.width > texture.height? ((float)texture.height / (float)texture.width) * 400 :400;
+        //style.fixedWidth = texture.height > texture.width? (texture.height / texture.width) * 400 :400;
+        //style.fixedHeight = texture.width > texture.height? (texture.width / texture.height) * 400 :400;
+
+        style.normal.background = texture;
+        GUILayout.Label(new Texture2D(0,0), style);
+        //var result = (Texture2D)EditorGUILayout.ObjectField(texture, typeof(Texture2D), false, GUILayout.Width(400), GUILayout.Height(400));
+        GUILayout.EndVertical();
+    }
+}
 
 [System.Serializable]public class RoomData
 {
@@ -153,14 +185,6 @@ public partial class Room: MonoBehaviour
 
     [System.Serializable]public struct RoomDebug 
     {
-        public enum RoomBuildMode
-        {
-            NONE,
-            CHECK_TEMPLATE,
-
-            BOTH
-        }
-        public RoomBuildMode CheckTemplate;
         public Color floorColor;
         public Color wallColor;
     }
@@ -170,7 +194,10 @@ public partial class Room: MonoBehaviour
         //It is also given to the CreateFloor in order to draw the floor
         public class TileTemplate
         {
-            public int identity; //0 for void, 1 for wall, 2 for floor, 3 for door
+            public int elevation;
+            //0 was void, 1 was wall, 2 was floor
+            public bool door;
+            public bool wall; //Set that there is a wall if this is tile has a higher elevation than a tile next to it
             public bool read;
 
             public Vector2Int divisions; //This also only does something if the identity is a wall
@@ -179,25 +206,26 @@ public partial class Room: MonoBehaviour
             public List<Vector3> endVertices = new List<Vector3>(); //When wall ends, and this list is empty, save all vertices in here otherwise use
             public List<Vector3> startVertices = new List<Vector3>(); //If this is empty when wall starts, fill it up. Otherwise use
 
-            public TileTemplate(int identity_in, Vector2Int divisions_in)
+            public List<Vector3> floorVertices = new List<Vector3>();
+            public List<Vector3> ceilingVertices = new List<Vector3>(); //Slash upper floor
+
+            public TileTemplate(int elevation_in, Vector2Int divisions_in)
             {
-                identity = identity_in;
+                elevation = elevation_in;
                 read = false;
                 divisions = divisions_in;
+                wall = false;
+                door = false;
             }
-            public void SetIdentity(int newIdentity)
+            public void SetElevation(int newElevation)
             {
-                identity = newIdentity;
-            }
-            public void SetRead(bool value)
-            {
-                read = value;
+                elevation = newElevation;
             }
         }
         public Vector2Int size;
-        public List<TileTemplate> positions;
+        public Grid<TileTemplate> positions;
         public bool indoors;
-        public RoomTemplate(Vector2Int size_in, List<TileTemplate> positions_in, bool indoors_in)
+        public RoomTemplate(Vector2Int size_in, Grid<TileTemplate> positions_in, bool indoors_in)
         {
             size = size_in;
             positions = positions_in;
@@ -216,11 +244,77 @@ public partial class Room: MonoBehaviour
                 {
                     Vector2Int divisions = new Vector2Int(1,1); //1,1
                     if(!indoors){divisions = new Vector2Int(3,3);}
-                    positions.Add(new RoomTemplate.TileTemplate(2, divisions));
+                    positions.Add(new RoomTemplate.TileTemplate(0, divisions));
 
                     CreateRoomTemplate_Square(new Vector2(2,2), x, y); //?Basic thickness. Can't be thinner than 2
                     if(!indoors){CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y);}
                     //CreateRoomTemplate_Cross(wallThickness, x, y);
+                }
+            }
+            SmoothenOut();
+        }
+        void SmoothenOut()
+        {
+            //Push up
+            for(int x = 0; x < size.x; x++)
+            {
+                for(int y = 0; y < size.y; y++)
+                {
+                    int amountOfWallNeighbors = 0;
+                    int elevation = positions[x,y].elevation;
+                    for(int i = -1; i < 2; i++)
+                    {
+                        for(int j = -1; j < 2; j++)
+                        {
+                            if(i == 0 && j == 0){continue;}
+                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            {
+                                if(positions[x + i , y + -j].elevation != positions[x,y].elevation) //If the position is a wall
+                                {
+                                    if(positions[x + i , y + -j].elevation > positions[x,y].elevation)
+                                    {
+                                        elevation = positions[x + i , y + -j].elevation;
+                                    }
+                                    amountOfWallNeighbors++; //Then count up
+                                }
+                            }
+                        }
+                    }
+                    if(amountOfWallNeighbors > 5)
+                    {
+                        positions[x,y].elevation = elevation;
+                    }
+                }
+            }
+            //Push down
+            for(int x = 0; x < size.x; x++)
+            {
+                for(int y = 0; y < size.y; y++)
+                {
+                    int amountOfWallNeighbors = 0;
+                    int elevation = positions[x,y].elevation;
+                    for(int i = -1; i < 2; i++)
+                    {
+                        for(int j = -1; j < 2; j++)
+                        {
+                            if(i == 0 && j == 0){continue;}
+                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            {
+                                if(positions[x + i , y + -j].elevation != positions[x,y].elevation) //If the position is a wall
+                                {
+                                    if(positions[x + i , y + -j].elevation < positions[x,y].elevation)
+                                    {
+                                        elevation = positions[x + i , y + -j].elevation;
+                                    }
+                                    amountOfWallNeighbors++; //Then count up
+                                }
+                            }
+                        }
+                    }
+                    if(amountOfWallNeighbors > 5)
+                    {
+                        positions[x,y].elevation = elevation;
+                    }
                 }
             }
         }
@@ -233,7 +327,7 @@ public partial class Room: MonoBehaviour
                 int temp = UnityEngine.Random.Range(0, 2);
                 if (temp == 0)
                 {
-                    positions[x + (int)size.x * y].identity = 1;
+                    positions[x + (int)size.x * y].elevation = 4;
                 }
             }
         }
@@ -242,7 +336,7 @@ public partial class Room: MonoBehaviour
             if(x < wallThickness.x || x > size.x - wallThickness.x - 1||
                y < wallThickness.y || y > size.y - wallThickness.y - 1)
             {
-                positions[x + (int)size.x * y].identity = 1;
+                positions[x + (int)size.x * y].elevation = 4;
             }
         }
         void CreateRoomTemplate_Cross(Vector2 wallThickness, int x, int y)
@@ -250,169 +344,151 @@ public partial class Room: MonoBehaviour
             if((x < wallThickness.x || x > size.x - wallThickness.x -1)&&
                (y < wallThickness.y || y > size.y - wallThickness.y -1))
             {
-                positions[x + (int)size.x * y].identity = 1;
+                positions[x + (int)size.x * y].elevation = 4;
             }
         }
 
-        void UnscatterWalls()
+        public void AddEntrancesToRoom(Entrances entrances)
         {
-            //First, removes stray positions
+            for(int i = 0; i < entrances.entrances.Count; i++)
+            {
+                if(entrances.entrances[i].spawned && entrances.entrances[i].open)
+                {
+                    for(int j = 0; j < entrances.entrances[i].positions.Count; j++)
+                    {
+                        int x = entrances.entrances[i].positions[j].x;
+                        int y = entrances.entrances[i].positions[j].y;
+                        //Debug.Log("X: " + x + " Y: " + y);
+                        positions[x + size.x * y].door = true; //Turn the position into a door
+                        EnsureEntranceReachability(entrances.entrances[i]);
+                    }
+                }
+            }
+            IdentifyWalls();
+            UnscatterWalls();
+            BloatWallCrossings();
+        }
+        void IdentifyWalls()
+        {
+            //! this function goes through all positions to identify which positions are where walls are supposed to be
             for(int x = 0; x < size.x; x++)
             {
                 for(int y = 0; y < size.y; y++)
                 {
-                    bool deleteWall = true;
-                    for(int i = -1; i < 2; i++)
+                    int[] constraints = positions.GetValidConstraints(x,y);
+                    for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                     {
-                        for(int j = -1; j < 2; j++)
+                        for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                         {
-                            if((i == 0 && j == 0) || i != 0 && j != 0){continue;} //Only check directly up or directly down
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            //If this position has one adjacent position that is a lower elevation from itself, then it is a wall
+                            if(positions[x_w, y_w].elevation < positions[x,y].elevation)
                             {
-                                if(!(positions[x + i + (int)size.x * (y + -j)].identity == 2)) //If the position is not a floor
-                                {
-                                    deleteWall = false; //Then dont delete
-                                }
+                                positions[x,y].wall = true;
                             }
-                        }
-                    }
-                    if(deleteWall)
-                    {
-                        positions[x + (int)size.x * y].identity = 2;
-                    }
-                }
-            }
-            //Second, fill in holes
-            for(int x = 0; x < size.x; x++)
-            {
-                for(int y = 0; y < size.y; y++)
-                {
-                    int amountOfWallNeighbors = 0;
-                    for(int i = -1; i < 2; i++)
-                    {
-                        for(int j = -1; j < 2; j++)
-                        {
-                            if(i == 0 && j == 0){continue;}
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
-                            {
-                                if(positions[x + i + (int)size.x * (y + -j)].identity == 1) //If the position is a wall
-                                {
-                                    amountOfWallNeighbors++; //Then count up
-                                }
-                            }
-                        }
-                    }
-                    if(amountOfWallNeighbors > 5)
-                    {
-                        positions[x + (int)size.x * y].identity = 1;
-                    }
-                }
-            }
-            //Shave off excess wall
-            for(int x = 0; x < size.x; x++)
-            {
-                for(int y = 0; y < size.y; y++)
-                {
-                    int amountOfFloorNeighbors = 0;
-                    for(int i = -1; i < 2; i++)
-                    {
-                        for(int j = -1; j < 2; j++)
-                        {
-                            if(i == 0 && j == 0){continue;}
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
-                            {
-                                if(positions[x + i + (int)size.x * (y + -j)].identity == 2) //If the position is a floor
-                                {
-                                    amountOfFloorNeighbors++; //Then count up
-                                }
-                            }
-                        }
-                    }
-                    if(amountOfFloorNeighbors > 5)
-                    {
-                        positions[x + (int)size.x * y].identity = 2;
-                    }
-                }
-            }
-            //Remove singular wall pieces with floor on opposite sides, because they be causing boogs
-            //Also the pesky 1 x 2 bois, who also cause boogs
-            for(int x = 0; x < size.x; x++)
-            {
-                for(int y = 0; y < size.y; y++)
-                {
-                    if(IsPositionWithinBounds(new Vector2Int(x - 1, -y)) && positions[x - 1 + size.x * y].identity == 2)
-                    {
-                        if(IsPositionWithinBounds(new Vector2Int(x + 1, -y)) && positions[x + 1 + size.x * y].identity == 2 )
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
-                        }
-                        else if(IsPositionWithinBounds(new Vector2Int(x + 2, -y)) && positions[x + 2 + size.x * y].identity == 2)
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
-                            positions[x + 1 + (int)size.x * y].identity = 2;
-                        }
-                    }
-                    if(IsPositionWithinBounds(new Vector2Int(x, -y - 1)) && positions[x + size.x * (y+1)].identity == 2)
-                    {
-                        if(IsPositionWithinBounds(new Vector2Int(x, -y + 1)) && positions[x + size.x * (y-1)].identity == 2)
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
-                        }
-                        else if(IsPositionWithinBounds(new Vector2Int(x, -y + 2)) && positions[x + size.x * (y - 2)].identity == 2)
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
-                            positions[x + (int)size.x * (y-1)].identity = 2;
-                        }
-                    }
-                }
-            }
-            //Remove walls with two opposite diagonal floors but the rest is wall, because they cause bugs since they try to fuse together a chunk with a wall and fail
-            for(int x = 0; x < size.x;x++)
-            {
-                for(int y = 0; y < size.y; y++)
-                {
-                    if(IsPositionWithinBounds(new Vector2Int(x - 1, -y - 1)) && positions[x - 1 + size.x * (y +1)].identity == 2)
-                    {
-                        if(IsPositionWithinBounds(new Vector2Int(x + 1, -y +1)) && positions[x + 1 + size.x * (y -1)].identity == 2 )
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
-                        }
-                    }
-                    if(IsPositionWithinBounds(new Vector2Int(x +1, -y - 1)) && positions[x +1 + size.x * (y+1)].identity == 2)
-                    {
-                        if(IsPositionWithinBounds(new Vector2Int(x-1, -y + 1)) && positions[x-1 + size.x * (y-1)].identity == 2)
-                        {
-                            positions[x + (int)size.x * y].identity = 2;
                         }
                     }
                 }
             }
         }
-        void WeedOutUnseeableWalls()
+        void UnscatterWalls()
         {
-            //Cleans out walls so they become void
+            //! this function gets rid of positions that cant be made into walls
+            //! find all positions that have one height and is a wall but no surrounding positions of a different height and eliminate them
             for(int x = 0; x < size.x; x++)
             {
                 for(int y = 0; y < size.y; y++)
                 {
-                    bool isVoid = true;
-                    for(int i = -1; i < 2; i++)
+                    if(positions[x,y].wall)
                     {
-                        for(int j = -1; j < 2; j++)
+                        OnUnscatterWalls(x,y);
+                    }
+                }
+            }
+        }
+        void OnUnscatterWalls(int x, int y)
+        {
+            int[] constraints = positions.GetValidConstraints(x,y);
+            int lowestAdjacentElevation = positions[x,y].elevation;
+            for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+            {
+                for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                {
+                    if(positions[x_w, y_w].elevation < lowestAdjacentElevation){lowestAdjacentElevation = positions[x_w, y_w].elevation;}
+
+                    if(positions[x_w, y_w].elevation == positions[x,y].elevation &&
+                       !positions[x_w, y_w].wall) //if there is one adjacent position has the same elevation and isn't a wall, then this is indeed a wall
                         {
-                            if(i == 0 && j == 0){continue;}
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            return; //This is indeed a wall, keep
+                        }
+                }
+            }
+            positions[x,y].wall = false;
+            positions[x,y].elevation = lowestAdjacentElevation;
+            //No this is a fluke, delete
+        }
+
+        void BloatWallCrossings()
+        {
+            bool bloat = true;
+            while(bloat)
+            {
+                bloat = false;
+                for(int x = 0; x < size.x; x++)
+                {
+                    for(int y = 0; y < size.y; y++)
+                    {
+                        if(positions[x,y].wall)
+                        {
+                            //Debug.Log("Origin: " + x + " " + y);
+                            int[] constraints = positions.GetValidConstraints(x,y);
+                            int adjWalls = 0;
+                            for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                             {
-                                if(!(positions[x + i + (int)size.x * (y + -j)].identity == 1 || positions[x + i + (int)size.x * (y + -j)].identity == 0))
+                                for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                                 {
-                                    isVoid = false;
+                                    //Count walls
+                                    if((x_w == x+1 && y_w == y+1) || (x_w == x+1 && y_w == y-1) ||(x_w == x-1 && y_w == y+1) || (x_w == x-1 && y_w == y-1)){continue;}
+                                    if(positions[x_w, y_w].wall && positions[x_w, y_w].elevation == positions[x,y].elevation)
+                                    {
+                                       // Debug.Log("Adding: " + x_w + " " + y_w);
+                                        adjWalls++;
+                                    }
+                                }
+                            }
+                            if(adjWalls > 3)
+                            {
+                                bloat = true;
+                               // Debug.Log("BLOATING IDENTIFIED");
+                                //! then this is a wall crossing. Those must be bloated
+                                constraints = positions.GetValidConstraints(x,y,2);
+                                for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+                                {
+                                    for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                                    {
+                                        //Count walls
+                                        positions[x_w, y_w].wall = false;
+                                        positions[x_w, y_w].elevation = positions[x,y].elevation;
+                                    }
+                                }
+                                for(int x_w = constraints[0]; x_w < constraints[2]; x_w++) //Go around the original position
+                                {
+                                    for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                                    {
+                                        int[] constraintsTwo = positions.GetValidConstraints(x_w, y_w);
+                                        for(int x_ww = constraintsTwo[0]; x_ww < constraintsTwo[2]; x_ww++) //Go around each adjacent position
+                                        {
+                                            for(int y_ww = constraintsTwo[1]; y_ww < constraintsTwo[3]; y_ww++)
+                                            {
+                                                if(positions[x_ww, y_ww].elevation < positions[x_w,y_w].elevation)
+                                                {
+                                                    positions[x_w,y_w].wall = true;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                    if(isVoid)
-                    {
-                        positions[x + (int)size.x * y].identity = 0;
                     }
                 }
             }
@@ -436,12 +512,12 @@ public partial class Room: MonoBehaviour
             int rotationDir = 0;
             if(rotation == 270)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1 + size.x * -pos.y].identity == 1 && !positions[pos.x + 1 + size.x * -pos.y].read)
+                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && !positions[pos.x + 1 , -pos.y].read && SharesFloor(pos, Vector2Int.right))
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = 1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 + size.x * -pos.y].identity == 1 && !positions[pos.x - 1 + size.x * -pos.y].read)
+                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 , -pos.y].wall && !positions[pos.x - 1 , -pos.y].read && SharesFloor(pos, Vector2Int.left))
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = -1;
@@ -453,12 +529,12 @@ public partial class Room: MonoBehaviour
             }
             else if(rotation == 90)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1 + size.x * -pos.y].identity == 1 && !positions[pos.x + 1 + size.x * -pos.y].read)
+                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1 , -pos.y].wall && !positions[pos.x + 1 , -pos.y].read && SharesFloor(pos, Vector2Int.right))
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = -1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 + size.x * -pos.y].identity == 1 && !positions[pos.x - 1 + size.x * -pos.y].read)
+                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 ,-pos.y].wall && !positions[pos.x - 1 , -pos.y].read && SharesFloor(pos, Vector2Int.left))
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = 1;
@@ -470,12 +546,12 @@ public partial class Room: MonoBehaviour
             }
             else if(rotation == 180)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x + size.x * (-pos.y - 1)].identity == 1 && !positions[pos.x + size.x * (-pos.y - 1)].read)
+                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x , (-pos.y - 1)].wall && !positions[pos.x , (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down))
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = 1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x + size.x * (-pos.y + 1)].identity == 1 && !positions[pos.x + size.x * (-pos.y + 1)].read)
+                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x , (-pos.y + 1)].wall && !positions[pos.x , (-pos.y + 1)].read && SharesFloor(pos, Vector2Int.up))
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = -1;
@@ -487,12 +563,12 @@ public partial class Room: MonoBehaviour
             }
             else if(rotation == 0)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x + size.x * (-pos.y - 1)].identity == 1 && !positions[pos.x + size.x * (-pos.y - 1)].read)
+                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x , (-pos.y - 1)].wall && !positions[pos.x , (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down)) 
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = -1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x + size.x * (-pos.y + 1)].identity == 1 && !positions[pos.x + size.x * (-pos.y + 1)].read)
+                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x ,(-pos.y + 1)].wall && !positions[pos.x , (-pos.y + 1)].read  && SharesFloor(pos, Vector2Int.up))
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = 1;
@@ -538,7 +614,7 @@ public partial class Room: MonoBehaviour
                     currentAngle += 90 * returnData.Item3;
                     currentAngle = (int)Math.Mod(currentAngle, 360);
                     //Debug.Log("<color=yellow>"+currentAngle+"</color>");
-                    positions[pos.x + size.x * -pos.y].SetRead(true);
+                    positions[pos.x, -pos.y].read = true;
                     Vector2Int startPosition = pos;
 
                     while(returnData.Item1) //If there is a wall neighbor, proceed
@@ -647,7 +723,7 @@ public partial class Room: MonoBehaviour
                     {
                         //Check if there is floor diagonally right down, because walls can only be drawn from left to right
                         //If there are none, rotate the search three times. If there still are none, then there is an error
-                        if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 2)
+                        if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && x < size.x && !positions[x + 1 + size.x * (y + 1)].wall)
                         {
                             pos = new Vector2Int(x, -y); 
                             currentAngle = 90;
@@ -672,7 +748,7 @@ public partial class Room: MonoBehaviour
                 currentAngle += 90 * returnData.Item3;
                 currentAngle = (int)Math.Mod(currentAngle, 360);
                 //Debug.Log("<color=yellow>"+currentAngle+"</color>");
-                positions[pos.x + size.x * -pos.y].SetRead(true);
+                positions[pos.x, -pos.y].read = true;
                 Vector2Int startPosition = pos;
 
                 while(returnData.Item1) //If there is a wall neighbor, proceed
@@ -681,12 +757,12 @@ public partial class Room: MonoBehaviour
                     //Follow that direction until its empty
                     int steps = 1;
                 //Debug.Log("Checking index: " + (pos.x + returnData.Item2.x + size.x * (-pos.y + returnData.Item2.y)));
-                    while(IsPositionWithinBounds(new Vector2Int(pos.x + returnData.Item2.x, pos.y - returnData.Item2.y)) && positions[pos.x + returnData.Item2.x + size.x * (-pos.y + returnData.Item2.y)].identity == 1) //While the position in the next direction is a wall
+                    while(IsPositionWithinBounds(new Vector2Int(pos.x + returnData.Item2.x, pos.y - returnData.Item2.y)) && positions[pos.x + returnData.Item2.x , -pos.y + returnData.Item2.y].wall) //While the position in the next direction is a wall
                     {
                         steps++;
                         pos = new Vector2Int(pos.x + returnData.Item2.x, pos.y - returnData.Item2.y);
-                    // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-                        positions[pos.x + size.x * -pos.y].SetRead(true);
+                        //Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
+                        positions[pos.x, -pos.y].read = true;
                     }
                     
                     int isThisWallFollowingOuterCorner = 0;
@@ -822,21 +898,62 @@ public partial class Room: MonoBehaviour
         {
             //Check that the next direction is a wall, and also that said position has more than 1 neighbor otherwise you get weird bugs cuz walls try to be built with 0 width
             while(
-                IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && positions[pos.x + direction.x + size.x * (-pos.y + direction.y)].identity == 1 &&
-                ExtractWalls_CheckHasEnoughWallsAhead(pos, direction, currentAngle)
+                IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && positions[pos.x + direction.x, -pos.y + direction.y].wall &&
+                ExtractWalls_CheckHasEnoughWallsAhead(pos, direction, currentAngle) &&
+                SharesFloor(pos, direction)
                 //While the position in the next direction is a wall
                 )
             {
                 steps++;
                 pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
                 // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-                positions[pos.x + size.x * -pos.y].SetRead(true);
+                positions[pos.x , -pos.y].read = true;
             }
+        }
+        bool SharesFloor(Vector2Int pos, Vector2Int direction)
+        {
+            //!If there is a wall ahead in that direction, check if they share a floor. Otherwise, dont go to it
+
+            if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y )) && positions[pos.x + direction.x, -pos.y + direction.y].wall)
+            {
+                List<Vector2Int> temp = new List<Vector2Int>();
+                int[] constraints = positions.GetValidConstraints(pos.x, -pos.y);
+                
+                for(int x = constraints[0]; x < constraints[2]; x++)
+                {
+                    for(int y = constraints[1]; y < constraints[3]; y++)
+                    {
+                        if(positions[x,y].elevation < positions[pos.x, -pos.y].elevation)
+                        {
+                            temp.Add(new Vector2Int(x,y));
+                        }
+                    }
+                }
+
+                constraints = positions.GetValidConstraints(pos.x + direction.x, -pos.y + direction.y);
+                for(int x = constraints[0]; x < constraints[2]; x++)
+                {
+                    for(int y = constraints[1]; y < constraints[3]; y++)
+                    {
+                        for(int i = 0; i < temp.Count; i++)
+                        {
+                            if(temp[i] == new Vector2Int(x,y))
+                            {
+                                //Then this means the next wall shares this floor
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            return true;
         }
         bool ExtractWalls_CheckHasEnoughWallsAhead(Vector2Int pos, Vector2Int direction, int currentAngle)
         {
-            if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && positions[pos.x + direction.x * 2 + size.x * (-pos.y + direction.y * 2)].identity != 1) 
+            if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && !positions[pos.x + direction.x * 2, -pos.y + direction.y * 2].wall) 
             //Check if the next position after the next isn't a wall, cuz then the next position is the last
+            //This if statement runs if the next after the next position is the last
             {
                 Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle); //Check if it's an outer corner, cuz only then should the next check happen
 
@@ -844,7 +961,7 @@ public partial class Room: MonoBehaviour
                 {
                     Vector2 temp = (Quaternion.Euler(0,0,-90) * (Vector2)direction);
                     Vector2Int rotatedDirection = new Vector2Int(Mathf.RoundToInt(temp.x), Mathf.RoundToInt(temp.y));
-                    if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x *2, pos.y - direction.y - rotatedDirection.y *2)) && positions[pos.x + direction.x  + rotatedDirection.x *2 + size.x * (-pos.y + direction.y + rotatedDirection.y * 2 )].identity != 2)
+                    if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x *2, pos.y - direction.y - rotatedDirection.y *2)) && positions[pos.x + direction.x  + rotatedDirection.x *2 ,-pos.y + direction.y + rotatedDirection.y * 2].wall)
                     //Check if the next position has enough walls in that direction to go that far 
                     {
                         return true;
@@ -864,60 +981,17 @@ public partial class Room: MonoBehaviour
             {
                 for(int y = 0; y < size.y; y++)
                 {
-                    if(positions[x + size.x * y].identity == 0) //!Is supposed to add floor on corners. Thats not how its gonna work later
-                    {
-                        for(int i = -1; i < 2; i++)
-                        {
-                            for(int j = -1; j < 2; j++)
-                            {
-                                if(i == 0 && j == 0){continue;}
-                                if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
-                                {
-                                    if(positions[x + i + (int)size.x * (y + -j)].identity == 1) //If the position is a wall
-                                    {
-                                        //returnData.Add(new Vector3Int(x,-y -1, 0));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if(positions[x + size.x * y].identity == 2 || positions[x + size.x * y].identity == 1 || positions[x + size.x * y].identity == 3) //If this position is a floor or a wall
-                    {
-                        returnData.Add(new Vector3Int(x,-y -1, 0));
-                    }
-                    else if(!indoors) //If it is a void
-                    {
-                        returnData.Add(new Vector3Int(x,-y -1, 4));
-                    }
+                    returnData.Add(new Vector3Int(x,-y -1, 0));
                 }
             }
             return returnData;
         }
-        public void AddEntrancesToRoom(Entrances entrances)
-        {
-            for(int i = 0; i < entrances.entrances.Count; i++)
-            {
-                if(entrances.entrances[i].spawned && entrances.entrances[i].open)
-                {
-                    for(int j = 0; j < entrances.entrances[i].positions.Count; j++)
-                    {
-                        int x = entrances.entrances[i].positions[j].x;
-                        int y = entrances.entrances[i].positions[j].y;
-                        //Debug.Log("X: " + x + " Y: " + y);
-                        positions[x + size.x * y].identity = 3; //Turn the position into a door
-                        EnsureEntranceReachability(entrances.entrances[i]);
-                    }
-                }
-            }
-            UnscatterWalls();
-            WeedOutUnseeableWalls(); //Later only when indoors
-        }
         public List<TileTemplate> GetEntranceTiles()
         {
             List<TileTemplate> tiles = new List<TileTemplate>();
-            for(int i = 0; i < positions.Count; i++)
+            for(int i = 0; i < positions.Count(); i++)
             {
-                if(positions[i].identity == 3)
+                if(positions[i].door)
                 {
                     tiles.Add(positions[i]);
                 }
@@ -932,11 +1006,11 @@ public partial class Room: MonoBehaviour
         {
             if(start)
             {
-                positions[position.x + size.x * position.y].startVertices = vertices;
+                positions[position].startVertices = vertices;
             }
             else
             {
-                positions[position.x + size.x * position.y].endVertices = vertices;
+                positions[position].endVertices = vertices;
             }
         }
         void EnsureEntranceReachability(Entrances.Entrance entrance)
@@ -945,6 +1019,7 @@ public partial class Room: MonoBehaviour
             for(int i = 0; i < entrance.positions.Count; i++)
             {
                 currentPosition.Add(new Vector2Int(entrance.positions[i].x, -entrance.positions[i].y));
+                positions[entrance.positions[i]].elevation = 0;
             }
 
             for(int i = 0; i < currentPosition.Count; i++)
@@ -952,11 +1027,11 @@ public partial class Room: MonoBehaviour
                 while(IsPositionWithinBounds(currentPosition[i] - entrance.dir)) //While youre still within bounds
                 {
                     currentPosition[i] = currentPosition[i] - entrance.dir;
-                    if(positions[currentPosition[i].x + size.x * -currentPosition[i].y].identity == 1) //If there is a wall in the direction of this door
+                    if(positions[currentPosition[i].x, -currentPosition[i].y].elevation > positions[entrance.positions[0]].elevation) //If there is a wall in the direction of this door
                     {
-                        positions[currentPosition[i].x + size.x * -currentPosition[i].y].identity = 2; //Turn it into a floor
+                        positions[currentPosition[i].x, -currentPosition[i].y].elevation = 0;
                     }
-                    else if(positions[currentPosition[i].x + size.x * -currentPosition[i].y].identity == 2) //If youve reached a floor, stop
+                    else if(positions[currentPosition[i].x, -currentPosition[i].y].elevation == 0) //If youve reached a floor, stop
                     {
                         break;
                     }
@@ -972,8 +1047,7 @@ public partial class Room: MonoBehaviour
     public RoomData roomData = new RoomData();
 
     public RoomDebug debug;
-
-    public GameObject debugFloor;
+    public Texture2D templateDEBUG;
     public int section;
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
@@ -1004,7 +1078,7 @@ public partial class Room: MonoBehaviour
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20);
         //Build wall meshes all around the start area in a 30 x 30 square
-        RoomTemplate template = new RoomTemplate(roomSize, new List<RoomTemplate.TileTemplate>(), indoors);
+        RoomTemplate template = new RoomTemplate(roomSize, new Grid<RoomTemplate.TileTemplate>(roomSize), indoors);
         //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
@@ -1030,6 +1104,7 @@ public partial class Room: MonoBehaviour
         floorMaterial.color = color;
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
+        SaveTemplateTexture(template);
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
@@ -1037,20 +1112,11 @@ public partial class Room: MonoBehaviour
         List<Tuple<List<MeshMaker.WallData>, bool>> data = template.ExtractWalls(directions);
         Debug.Log("Data size: " + data.Count);
 
-        if(debug.CheckTemplate == RoomDebug.RoomBuildMode.CHECK_TEMPLATE || debug.CheckTemplate == RoomDebug.RoomBuildMode.BOTH)
-        {
-            DEBUG_TemplateCheck(template);
-        }
-
         for(int i = 0; i < data.Count; i++)
         {
             GameObject wallObject = new GameObject("Wall");
             wallObject.transform.parent = this.gameObject.transform;
-
-            if(debug.CheckTemplate == RoomDebug.RoomBuildMode.NONE || debug.CheckTemplate == RoomDebug.RoomBuildMode.BOTH)
-            {
-                MeshMaker.CreateWall(wallObject, wallMaterial, data[i].Item1, data[i].Item2, template.GetEntranceTiles());
-            }
+            MeshMaker.CreateWall(wallObject, wallMaterial, data[i].Item1, data[i].Item2, template.GetEntranceTiles());
             wallObject.transform.localPosition = new Vector3(-9.5f, 10, 0);
         }
     }
@@ -1079,7 +1145,24 @@ public partial class Room: MonoBehaviour
         //vase.AddComponent<Rigidbody>(); dont add it yet, because the vase has no bottom!!*/
 
     }
-    void DEBUG_TemplateCheck(RoomTemplate template)
+
+    void SaveTemplateTexture(RoomTemplate template)
+    {
+        templateDEBUG = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
+
+        for(int x = 0; x < template.size.x; x++)
+        {
+            for(int y = 0; y < template.size.y; y++)
+            {
+                RoomTemplate.TileTemplate temp = template.positions[x,y];
+                Color color = temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
+                templateDEBUG.SetPixel(x, y, color);
+            }
+        }
+        templateDEBUG.Apply();
+        templateDEBUG.filterMode = FilterMode.Point;
+    }
+   /* void DEBUG_TemplateCheck(RoomTemplate template)
     {
         GameObject debugObject = new GameObject("DEBUG");
         debugObject.transform.parent = transform;
@@ -1094,7 +1177,7 @@ public partial class Room: MonoBehaviour
             }
         }
         debugObject.transform.localPosition = new Vector3(-9.5f, 10, 0);
-    }
+    }*/
 
     public Vector2 GetCameraBoundaries()
     {
