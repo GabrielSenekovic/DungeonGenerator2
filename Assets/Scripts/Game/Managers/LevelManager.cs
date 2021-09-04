@@ -304,8 +304,8 @@ public class LevelManager : MonoBehaviour
             generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
             generator.PutDownQuestObjects(this, q_data);
         }
-        currentRoom = firstRoom;
-        CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x, firstRoom.transform.position.y));
+        currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
+        CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
     private void Update()
@@ -328,10 +328,15 @@ public class LevelManager : MonoBehaviour
     {
         if (CameraMovement.GetMovingRoom())
         {
-            if (CameraMovement.Instance.MoveCamera(new Vector3(currentRoom.transform.position.x, currentRoom.transform.position.y, CameraMovement.GetRotationObject().transform.position.z), previousRoom.transform.position))
+            Vector2Int newPos = (Party.instance.GetPartyLeader().transform.position / 20f).ToV2Int() * 20;
+            Vector2Int prevPos = (CameraMovement.Instance.prevCameraPosition / 20f).ToV2Int() * 20;
+            Debug.Log(prevPos + " and " + previousRoom.transform.position);
+
+            if (CameraMovement.Instance.MoveCamera(new Vector3(newPos.x, newPos.y, CameraMovement.GetRotationObject().transform.position.z), prevPos.ToV3()))
             {
-                CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x , currentRoom.transform.position.y));
+                CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x,currentRoom.transform.position.x + currentRoom.size.x - 20) , new Vector2(currentRoom.transform.position.y - currentRoom.size.y + 20, currentRoom.transform.position.y));
                 previousRoom.gameObject.SetActive(false);
+                UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
             }
         }
     }
@@ -356,31 +361,33 @@ public class LevelManager : MonoBehaviour
     }
     bool CheckIfChangeRoom()
     {
-        if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + currentRoom.size.x / 2)
+        Vector2Int playerGridPos = (party.GetPartyLeader().transform.position / 20f).ToV2Int();
+        if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + (currentRoom.size.x - 10))
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindAdjacentRoom(currentRoom.transform.position.ToV2Int() / 20, new Vector2Int(1,0)).Item2;
+            currentRoom = generator.FindRoomOfPosition(playerGridPos);
+            //FindAdjacentRoom(currentRoom.transform.position.ToV2Int() / 20, new Vector2Int(1,0)).Item2;
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if(party.GetPartyLeader().transform.position.x < currentRoom.transform.position.x - currentRoom.size.x / 2)
+        else if(party.GetPartyLeader().transform.position.x < currentRoom.transform.position.x - 10)
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindAdjacentRoom(currentRoom.transform.position.ToV2Int() /20, new Vector2Int(-1,0)).Item2;
+            currentRoom = generator.FindRoomOfPosition(playerGridPos);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if (party.GetPartyLeader().transform.position.y > currentRoom.transform.position.y + currentRoom.size.y / 2)
+        else if (party.GetPartyLeader().transform.position.y > currentRoom.transform.position.y + 10)
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindAdjacentRoom(currentRoom.transform.position.ToV2Int()/20, new Vector2Int(0, 1)).Item2;
+            currentRoom = generator.FindRoomOfPosition(playerGridPos);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - currentRoom.size.y / 2)
+        else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - (currentRoom.size.y - 10))
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindAdjacentRoom(currentRoom.transform.position.ToV2Int()/20, new Vector2Int(0, -1)).Item2;
+            currentRoom = generator.FindRoomOfPosition(playerGridPos);
             currentRoom.gameObject.SetActive(true);
             return true;
         }

@@ -61,7 +61,7 @@ public class ItemGenerator : MonoBehaviour
     {
         Texture2D texture = new Texture2D(32, 32, TextureFormat.ARGB32, false);
         List<Texture2D> fruitTextures = lists[0].groups[fruit].textures;
-        AdjustColor(ref fruitColor);
+        ClampSaturation(ref fruitColor);
         List<Texture2D> leafTextures = lists[1].groups[leaf].textures;
         Color leafColor = leafColor_in;
         Color[] pixels = new Color[32*32];
@@ -81,9 +81,7 @@ public class ItemGenerator : MonoBehaviour
             SetPixel(ref color, GetPixel(fruitTextures[0],x, y, fruitColor, BlendMode.Overlay, luminosity, saturation));
             pixels[i] = color;
         }
-        texture.SetPixels(pixels);
-        texture.Apply();
-        texture.filterMode = FilterMode.Point;
+        texture.Finish(pixels);
         return texture;
     }
     Color GetPixel(Texture2D texture, int x, int y)
@@ -126,7 +124,7 @@ public class ItemGenerator : MonoBehaviour
     {
         if(color.a != 0) { newColor = color;}
     }
-    void AdjustColor(ref Color color)
+    void ClampSaturation(ref Color color)
     {
         //Because, for example, the fruit base cant be desaturated or it will look like crap
         //Meanwhile, leaves dont need this

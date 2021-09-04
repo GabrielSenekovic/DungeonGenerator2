@@ -39,13 +39,13 @@ public class PlayerController : MonoBehaviour
             }
             if(Input.GetKeyDown(KeyCode.Q)) //!COMMAND DEBUG
             {
-                UIManager.GetInstance().OpenCommandBox(); controllable = false;
+                UIManager.Instance.OpenCommandBox(); controllable = false;
                 return;
             }
         }
         if(Input.GetKeyDown(KeyCode.Return))
         {
-            if(UIManager.GetInstance().CloseCommandBox()){controllable = true; return;}
+            if(UIManager.Instance.CloseCommandBox()){controllable = true; return;}
         }
         if(Input.GetKeyDown(KeyCode.Q))
         {

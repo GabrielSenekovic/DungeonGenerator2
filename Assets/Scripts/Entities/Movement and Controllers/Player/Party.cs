@@ -31,7 +31,7 @@ public class Party : MonoBehaviour
     public static void AddKey()
     {
         instance.keys++;
-        UIManager.GetInstance().keys.Increment();
+        UIManager.Instance.keys.Increment();
     }
     public static bool Unlock()
     {

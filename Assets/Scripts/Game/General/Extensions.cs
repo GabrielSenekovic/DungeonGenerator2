@@ -4,6 +4,8 @@ using UnityEngine;
 
 public static class Extensions
 {
+
+    //!List
     public static T GetRandom<T>(this IList<T> list)
     {
         return list[Random.Range(0, list.Count)];
@@ -12,6 +14,14 @@ public static class Extensions
     {
         return Random.Range(0, list.Count);
     }
+    //!Texture2D
+    public static void Finish(this Texture2D tex, Color[] col)
+    {
+        tex.SetPixels(col);
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+    }
+    //!Vectors
     public static Vector2Int ToV2Int(this Vector2 V2)
     {
         return new Vector2Int(Mathf.RoundToInt(V2.x), Mathf.RoundToInt(V2.y));

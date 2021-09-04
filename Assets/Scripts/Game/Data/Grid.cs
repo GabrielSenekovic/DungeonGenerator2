@@ -58,6 +58,34 @@ public class Grid <T>
     {
         return items.Count;
     }
+    public Grid<T> RotateClockwise()
+    {
+        List<T> list = new List<T>();
+        for(int x = size.x - 1; x >= 0; x--)
+        {
+            for(int y = 0; y < size.y; y++)
+            {
+                list.Add(items[x + size.x * y]);
+            }
+        }
+        Grid<T> grid = new Grid<T>(size);
+        grid.items = list;
+        return grid;
+    }
+    public Grid<T> FlipVertically()
+    {
+        List<T> list = new List<T>();
+        for(int y = size.y - 1; y >= 0; y--)
+        {
+            for(int x = 0; x < size.x; x++)
+            {
+                list.Add(items[x + size.x * y]);
+            }
+        }
+        Grid<T> grid = new Grid<T>(size);
+        grid.items = list;
+        return grid;
+    }
     
     public bool IsWithinBounds(int x, int y)
     {

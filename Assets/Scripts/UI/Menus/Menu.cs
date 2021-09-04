@@ -44,6 +44,8 @@ public class Menu : MonoBehaviour
     UIManager UI;
 
     public GameObject frame;
+    Image frame_Image;
+    public Image background_Image;
 
     public bool central;
 
@@ -58,7 +60,7 @@ public class Menu : MonoBehaviour
 
             if(j < buttonLayouts[i].buttons.Count)
             {
-                buttons[j].GetComponent<Image>().color = Color.white;
+                buttons[j].GetComponent<Image>().color = UIManager.Instance.UIColor.primary;
                 buttons[j].GetComponent<Image>().raycastTarget = true;
                 int index_1 = i; int index_2 = j;
                 buttons[j].GetComponentInChildren<SpriteText>().Write(buttonLayouts[i].buttons[j].name);
@@ -102,7 +104,7 @@ public class Menu : MonoBehaviour
             else if(buttonLayouts[i].parentMenu >= 0)
             {
                 //Make return button
-                buttons[j].GetComponent<Image>().color = Color.white;
+                buttons[j].GetComponent<Image>().color = UIManager.Instance.UIColor.primary;
                 buttons[j].GetComponent<Image>().raycastTarget = true;
                 buttons[j].GetComponentInChildren<SpriteText>().Write("Return");
                 buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
@@ -170,6 +172,17 @@ public class Menu : MonoBehaviour
         {
             GameObject frame_temp = Instantiate(frame, new Vector3(0,0,0), Quaternion.identity, transform);
             frame_temp.GetComponent<RectTransform>().localPosition = Vector3.zero;
+            frame_Image = frame_temp.GetComponentInChildren<Image>();
         }
+        UIManager.Instance.UIColor.SetPrimaryColor(Color.red, UIManager.Instance);
+    }
+    public void ChangeColor(Color newColor)
+    {
+        for(int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].GetComponent<UnityEngine.UI.Image>().color = new Color(newColor.r, newColor.g, newColor.b, buttons[i].GetComponent<UnityEngine.UI.Image>().color.a);
+        }
+        frame_Image.color = newColor;
+        background_Image.color = newColor;
     }
 }

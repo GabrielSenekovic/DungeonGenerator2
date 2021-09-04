@@ -28,10 +28,12 @@ public class CameraMovement : MonoBehaviour
     [SerializeField]Party party;
     public CameraMode mode = CameraMode.Side;
     public static CameraMovementMode movementMode = CameraMovementMode.Free;
-    public Vector2 cameraAnchor;
+    public Vector2 cameraAnchor_horizontal;
+    public Vector2 cameraAnchor_vertical;
 
     bool movingRoom = false;
     public GameObject cameraRotationObject;
+    public Vector3 prevCameraPosition;
     public float transitionSpeed;
 
     void Awake()
@@ -51,11 +53,15 @@ public class CameraMovement : MonoBehaviour
     {
         if(!movingRoom)
         {
-            //cameraRotationObject.transform.position = m_PartyLeader.transform.position;
+            Vector3 pos = Party.instance.GetPartyLeader().transform.position;
+            float x = pos.x < cameraAnchor_horizontal.x ? cameraAnchor_horizontal.x : pos.x > cameraAnchor_horizontal.y ? cameraAnchor_horizontal.y : pos.x; 
+            float y = pos.y < cameraAnchor_vertical.x ? cameraAnchor_vertical.x : pos.y > cameraAnchor_vertical.y ? cameraAnchor_vertical.y : pos.y; 
+            cameraRotationObject.transform.position = new Vector3(x,y, pos.z);
+            prevCameraPosition = cameraRotationObject.transform.position;
 
             //if(CameraMovement.cameraAnchor_in != Vector2.zero) //Do not move the cmaera object if there is an anchor
             //{
-                cameraRotationObject.transform.position = cameraAnchor;
+                //cameraRotationObject.transform.position = cameraAnchor;
                 //}
         }
     }
@@ -101,9 +107,10 @@ public class CameraMovement : MonoBehaviour
         }
         return false;
     }
-    public static void SetCameraAnchor(Vector2 anchor_in)
+    public static void SetCameraAnchor(Vector2 horizontal_in, Vector2 vertical_in)
     {
-        instance.cameraAnchor = anchor_in;
+        instance.cameraAnchor_horizontal = horizontal_in;
+        instance.cameraAnchor_vertical = vertical_in;
     }
     public static void SetMovingRoom(bool value)
     {

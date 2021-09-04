@@ -651,7 +651,7 @@ public partial class LevelGenerator : MonoBehaviour
         }
         return null;
     }
-    Room FindRoomOfPosition(Vector2Int position)
+    public Room FindRoomOfPosition(Vector2Int position)
     {
         for(int i = 0; i < roomGrid.Count; i++)
         {

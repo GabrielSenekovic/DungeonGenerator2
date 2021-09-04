@@ -4,6 +4,7 @@ using System.Collections;
 using System;
 using UnityEngine.Rendering;
 using UnityEditor;
+using System.Linq;
 
 [CustomEditor(typeof(Room))]
 public class RoomEditor:Editor
@@ -13,7 +14,14 @@ public class RoomEditor:Editor
         DrawDefaultInspector();
         Room room = (Room)target;
         //GUI.DrawTexture(new Rect(0,0,room.templateDEBUG.width * 30, room.templateDEBUG.height * 30), room.templateDEBUG);
-        RenderTexture("Template", room.templateDEBUG);
+        if(room.templateTexture)
+        {
+            RenderTexture("Template", room.templateTexture);
+        }
+        if(room.mapTexture)
+        {
+            RenderTexture("Map", room.mapTexture);
+        }
         //GUILayout.Label(RenderTexture("Template", room.templateDEBUG));
     }
     void RenderTexture(string name, Texture2D texture)
@@ -26,8 +34,6 @@ public class RoomEditor:Editor
 
         style.fixedWidth = texture.height > texture.width? ((float)texture.width / (float)texture.height) * 400 :400;
         style.fixedHeight = texture.width > texture.height? ((float)texture.height / (float)texture.width) * 400 :400;
-        //style.fixedWidth = texture.height > texture.width? (texture.height / texture.width) * 400 :400;
-        //style.fixedHeight = texture.width > texture.height? (texture.width / texture.height) * 400 :400;
 
         style.normal.background = texture;
         GUILayout.Label(new Texture2D(0,0), style);
@@ -1038,6 +1044,19 @@ public partial class Room: MonoBehaviour
                 }
             }
         }
+        public Texture2D CreateMap()
+        {
+            Texture2D tex = new Texture2D(size.x, size.y, TextureFormat.ARGB32, false);
+            Color[] colors = new Color[size.x * size.y];
+            Grid<TileTemplate> grid = positions.FlipVertically();
+            for(int i = 0; i < size.x * size.y; i++)
+            {
+                float lumValue = (float)grid[i].elevation / 20f + 0.5f;
+                colors[i] = Color.HSVToRGB(0.3f, 1, lumValue);
+            }
+            tex.Finish(colors);
+            return tex;
+        }
     }
 
     public Entrances directions;
@@ -1047,7 +1066,8 @@ public partial class Room: MonoBehaviour
     public RoomData roomData = new RoomData();
 
     public RoomDebug debug;
-    public Texture2D templateDEBUG;
+    public Texture2D templateTexture;
+    public Texture2D mapTexture;
     public int section;
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
@@ -1105,6 +1125,7 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SaveTemplateTexture(template);
+        mapTexture = template.CreateMap();
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
@@ -1148,19 +1169,20 @@ public partial class Room: MonoBehaviour
 
     void SaveTemplateTexture(RoomTemplate template)
     {
-        templateDEBUG = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
+        templateTexture = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
+        Grid<RoomTemplate.TileTemplate> grid = template.positions.FlipVertically();
 
         for(int x = 0; x < template.size.x; x++)
         {
             for(int y = 0; y < template.size.y; y++)
             {
-                RoomTemplate.TileTemplate temp = template.positions[x,y];
+                RoomTemplate.TileTemplate temp = grid[x,y];
                 Color color = temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
-                templateDEBUG.SetPixel(x, y, color);
+                templateTexture.SetPixel(x, y, color);
             }
         }
-        templateDEBUG.Apply();
-        templateDEBUG.filterMode = FilterMode.Point;
+        templateTexture.Apply();
+        templateTexture.filterMode = FilterMode.Point;
     }
    /* void DEBUG_TemplateCheck(RoomTemplate template)
     {

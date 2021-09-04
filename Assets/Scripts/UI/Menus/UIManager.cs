@@ -9,9 +9,16 @@ public class UIManager : MonoBehaviour
 {
     static UIManager instance;
 
-    public static UIManager GetInstance()
+    public static UIManager Instance
     {
-        return instance;
+        get
+        {
+            return instance;
+        }
+        set
+        {
+            instance = value;
+        }
     }
     [SerializeField] CanvasGroup mainMenu;
     static CanvasGroup m_mainMenu;
@@ -38,6 +45,20 @@ public class UIManager : MonoBehaviour
     public Counter keys;
 
     public CommandBox commandBox;
+    public MiniMap miniMap;
+
+    [System.Serializable]public class UIColorManager
+    {
+        public Color primary;
+
+        public void SetPrimaryColor(Color newColor, UIManager UI)
+        {
+            primary = newColor;
+            UI.mainMenu.GetComponent<Menu>().ChangeColor(newColor);
+            UI.HUD.GetComponentInChildren<HPBar>().background.color = newColor;
+        }
+    }
+    public UIColorManager UIColor;
 
     void Awake()
     {
@@ -100,7 +121,7 @@ public class UIManager : MonoBehaviour
         m_HUD.SetActive(!m_HUD.activeSelf);
         ColorAdjustments colorAdjustments;
         m_volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
-        colorAdjustments.colorFilter.value = m_HUD.activeSelf ? Color.white : GetInstance().openMenuColor;
+        colorAdjustments.colorFilter.value = m_HUD.activeSelf ? Color.white : Instance.openMenuColor;
         DepthOfField depthOfField;
         m_volume.profile.TryGet<DepthOfField>(out depthOfField);
         depthOfField.focusDistance.value = m_HUD.activeSelf ? 1.8f : 4.5f;

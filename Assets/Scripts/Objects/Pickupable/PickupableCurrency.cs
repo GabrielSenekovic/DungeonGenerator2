@@ -7,7 +7,7 @@ public class PickupableCurrency : MonoBehaviour, PickupableBase
     public int value;
     public void OnPickup()
     {
-        UIManager.GetInstance().moneyCounter.Add(value);
+        UIManager.Instance.moneyCounter.Add(value);
         Destroy(transform.parent.gameObject);
     }
 

@@ -11,6 +11,8 @@ public class HPBar : MonoBehaviour
     float currentFill;
     public float BarChangeSpeed;
 
+    public Image background;
+
     public Color first;
     public Color last;
     Gradient gradient;

@@ -10,6 +10,8 @@ public class Options : MonoBehaviour
     public Scrollbar SFXSlider;
     public Scrollbar MusicSlider;
     public Scrollbar VolumeSlider;
+
+    public Scrollbar PrimaryMenuColor;
     public Scrollbar SaturationSlider;
 
     public void ChangeSFXVolume()
@@ -23,6 +25,10 @@ public class Options : MonoBehaviour
     public void ChangeGlobalVolume()
     {
         AudioManager.global_volume = VolumeSlider.value;
+    }
+    public void ChangePrimaryMenuColor()
+    {
+        UIManager.Instance.UIColor.SetPrimaryColor(Color.HSVToRGB(PrimaryMenuColor.value, 1, 1), UIManager.Instance);
     }
     public void ChangeSaturation()
     {
