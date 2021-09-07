@@ -20,10 +20,8 @@ public class UIManager : MonoBehaviour
             instance = value;
         }
     }
-    [SerializeField] CanvasGroup mainMenu;
-    static CanvasGroup m_mainMenu;
+    [SerializeField] Menu mainMenu;
     [SerializeField] GameObject HUD;
-    static GameObject m_HUD;
     public enum UIScreen
     {
         MainMenu = 0
@@ -32,11 +30,7 @@ public class UIManager : MonoBehaviour
 
     List<CanvasGroup> openMenus = new List<CanvasGroup>();
 
-    [SerializeField]Volume volume;
-
-    public static Volume m_volume;
-
-    public Color openMenuColor;
+    public Volume volume;
 
     public Counter moneyCounter;
 
@@ -49,6 +43,7 @@ public class UIManager : MonoBehaviour
 
     [System.Serializable]public class UIColorManager
     {
+        public Color openMenuColor;
         public Color primary;
 
         public void SetPrimaryColor(Color newColor, UIManager UI)
@@ -62,16 +57,13 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        m_mainMenu = mainMenu;
-        m_HUD = HUD;
-        m_volume = volume;
         instance = this;
     }
 
     private void Start() 
     {
-        m_mainMenu.GetComponent<Menu>().Initialize(this, GetComponent<AudioSource>());
-        if(m_mainMenu.alpha == 1){m_mainMenu.GetComponent<Menu>().SwitchMenu(0);}
+        Instance.mainMenu.GetComponent<Menu>().Initialize(this, GetComponent<AudioSource>());
+        if(Instance.mainMenu.canvas.alpha == 1){Instance.mainMenu.GetComponent<Menu>().SwitchMenu(0);}
     }
 
     public void OpenCommandBox()
@@ -100,12 +92,12 @@ public class UIManager : MonoBehaviour
         {
             case UIScreen.MainMenu: 
 
-            OpenOrClose(m_mainMenu);
-            if(m_mainMenu.alpha == 0)
+            OpenOrClose(mainMenu.canvas);
+            if(mainMenu.canvas.alpha == 0)
             {
                 EmptyMenus();
             }
-            m_mainMenu.GetComponent<Menu>().SwitchMenu(0); break;
+            mainMenu.SwitchMenu(0); break;
         }
     }
     static public void OpenOrClose(CanvasGroup screen)
@@ -118,14 +110,14 @@ public class UIManager : MonoBehaviour
 
     static public void ToggleHUD()
     {
-        m_HUD.SetActive(!m_HUD.activeSelf);
+        UIManager.Instance.HUD.SetActive(!UIManager.Instance.HUD.activeSelf);
         ColorAdjustments colorAdjustments;
-        m_volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
-        colorAdjustments.colorFilter.value = m_HUD.activeSelf ? Color.white : Instance.openMenuColor;
+        UIManager.Instance.volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
+        colorAdjustments.colorFilter.value = UIManager.Instance.HUD.activeSelf ? Color.white : Instance.UIColor.openMenuColor;
         DepthOfField depthOfField;
-        m_volume.profile.TryGet<DepthOfField>(out depthOfField);
-        depthOfField.focusDistance.value = m_HUD.activeSelf ? 1.8f : 4.5f;
-        depthOfField.focalLength.value = m_HUD.activeSelf ? 50 : 300;
+        UIManager.Instance.volume.profile.TryGet<DepthOfField>(out depthOfField);
+        depthOfField.focusDistance.value = UIManager.Instance.HUD.activeSelf ? 1.8f : 4.5f;
+        depthOfField.focalLength.value = UIManager.Instance.HUD.activeSelf ? 50 : 300;
     }
 
     public void AddMenu(CanvasGroup menu)

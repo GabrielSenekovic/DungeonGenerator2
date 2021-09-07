@@ -42,6 +42,7 @@ public class Grid <T>
     {
         get
         {
+            Debug.Log(v + " size: " + size);
             return items[v.x + size.x * v.y];
         }
         set

@@ -39,15 +39,20 @@ public class Menu : MonoBehaviour
     //12 == Config
 
     GameObject[] buttons = new GameObject[12];
-    [SerializeField]private Sprite buttonSprite;
 
     UIManager UI;
-
-    public GameObject frame;
     Image frame_Image;
-    public Image background_Image;
+    Image background_Image;
+
+    [System.NonSerialized]public CanvasGroup canvas;
 
     public bool central;
+
+    private void Start() 
+    {
+        background_Image = transform.GetChild(0).GetComponentInChildren<Image>();
+        canvas = GetComponent<CanvasGroup>();
+    }
 
     public void SwitchMenu(int i)
     {
@@ -122,7 +127,6 @@ public class Menu : MonoBehaviour
     }
     public void Initialize(UIManager UI_in, AudioSource audio)
     {
-        Debug.Log("Initializing Menu");
         UI = UI_in;
 
         GameObject buttonTransform = new GameObject("Buttons"); buttonTransform.transform.parent = transform;
@@ -141,6 +145,7 @@ public class Menu : MonoBehaviour
         }
 
         GridLayoutGroup gridLayout = buttonTransform.AddComponent<GridLayoutGroup>();
+        Sprite buttonSprite = Resources.Load<Sprite>("Art/UI/MenuButton");
         gridLayout.cellSize = new Vector2(buttonSprite.texture.width, buttonSprite.texture.height);
         gridLayout.spacing = new Vector2(0, -13);
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
@@ -168,12 +173,18 @@ public class Menu : MonoBehaviour
             textObject.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
             textObject.GetComponent<RectTransform>().localPosition = new Vector3(-56, 46, 0);
         }
-        if(frame)
-        {
-            GameObject frame_temp = Instantiate(frame, new Vector3(0,0,0), Quaternion.identity, transform);
-            frame_temp.GetComponent<RectTransform>().localPosition = Vector3.zero;
-            frame_Image = frame_temp.GetComponentInChildren<Image>();
-        }
+        GameObject frame_temp = new GameObject("Frame"); frame_temp.transform.parent = this.transform;
+        RectTransform frame_rect = frame_temp.AddComponent<RectTransform>();
+        frame_rect.localPosition = Vector3.zero;
+        frame_rect.localScale = new Vector3(1,1,1);
+        GameObject frame_visuals = new GameObject("Visuals"); frame_visuals.transform.parent = frame_temp.transform;
+        frame_Image = frame_visuals.AddComponent<Image>();
+        frame_Image.sprite = Resources.Load<Sprite>("Art/UI/Frame");
+        frame_Image.transform.localPosition = Vector2.zero;
+        frame_Image.SetNativeSize();
+        frame_Image.raycastTarget = false;
+        frame_Image.transform.localScale = new Vector3(1,1,1);
+
         UIManager.Instance.UIColor.SetPrimaryColor(Color.red, UIManager.Instance);
     }
     public void ChangeColor(Color newColor)

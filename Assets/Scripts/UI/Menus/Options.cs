@@ -33,7 +33,7 @@ public class Options : MonoBehaviour
     public void ChangeSaturation()
     {
         ColorAdjustments colorAdjustments;
-        UIManager.m_volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
+        UIManager.Instance.volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
         colorAdjustments.saturation.value = (SaturationSlider.value * 100) - 100;
     }
 }

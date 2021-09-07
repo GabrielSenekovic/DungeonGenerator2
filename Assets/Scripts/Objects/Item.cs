@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class Item:ScriptableObject
+public class Item
 {
     public enum ItemType
     {

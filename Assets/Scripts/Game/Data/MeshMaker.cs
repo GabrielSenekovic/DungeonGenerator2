@@ -19,9 +19,11 @@ public class MeshMaker : MonoBehaviour
 
         public Vector3 position; //The start position to draw the wall from
 
+        public Vector2Int actualPosition;
+
         public AnimationCurve curve;
 
-        public WallData(Vector3 position_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, float roundedness_in)
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, float roundedness_in)
         {
             position = position_in;
             rotation = rotation_in;
@@ -31,8 +33,9 @@ public class MeshMaker : MonoBehaviour
             divisions = divisions_in;
             curve = curve_in;
             roundedness = roundedness_in;
+            actualPosition = actualPosition_in;
         }
-        public WallData(Vector3 position_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, float roundedness_in) //If this wall has the same length as the previous one, you don't have to define length
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, float roundedness_in) //If this wall has the same length as the previous one, you don't have to define length
         {
             position = position_in;
             rotation = rotation_in;
@@ -42,8 +45,20 @@ public class MeshMaker : MonoBehaviour
             divisions = new Vector2Int(1,1);
             curve = curve_in;
             roundedness = roundedness_in;
+            actualPosition = actualPosition_in;
         }
     }
+    public struct SurfaceData
+    {
+        public Vector3Int position;
+        public List<Vector3> connectingVertices;
+
+        public SurfaceData(Vector3Int position_in, List<Vector3> connectingVertices_in)
+        {
+            position = position_in;
+            connectingVertices = connectingVertices_in;
+        }
+    }  
     public static void CreateChest(Mesh mesh, int length)
     {
         //Specify how long the chest is. Length determines how long it is from left to right, if the opening side is in front
@@ -345,7 +360,7 @@ public class MeshMaker : MonoBehaviour
         mesh.Optimize();
         mesh.RecalculateNormals();
     }
-    public static void CreateWall(GameObject wall, Material wallMaterial, List<WallData> instructions, bool wrap, List<Room.RoomTemplate.TileTemplate> tiles)
+    public static void CreateWall(GameObject wall, Material wallMaterial, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles)
     {
         Debug.Log("Enters CreateWall");
         //ref List<Room.EntranceData> entrancesOfThisRoom, ref List<Room.EntranceData> entrancesOfRoomAtStart, ref List<Room.EntranceData> entrancesOfRoomAtEnd
@@ -356,6 +371,7 @@ public class MeshMaker : MonoBehaviour
         {
             jaggedness = 0;
         }
+        Vector2Int currentGridPosition = Vector2Int.zero;
        // if(divisions.x == 1){jaggedness = 0;}
         //dim x = width, y = tilt, z = height
         //divisions = how many vertices per unit tile
@@ -375,6 +391,45 @@ public class MeshMaker : MonoBehaviour
             float y = instructions[i].position.y;
             float z = instructions[i].position.z;
 
+            currentGridPosition = new Vector2Int((int)instructions[i].actualPosition.x, (int)-instructions[i].actualPosition.y);
+            Vector2Int upperFloorGridPosition = Vector2Int.zero;
+            
+            if(i > 0 && instructions[i-1].rotation == (instructions[i].rotation -90)%360) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
+            {
+                if(Math.Mod(instructions[i].rotation, 360) == 0)
+                {
+                    currentGridPosition += new Vector2Int(1,0);
+                }
+                else if(Math.Mod(instructions[i].rotation,360) == 90)
+                {
+                    currentGridPosition += new Vector2Int(0,-1);
+                }
+                else if(Math.Mod(instructions[i].rotation, 360) == 180)
+                {
+                    currentGridPosition += new Vector2Int(-1,0);
+                }
+                else if(Math.Mod(instructions[i].rotation, 360) == 270)
+                {
+                    currentGridPosition += new Vector2Int(0,1);
+                }
+            }
+            if(Math.Mod(instructions[i].rotation, 360) == 0)
+            {
+                upperFloorGridPosition = currentGridPosition + new Vector2Int(0, -1);
+            }
+            else if(Math.Mod(instructions[i].rotation,360) == 90)
+            {
+                upperFloorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
+            }
+            else if(Math.Mod(instructions[i].rotation, 360) == 180)
+            {
+                upperFloorGridPosition = currentGridPosition + new Vector2Int(0, 1);
+            }
+            else if(Math.Mod(instructions[i].rotation, 360) == 270)
+            {
+                upperFloorGridPosition = currentGridPosition + new Vector2Int(1, 0);
+            }
+
             int amount_of_faces = (int)(divisions.x * divisions.y);
             const int vertices_per_quad = 4;
             int vertices_per_tile = amount_of_faces * vertices_per_quad;
@@ -390,7 +445,7 @@ public class MeshMaker : MonoBehaviour
 
             for(int j = 0; j < savedLengthOfWall; j++)
             {
-                //Debug.Log("New Column! Going this many steps: " + savedLengthOfWall);
+                Debug.Log("New Column! Going this many steps: " + savedLengthOfWall);
                 string debug_info = j+ ": ";
                 List<int> newIndices = new List<int>();
                 List<Vector2> newUV = new List<Vector2>();
@@ -475,6 +530,9 @@ public class MeshMaker : MonoBehaviour
                         //* v_x * divisions.x == j * divisions.x = Is this vertex at the start of the column?       ||
                         //* v_x * divisions.x > j * divisions.x = Is this vertex not at the start of the column?    ||
                         //* j * divisions.x + division.x - 1 = The last vertex position of each column              ||
+                        //*                                                                                         ||
+                        //* k == 0 && l / divisions.x == 0  This quad is on the lowest row                          ||
+                        //*                                                                                         ||
                         //*                                                                                         ||
                         //******************************************************************************************||
 
@@ -759,9 +817,23 @@ public class MeshMaker : MonoBehaviour
                         }
 
                         CreateWall_Rotate(allVertices, indicesToRotate.ToList(), rotateAround, instructions[i].rotation);
+
+                        //! determine if this is the bottom of the wall and save vertices 0 and 1 
+                        /*if(k == 0 && (int)(l / divisions.x) == 0)
+                        {
+                            Vector2Int gridPosition = new Vector2Int((int)allVertices[allVertices.Count - 4].x, -(int)allVertices[allVertices.Count - 4].y);
+                            tiles[gridPosition].floorVertices.Add(allVertices[allVertices.Count - 4]);
+                            tiles[gridPosition].floorVertices.Add(allVertices[allVertices.Count - 3]);
+                            //! get the position on the grid that this wall corresponds to
+                        }*/
+                        //! determine if this is the top of the wall and save vertices 2 and 3
+                        if(k == instructions[i].height - 1 && (int)(l / divisions.x) == 1 && !tiles[upperFloorGridPosition].wall)
+                        {
+                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 2]);
+                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 1]);
+                            //! get the position on the grid that this wall corresponds to
+                        }
                         
-                        /*int[] indexValue = new int[]{0,1,3,1,2,3};
-                        for(int index = 0; index < indexValue.Length; index++){newTriangles.Add(indexValue[index] + jump_quad_up + jump_tile + jump_quad_side + jump_wall);}*/
                         int[] indexValue = new int[]{0,1,3,1,2,3};
                         for(int index = 0; index < indexValue.Length; index++){newIndices.Add(indexValue[index] + jump_quad_up + jump_tile);}
 
@@ -769,6 +841,7 @@ public class MeshMaker : MonoBehaviour
                         newUV.Add(new Vector2 (v_x - j                     , v_z));                      //0,0
                         newUV.Add(new Vector2 (v_x - j                     , v_z + 1.0f / divisions.y)); //0,1
                         newUV.Add(new Vector2 (v_x - j + 1.0f / divisions.x, v_z + 1.0f / divisions.y)); //1,1
+                        
                         //goto end;
                     }
                     debug_info += "_";
@@ -794,11 +867,36 @@ public class MeshMaker : MonoBehaviour
                 wallObject.AddComponent<MeshRenderer>();
                 wallObject.GetComponent<MeshRenderer>().material = wallMaterial;
 
+                wallObject.AddComponent<MeshFilter>();
+                MeshCollider mc = wallObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = wallObject.GetComponent<MeshFilter>().mesh;
+
                 wallObject.isStatic = true;
 
                 if(i == instructions[i].length - 1 && j == savedLengthOfWall - 1) //If last wall and last column
                 {
                     //Collect every last vertices
+                }
+
+                if(Math.Mod(instructions[i].rotation, 360) == 0)
+                {
+                    currentGridPosition += new Vector2Int(1,0);
+                     upperFloorGridPosition = currentGridPosition + new Vector2Int(0, -1);
+                }
+                else if(Math.Mod(instructions[i].rotation,360) == 90)
+                {
+                    currentGridPosition += new Vector2Int(0,-1);
+                    upperFloorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
+                }
+                else if(Math.Mod(instructions[i].rotation, 360) == 180)
+                {
+                    currentGridPosition += new Vector2Int(-1,0);
+                    upperFloorGridPosition = currentGridPosition + new Vector2Int(0, 1);
+                }
+                else if(Math.Mod(instructions[i].rotation, 360) == 270)
+                {
+                    currentGridPosition += new Vector2Int(0,1);
+                    upperFloorGridPosition = currentGridPosition + new Vector2Int(1, 0);
                 }
             }
            // BoxCollider box = wall.AddComponent<BoxCollider>();
@@ -826,40 +924,120 @@ public class MeshMaker : MonoBehaviour
             vertices[j + indices[i]] = dir + origin;
         }
     }
-    static public void CreateSurface(List<Vector3Int> positions, Mesh mesh)
+    static public void CreateSurface(List<SurfaceData> positions, Transform trans, Material floorMaterial)
     {
         //Positions literally mean the position of every single quad on the grid
-        List<int> newTriangles = new List<int>();
-        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector3> allVertices = new List<Vector3>();
         List<Vector2> newUV = new List<Vector2>();
+
+        int lastAmountVert = 0;
 
         for(int i = 0; i < positions.Count; i++)
         {
-            newVertices.Add(new Vector3(positions[i].x,     positions[i].y,     -positions[i].z));
-            newVertices.Add(new Vector3(positions[i].x + 1, positions[i].y,     -positions[i].z));
-            newVertices.Add(new Vector3(positions[i].x + 1, positions[i].y + 1, -positions[i].z));
-            newVertices.Add(new Vector3(positions[i].x,     positions[i].y + 1, -positions[i].z));
+           /* if(positions[i].connectingVertices.Count > 0)
+            {
+                for(int j = 0; j < positions[i].connectingVertices.Count;j+=2)
+                {
+                    allVertices.Add(new Vector3(positions[i].connectingVertices[0].x, positions[i].connectingVertices[0].y, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].connectingVertices[1].x, positions[i].connectingVertices[1].y, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z));
 
-            newTriangles.Add(3 + 4 * i); //0, 1, 3, 1, 2, 3
-            newTriangles.Add(1 + 4 * i);
-            newTriangles.Add(0 + 4 * i);
-            newTriangles.Add(3 + 4 * i);
-            newTriangles.Add(2 + 4 * i);
-            newTriangles.Add(1 + 4 * i);
+                    newUV.Add(new Vector2 (1,0));                      //1,0
+                    newUV.Add(new Vector2 (0,0));                      //0,0
+                    newUV.Add(new Vector2 (0,1)); //0,1
+                    newUV.Add(new Vector2 (1,1)); //1,1
+                }
+            }
+            else
+            {*/
+                allVertices.Add(new Vector3(positions[i].position.x,     positions[i].position.y,     -positions[i].position.z));
+                allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y,     -positions[i].position.z));
+                allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y + 1, -positions[i].position.z));
+                allVertices.Add(new Vector3(positions[i].position.x,     positions[i].position.y + 1, -positions[i].position.z));
 
-            newUV.Add(new Vector2 (1,0));                      //1,0
-            newUV.Add(new Vector2 (0,0));                      //0,0
-            newUV.Add(new Vector2 (0,1)); //0,1
-            newUV.Add(new Vector2 (1,1)); //1,1
+                newUV.Add(new Vector2 (1,0));                      //1,0
+                newUV.Add(new Vector2 (0,0));                      //0,0
+                newUV.Add(new Vector2 (0,1)); //0,1
+                newUV.Add(new Vector2 (1,1)); //1,1
+            //}
+            if(allVertices.Count > lastAmountVert + 1000)
+            {
+                GameObject floorObject = new GameObject("floor");
+
+                Vector3[] newVertices = new Vector3[]{};
+                Array.Resize(ref newVertices, allVertices.Count - lastAmountVert);
+                allVertices.CopyTo(lastAmountVert, newVertices, 0, allVertices.Count - lastAmountVert);
+                lastAmountVert = allVertices.Count;
+                List<int> newIndices = new List<int>();
+
+                for(int j = 0; j < newVertices.Length; j+=4)
+                {
+                    newIndices.Add(3 + j); //0, 1, 3, 1, 2, 3
+                    newIndices.Add(1 + j);
+                    newIndices.Add(0 + j);
+                    newIndices.Add(3 + j);
+                    newIndices.Add(2 + j);
+                    newIndices.Add(1 + j);
+                }
+
+                floorObject.AddComponent<MeshFilter>();
+                floorObject.GetComponent<MeshFilter>().mesh.Clear();
+                floorObject.GetComponent<MeshFilter>().mesh.vertices = newVertices.ToArray();
+                floorObject.GetComponent<MeshFilter>().mesh.triangles = newIndices.ToArray();
+                floorObject.GetComponent<MeshFilter>().mesh.uv = newUV.ToArray(); 
+                floorObject.GetComponent<MeshFilter>().mesh.Optimize();
+                floorObject.GetComponent<MeshFilter>().mesh.RecalculateBounds();
+                floorObject.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+
+                floorObject.AddComponent<MeshRenderer>();
+                floorObject.GetComponent<MeshRenderer>().material = floorMaterial;
+
+                floorObject.isStatic = true;
+                floorObject.transform.parent = trans;
+                newUV.Clear();
+
+                floorObject.AddComponent<MeshFilter>();
+                MeshCollider mc = floorObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = floorObject.GetComponent<MeshFilter>().mesh;
+            }
+        }
+        GameObject floorObject2 = new GameObject("floor");
+
+        Vector3[] newVertices2 = new Vector3[]{};
+        Array.Resize(ref newVertices2, allVertices.Count - lastAmountVert);
+        allVertices.CopyTo(lastAmountVert, newVertices2, 0, allVertices.Count - lastAmountVert);
+
+        List<int> newIndices2 = new List<int>();
+        
+        for(int j = 0; j < newVertices2.Length; j+=4)
+        {
+            newIndices2.Add(3 + j); //0, 1, 3, 1, 2, 3
+            newIndices2.Add(1 + j);
+            newIndices2.Add(0 + j);
+            newIndices2.Add(3 + j);
+            newIndices2.Add(2 + j);
+            newIndices2.Add(1 + j);
         }
 
-        mesh.Clear ();
-        mesh.vertices = newVertices.ToArray();
-        mesh.triangles = newTriangles.ToArray();
-        mesh.uv = newUV.ToArray(); 
-        mesh.Optimize();
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
+        floorObject2.AddComponent<MeshFilter>();
+        floorObject2.GetComponent<MeshFilter>().mesh.Clear();
+        floorObject2.GetComponent<MeshFilter>().mesh.vertices = newVertices2.ToArray();
+        floorObject2.GetComponent<MeshFilter>().mesh.triangles = newIndices2.ToArray();
+        floorObject2.GetComponent<MeshFilter>().mesh.uv = newUV.ToArray(); 
+        floorObject2.GetComponent<MeshFilter>().mesh.Optimize();
+        floorObject2.GetComponent<MeshFilter>().mesh.RecalculateBounds();
+        floorObject2.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+
+        floorObject2.AddComponent<MeshRenderer>();
+        floorObject2.GetComponent<MeshRenderer>().material = floorMaterial;
+
+        floorObject2.isStatic = true;
+        floorObject2.transform.parent = trans;
+
+        floorObject2.AddComponent<MeshFilter>();
+        MeshCollider mc2 = floorObject2.AddComponent<MeshCollider>();
+        mc2.sharedMesh = floorObject2.GetComponent<MeshFilter>().mesh;
     }
     static public void CreateSurface(Mesh mesh, float height)
     {
