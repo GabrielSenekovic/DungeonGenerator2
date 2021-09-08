@@ -20,10 +20,11 @@ public class MeshMaker : MonoBehaviour
         public Vector3 position; //The start position to draw the wall from
 
         public Vector2Int actualPosition;
+        public Vector3 movePosition; //The position the wall must be moved in order to be right, because of my stupid way im making the wall, kill me
 
         public AnimationCurve curve;
 
-        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, float roundedness_in)
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, Vector2 movePosition_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, float roundedness_in)
         {
             position = position_in;
             rotation = rotation_in;
@@ -34,8 +35,9 @@ public class MeshMaker : MonoBehaviour
             curve = curve_in;
             roundedness = roundedness_in;
             actualPosition = actualPosition_in;
+            movePosition = movePosition_in;
         }
-        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, float roundedness_in) //If this wall has the same length as the previous one, you don't have to define length
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, Vector2 movePosition_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, float roundedness_in) //If this wall has the same length as the previous one, you don't have to define length
         {
             position = position_in;
             rotation = rotation_in;
@@ -46,17 +48,24 @@ public class MeshMaker : MonoBehaviour
             curve = curve_in;
             roundedness = roundedness_in;
             actualPosition = actualPosition_in;
+            movePosition = movePosition_in;
         }
     }
     public struct SurfaceData
     {
         public Vector3Int position;
-        public List<Vector3> connectingVertices;
+        public List<Vector3> ceilingVertices;
+        public List<Vector3> floorVertices;
+        public int divisions; // needed for when determining how many times a position is removed in create surface when connecting vertices isnt 0
+        public List<Room.RoomTemplate.TileTemplate.TileSides> sidesWhereThereIsWall;
 
-        public SurfaceData(Vector3Int position_in, List<Vector3> connectingVertices_in)
+        public SurfaceData(Vector3Int position_in, List<Vector3> ceilingVertices_in, List<Vector3> floorVertices_in, int divisions_in, List<Room.RoomTemplate.TileTemplate.TileSides> sidesWhereThereIsWall_in)
         {
             position = position_in;
-            connectingVertices = connectingVertices_in;
+            ceilingVertices = ceilingVertices_in;
+            floorVertices = floorVertices_in;
+            divisions = divisions_in;
+            sidesWhereThereIsWall = sidesWhereThereIsWall_in;
         }
     }  
     public static void CreateChest(Mesh mesh, int length)
@@ -445,7 +454,7 @@ public class MeshMaker : MonoBehaviour
 
             for(int j = 0; j < savedLengthOfWall; j++)
             {
-                Debug.Log("New Column! Going this many steps: " + savedLengthOfWall);
+                //Debug.Log("New Column! Going this many steps: " + savedLengthOfWall);
                 string debug_info = j+ ": ";
                 List<int> newIndices = new List<int>();
                 List<Vector2> newUV = new List<Vector2>();
@@ -586,10 +595,20 @@ public class MeshMaker : MonoBehaviour
                         {
                             debug_info += "F";
                             //Connect tiles upwards to tiles downwards
-                            allVertices.Add( allVertices[((3 + vertices_per_quad) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
-                            allVertices.Add( allVertices[(3 + skip_up + skip_left )+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
-                            allVertices.Add( allVertices[(((4 * (int)divisions.x) + vertices_per_quad -1) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
-                            allVertices.Add(  new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness))                     , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness) , ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
+                            if(k == instructions[i].height - 1 && (int)(l / divisions.x) == instructions[i].height - 1)
+                            {
+                                allVertices.Add( allVertices[((3 + vertices_per_quad) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add( allVertices[(3 + skip_up + skip_left )+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add( allVertices[(((4 * (int)divisions.x) + vertices_per_quad -1) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add(  new Vector3 ((x + v_x)                     , y + current_tilt_increment , ((z - v_z) -firstQuad_leftVal_z) - k));
+                            }
+                            else
+                            {
+                                allVertices.Add( allVertices[((3 + vertices_per_quad) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add( allVertices[(3 + skip_up + skip_left )+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add( allVertices[(((4 * (int)divisions.x) + vertices_per_quad -1) + skip_up + skip_left)+ jump_wall + k * vertices_per_tile + j * vertices_per_column]);
+                                allVertices.Add(  new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness))                     , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness) , ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
+                            }
                             indicesToRotate = new int[] {3};
                             rotateAround = instructions[i].position;
                             
@@ -634,10 +653,20 @@ public class MeshMaker : MonoBehaviour
                         else if(k > 0) //E
                         {
                             debug_info += "E";
-                            allVertices.Add( allVertices[((3 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
-                            allVertices.Add( allVertices[((2 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
-                            allVertices.Add( new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness)) + rot_b , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness)  + rot_c, ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
-                            allVertices.Add( new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness)) + rot_a   , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness) + rot_c , ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
+                            if(k == instructions[i].height - 1 && (int)(l / divisions.x) == instructions[i].height - 1)
+                            {
+                                allVertices.Add( allVertices[((3 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
+                                allVertices.Add( allVertices[((2 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
+                                allVertices.Add( new Vector3 ((x + v_x) + rot_b , y + current_tilt_increment + rot_c, ((z - v_z) -firstQuad_leftVal_z) - k));
+                                allVertices.Add( new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness)) + rot_a   , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness) + rot_c , ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
+                            }
+                            else
+                            {
+                                allVertices.Add( allVertices[((3 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
+                                allVertices.Add( allVertices[((2 + skip_up) + k * vertices_per_tile) + j * vertices_per_column]);
+                                allVertices.Add( new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness)) + rot_b , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness)  + rot_c, ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));
+                                allVertices.Add( new Vector3 ((x + v_x + UnityEngine.Random.Range(-jaggedness, jaggedness)) + rot_a   , y + current_tilt_increment + UnityEngine.Random.Range(-jaggedness, upperJaggedness) + rot_c , ((z - v_z - UnityEngine.Random.Range(-upperJaggedness, upperJaggedness)) -firstQuad_leftVal_z) - k));  
+                            }
                             indicesToRotate = new int[] {2, 3};
                             rotateAround = new Vector3(x,y,z);
 
@@ -819,18 +848,25 @@ public class MeshMaker : MonoBehaviour
                         CreateWall_Rotate(allVertices, indicesToRotate.ToList(), rotateAround, instructions[i].rotation);
 
                         //! determine if this is the bottom of the wall and save vertices 0 and 1 
-                        /*if(k == 0 && (int)(l / divisions.x) == 0)
+                        if(k == 0 && (int)(l / divisions.x) == 0)
                         {
-                            Vector2Int gridPosition = new Vector2Int((int)allVertices[allVertices.Count - 4].x, -(int)allVertices[allVertices.Count - 4].y);
-                            tiles[gridPosition].floorVertices.Add(allVertices[allVertices.Count - 4]);
-                            tiles[gridPosition].floorVertices.Add(allVertices[allVertices.Count - 3]);
+                            tiles[upperFloorGridPosition].floorVertices.Add(allVertices[allVertices.Count - 4] - instructions[i].movePosition);
+                            tiles[upperFloorGridPosition].floorVertices.Add(allVertices[allVertices.Count - 3] - instructions[i].movePosition);
                             //! get the position on the grid that this wall corresponds to
-                        }*/
+                        }
                         //! determine if this is the top of the wall and save vertices 2 and 3
-                        if(k == instructions[i].height - 1 && (int)(l / divisions.x) == 1 && !tiles[upperFloorGridPosition].wall)
+                        if(k == instructions[i].height - 1 && (int)(l / divisions.x) == instructions[i].height - 1 && !tiles[upperFloorGridPosition].wall)
                         {
-                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 2]);
-                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 1]);
+                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 2] - instructions[i].movePosition);
+                            tiles[upperFloorGridPosition].ceilingVertices.Add(allVertices[allVertices.Count - 1] - instructions[i].movePosition);
+
+                            for(int n = 0; n < tiles[upperFloorGridPosition].sidesWhereThereIsWall.Count; n++)
+                            {
+                                if( tiles[upperFloorGridPosition].sidesWhereThereIsWall[n].side == (upperFloorGridPosition - currentGridPosition))
+                                {
+                                    tiles[upperFloorGridPosition].sidesWhereThereIsWall[n].floor = false;
+                                }
+                            }
                             //! get the position on the grid that this wall corresponds to
                         }
                         
@@ -867,7 +903,6 @@ public class MeshMaker : MonoBehaviour
                 wallObject.AddComponent<MeshRenderer>();
                 wallObject.GetComponent<MeshRenderer>().material = wallMaterial;
 
-                wallObject.AddComponent<MeshFilter>();
                 MeshCollider mc = wallObject.AddComponent<MeshCollider>();
                 mc.sharedMesh = wallObject.GetComponent<MeshFilter>().mesh;
 
@@ -899,9 +934,6 @@ public class MeshMaker : MonoBehaviour
                     upperFloorGridPosition = currentGridPosition + new Vector2Int(1, 0);
                 }
             }
-           // BoxCollider box = wall.AddComponent<BoxCollider>();
-           // box.size = new Vector3( instructions[i].length,1, instructions[i].height);
-            //box.center = new Vector3(box.size.x / 2 - 0.5f,0.5f,-box.size.z / 2);
         }
     }
     static public void CreateWall_Rotate(List<Vector3> vertices, List<int> indices, Vector3 origin, int rotation)
@@ -915,12 +947,10 @@ public class MeshMaker : MonoBehaviour
             return;
         }
         int j = vertices.Count - 4;
-       // Debug.Log("<color=magenta>Origin: " + origin + " and rotation: " + rotation + "</color>");
         for(int i = 0; i < indices.Count; i++)
         {
             Vector3 dir = vertices[j + indices[i]] - origin;
             dir = Quaternion.Euler(0,0,rotation) * dir;
-           // Debug.Log("Dir: " + dir + " and i: " + i);
             vertices[j + indices[i]] = dir + origin;
         }
     }
@@ -934,36 +964,63 @@ public class MeshMaker : MonoBehaviour
 
         for(int i = 0; i < positions.Count; i++)
         {
-           /* if(positions[i].connectingVertices.Count > 0)
+             //When it connects to connectingVertices, it needs to know what sides of the tile has been made so it can fill in the rest
+            Vector3 centerOfTile = new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z);
+            if(positions[i].ceilingVertices.Count > 0)
             {
-                for(int j = 0; j < positions[i].connectingVertices.Count;j+=2)
+                for(int j = 0; j < positions[i].ceilingVertices.Count;j+=2)
                 {
-                    allVertices.Add(new Vector3(positions[i].connectingVertices[0].x, positions[i].connectingVertices[0].y, -positions[i].position.z));
-                    allVertices.Add(new Vector3(positions[i].connectingVertices[1].x, positions[i].connectingVertices[1].y, -positions[i].position.z));
-                    allVertices.Add(new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z));
-                    allVertices.Add(new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].ceilingVertices[j].x, positions[i].ceilingVertices[j].y, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].ceilingVertices[j+1].x, positions[i].ceilingVertices[j+1].y, -positions[i].position.z));
+                    allVertices.Add(centerOfTile);
+                    allVertices.Add(centerOfTile);
 
-                    newUV.Add(new Vector2 (1,0));                      //1,0
-                    newUV.Add(new Vector2 (0,0));                      //0,0
-                    newUV.Add(new Vector2 (0,1)); //0,1
-                    newUV.Add(new Vector2 (1,1)); //1,1
+                    newUV.AddRange(Math.calcUV(allVertices).ToList());
                 }
             }
             else
-            {*/
+            {
                 allVertices.Add(new Vector3(positions[i].position.x,     positions[i].position.y,     -positions[i].position.z));
                 allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y,     -positions[i].position.z));
                 allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y + 1, -positions[i].position.z));
                 allVertices.Add(new Vector3(positions[i].position.x,     positions[i].position.y + 1, -positions[i].position.z));
 
-                newUV.Add(new Vector2 (1,0));                      //1,0
-                newUV.Add(new Vector2 (0,0));                      //0,0
-                newUV.Add(new Vector2 (0,1)); //0,1
-                newUV.Add(new Vector2 (1,1)); //1,1
-            //}
+                newUV.AddRange(Math.calcUV(allVertices).ToList());
+            }
+            //!Then this is a tile with connecting vertices, and it needs to be filled up
+            for(int j = 0; j < positions[i].sidesWhereThereIsWall.Count; j++)
+            {
+                if(positions[i].sidesWhereThereIsWall[j].floor)
+                {
+                    allVertices.Add(new Vector3(centerOfTile.x - positions[i].sidesWhereThereIsWall[j].side.x * 0.5f + positions[i].sidesWhereThereIsWall[j].side.y * 0.5f, 
+                        centerOfTile.y + positions[i].sidesWhereThereIsWall[j].side.y * 0.5f + positions[i].sidesWhereThereIsWall[j].side.x * 0.5f, -positions[i].position.z));
+                    allVertices.Add(new Vector3(centerOfTile.x - positions[i].sidesWhereThereIsWall[j].side.x * 0.5f - positions[i].sidesWhereThereIsWall[j].side.y * 0.5f, 
+                        centerOfTile.y + positions[i].sidesWhereThereIsWall[j].side.y * 0.5f - positions[i].sidesWhereThereIsWall[j].side.x * 0.5f, -positions[i].position.z));
+                    allVertices.Add(centerOfTile);
+                    allVertices.Add(centerOfTile);
+
+                    newUV.AddRange(Math.calcUV(allVertices).ToList());
+
+                    positions[i].sidesWhereThereIsWall.RemoveAt(j); j--;
+                }
+            }
+            if(positions[i].floorVertices.Count > 0 && positions[i].sidesWhereThereIsWall.Count > 1)
+            {
+                for(int j = 0; j < positions[i].floorVertices.Count; j+=2)
+                {
+                    //! we create a fan structure to the corner
+                    Vector3 corner = (positions[i].sidesWhereThereIsWall[0].side - positions[i].sidesWhereThereIsWall[1].side).ToV3() + new Vector3(positions[i].position.x, positions[i].position.y, 0);
+                    allVertices.Add(new Vector3(positions[i].floorVertices[j].x,   positions[i].floorVertices[j].y, 0));
+                    allVertices.Add(new Vector3(positions[i].floorVertices[j+1].x, positions[i].floorVertices[j+1].y, 0));
+                    allVertices.Add(corner);
+                    allVertices.Add(corner);
+
+                    newUV.AddRange(Math.calcUV(allVertices).ToList());
+                }
+            }
             if(allVertices.Count > lastAmountVert + 1000)
             {
-                GameObject floorObject = new GameObject("floor");
+                GameObject floorObject = new GameObject("Floor");
 
                 Vector3[] newVertices = new Vector3[]{};
                 Array.Resize(ref newVertices, allVertices.Count - lastAmountVert);
@@ -982,13 +1039,7 @@ public class MeshMaker : MonoBehaviour
                 }
 
                 floorObject.AddComponent<MeshFilter>();
-                floorObject.GetComponent<MeshFilter>().mesh.Clear();
-                floorObject.GetComponent<MeshFilter>().mesh.vertices = newVertices.ToArray();
-                floorObject.GetComponent<MeshFilter>().mesh.triangles = newIndices.ToArray();
-                floorObject.GetComponent<MeshFilter>().mesh.uv = newUV.ToArray(); 
-                floorObject.GetComponent<MeshFilter>().mesh.Optimize();
-                floorObject.GetComponent<MeshFilter>().mesh.RecalculateBounds();
-                floorObject.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+                floorObject.GetComponent<MeshFilter>().mesh.Init(newVertices.ToArray(), newIndices.ToArray(), newUV.ToArray());
 
                 floorObject.AddComponent<MeshRenderer>();
                 floorObject.GetComponent<MeshRenderer>().material = floorMaterial;
@@ -997,12 +1048,11 @@ public class MeshMaker : MonoBehaviour
                 floorObject.transform.parent = trans;
                 newUV.Clear();
 
-                floorObject.AddComponent<MeshFilter>();
                 MeshCollider mc = floorObject.AddComponent<MeshCollider>();
                 mc.sharedMesh = floorObject.GetComponent<MeshFilter>().mesh;
             }
         }
-        GameObject floorObject2 = new GameObject("floor");
+        GameObject floorObject2 = new GameObject("Floor");
 
         Vector3[] newVertices2 = new Vector3[]{};
         Array.Resize(ref newVertices2, allVertices.Count - lastAmountVert);
@@ -1021,21 +1071,14 @@ public class MeshMaker : MonoBehaviour
         }
 
         floorObject2.AddComponent<MeshFilter>();
-        floorObject2.GetComponent<MeshFilter>().mesh.Clear();
-        floorObject2.GetComponent<MeshFilter>().mesh.vertices = newVertices2.ToArray();
-        floorObject2.GetComponent<MeshFilter>().mesh.triangles = newIndices2.ToArray();
-        floorObject2.GetComponent<MeshFilter>().mesh.uv = newUV.ToArray(); 
-        floorObject2.GetComponent<MeshFilter>().mesh.Optimize();
-        floorObject2.GetComponent<MeshFilter>().mesh.RecalculateBounds();
-        floorObject2.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+        floorObject2.GetComponent<MeshFilter>().mesh.Init(newVertices2.ToArray(), newIndices2.ToArray(), newUV.ToArray());
 
         floorObject2.AddComponent<MeshRenderer>();
         floorObject2.GetComponent<MeshRenderer>().material = floorMaterial;
 
         floorObject2.isStatic = true;
-        floorObject2.transform.parent = trans;
+        floorObject2.transform.parent = trans; 
 
-        floorObject2.AddComponent<MeshFilter>();
         MeshCollider mc2 = floorObject2.AddComponent<MeshCollider>();
         mc2.sharedMesh = floorObject2.GetComponent<MeshFilter>().mesh;
     }

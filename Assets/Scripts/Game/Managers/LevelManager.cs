@@ -36,7 +36,7 @@ public enum Mood
     List<AudioClip> m_melody = new List<AudioClip>();
     List<AudioClip> m_baseLine = new List<AudioClip>();
 
-    public Vector2Int m_amountOfRoomsCap = new Vector2Int(40, 50);
+    public Vector2Int m_amountOfRoomsCap = new Vector2Int(80, 100);
     public Vector2Int amountOfSections = new Vector2Int(1,1);
 
     public Mood[] m_mood = new Mood[2];
@@ -330,7 +330,6 @@ public class LevelManager : MonoBehaviour
         {
             Vector2Int newPos = (Party.instance.GetPartyLeader().transform.position / 20f).ToV2Int() * 20;
             Vector2Int prevPos = (CameraMovement.Instance.prevCameraPosition / 20f).ToV2Int() * 20;
-            Debug.Log(prevPos + " and " + previousRoom.transform.position);
 
             if (CameraMovement.Instance.MoveCamera(new Vector3(newPos.x, newPos.y, CameraMovement.GetRotationObject().transform.position.z), prevPos.ToV3()))
             {

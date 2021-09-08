@@ -215,6 +215,19 @@ public partial class Room: MonoBehaviour
             public List<Vector3> floorVertices = new List<Vector3>();
             public List<Vector3> ceilingVertices = new List<Vector3>(); //Slash upper floor
 
+            public class TileSides
+            {
+                //! to identify walls
+                public Vector2Int side;
+                public bool floor; //If yes, then don't draw a triangle on this upper floor. Youre supposed to draw a floor at the base of the wall instead. If no, then this is on the inside of the wall, so it goes on top
+                public TileSides(Vector2Int side_in)
+                {
+                    side = side_in;
+                    floor = true;
+                }
+            }
+            public List<TileSides> sidesWhereThereIsWall = new List<TileSides>();
+
             public TileTemplate(int elevation_in, Vector2Int divisions_in)
             {
                 elevation = elevation_in;
@@ -222,6 +235,7 @@ public partial class Room: MonoBehaviour
                 divisions = divisions_in;
                 wall = false;
                 door = false;
+                sidesWhereThereIsWall = new List<TileSides>(){new TileSides(Vector2Int.up),new TileSides(Vector2Int.down),new TileSides(Vector2Int.left),new TileSides(Vector2Int.right)};
             }
             public void SetElevation(int newElevation)
             {
@@ -690,22 +704,30 @@ public partial class Room: MonoBehaviour
                         if(currentAngle == 0)
                         {
                             //Debug.Log("adding 0 degree wall");
-                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, 
+                            new Vector3(-divisionModifier, 0, 0), 
+                            -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                         }
                         if(currentAngle == 90)
                         {
                             //Debug.Log("adding 90 degree wall");
-                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner,0), startPosition, 
+                            new Vector3(-0.5f, -0.5f + divisionModifier), //-0.5f + divisionModifier - isThisWallFollowingOuterCorner
+                            -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                         }
                         if(currentAngle == 180)
                         {
                             //Debug.Log("adding 180 degree wall");
-                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier,startPosition.y - 1,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier,startPosition.y - 1,0), startPosition,
+                            new Vector3(-divisionModifier, 0, 0), 
+                            -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                         }
                         if(currentAngle == 270)
                         {
                             //Debug.Log("adding 270 degree wall");
-                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f,startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner ,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness)); // y - 0.5f
+                            wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f,startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner ,0), startPosition, 
+                            new Vector3(-0.5f, -0.5f + divisionModifier), //-0.5f - divisionModifier + isThisWallFollowingOuterCorner
+                            -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness)); // y - 0.5f
                         }
                         //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
                         currentAngle += 90 * returnData.Item3; //This code can only do inner corners atm, not outer corners
@@ -814,22 +836,30 @@ public partial class Room: MonoBehaviour
                     if(currentAngle == 0)
                     {
                         //Debug.Log("adding 0 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, 
+                        new Vector3(),
+                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                     }
                     if(currentAngle == 90)
                     {
                         //Debug.Log("adding 90 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner,0), startPosition, 
+                        new Vector3(0.5f, -0.5f),
+                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                     }
                     if(currentAngle == 180)
                     {
                         //Debug.Log("adding 180 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier,startPosition.y - 1,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier,startPosition.y - 1,0), startPosition, 
+                        new Vector3(0,-1,0),
+                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                     }
                     if(currentAngle == 270)
                     {
                         //Debug.Log("adding 270 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f,startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner ,0), startPosition, -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness)); // y - 0.5f
+                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f,startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner ,0), startPosition, 
+                        new Vector3(-0.5f, -0.5f,0),
+                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness)); // y - 0.5f
                     }
                     //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
                     currentAngle += 90 * returnData.Item3; //This code can only do inner corners atm, not outer corners
@@ -988,7 +1018,7 @@ public partial class Room: MonoBehaviour
                 for(int y = 0; y < size.y; y++)
                 {
                     int elevation = positions[x,y].wall ? 0: positions[x,y].elevation;
-                    returnData.Add(new MeshMaker.SurfaceData(new Vector3Int(x,-y -1, elevation), positions[x,y].ceilingVertices));
+                    returnData.Add(new MeshMaker.SurfaceData(new Vector3Int(x,-y -1, elevation), positions[x,y].ceilingVertices, positions[x,y].floorVertices, positions[x,y].divisions.x, positions[x,y].sidesWhereThereIsWall));
                 }
             }
             return returnData;

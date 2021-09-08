@@ -453,11 +453,9 @@ public partial class LevelGenerator : MonoBehaviour
         {
             if(room.Item1 == roomPosition)
             {
-                //Debug.Log("<color=red>" + room.Item1 + "(gridspace) was occupied</color>");
                 return true;
             } 
         }
-        //Debug.Log("<color=blue>" + roomPosition + "(gridspace) was not occupied!</color>");
         return false;
     }
 
@@ -471,10 +469,6 @@ public partial class LevelGenerator : MonoBehaviour
         //Item1 is the adjacent gridposition, Item2 is the gridposition it connects to in the origin room
         for(int i = 0; i < roomList.Count; i++)
         {
-            //Debug.Log("Adjacent found: " + roomList[i].Item1);
-        }
-        for(int i = 0; i < roomList.Count; i++)
-        {
             //Get entrance in adjacent room that points to this room
             //Get entrance in this room that points to adjacent room
 
@@ -482,7 +476,6 @@ public partial class LevelGenerator : MonoBehaviour
             
             Vector2 direction = (new Vector2(roomList[i].Item1.x, roomList[i].Item1.y) - roomList[i].Item2).normalized;
 
-            //Debug.Log("Getting the direction: " + direction + " between the rooms gridPosition: " +roomList[i].Item2 + " and the adjacent room: " + roomList[i].Item1);
             Tuple<bool, Room.Entrances.Entrance> adjEntrance = roomList[i].Item3.directions.GetEntrance(roomList[i].Item1, -direction.ToV2Int());
 
             if(adjEntrance.Item1) //If i found the correct entrance
@@ -498,7 +491,6 @@ public partial class LevelGenerator : MonoBehaviour
                     }
                     else
                     {//!if an adjacent rooms entrance is not Open, then close the origin rooms entrance and set it to spawned
-                        //Debug.Log("<color=red>CLOSING DOOR</color>");
                         myEntrance.Item2.Close();
                     }
                 }

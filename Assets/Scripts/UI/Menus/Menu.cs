@@ -48,7 +48,7 @@ public class Menu : MonoBehaviour
 
     public bool central;
 
-    private void Start() 
+    private void Awake() 
     {
         background_Image = transform.GetChild(0).GetComponentInChildren<Image>();
         canvas = GetComponent<CanvasGroup>();

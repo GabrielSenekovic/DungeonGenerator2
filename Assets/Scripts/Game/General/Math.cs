@@ -68,4 +68,35 @@ public class Math : MonoBehaviour
 
         return new int[4]{ startX, startY, xLimit, yLimit };
     }
+    public static Vector2Int GetSideOfTile(Vector2 vertex, Vector2 center)
+    {
+        float xUsed = -Vector3.Dot(Vector3.right, vertex - center);
+        float yUsed = Vector3.Dot(Vector3.up, vertex - center);
+        xUsed = Mathf.Abs(yUsed) > Mathf.Abs(xUsed) ? 0 : Mathf.Ceil(Mathf.Abs(xUsed)) * Mathf.Sign(xUsed);
+        yUsed = Mathf.Abs(xUsed) > Mathf.Abs(yUsed) ? 0 : Mathf.Ceil(Mathf.Abs(yUsed)) * Mathf.Sign(yUsed);
+        return new Vector2Int((int)xUsed, (int)yUsed);
+    }
+    public static Vector2[] calcUV(List<Vector3> vertices)
+    {
+        /*A normal tile has 
+        1,0 - 0
+        0,0 - 1
+        0,1 - 2
+        1,1 - 3
+        */
+        //!For the last 4 vertices in the vertices list, find how many percent into the tile the positions are. 
+        //!The corners of the tiles are whole integers. So I only need the floating point to know the percentage
+        //!This will be used to get the UV position for that triangle
+
+        Vector2[] UV = new Vector2[4];
+        Vector2Int lowestValues = vertices[vertices.Count - 3].ToV2Int(); //Being the lower right corner, it is the lowest value to both coordinates
+
+        for(int i = vertices.Count - 4; i < vertices.Count; i++)
+        {
+            Vector2 uvVector = new Vector2((vertices[i].x - (int)lowestValues.x), (vertices[i].y - (int)lowestValues.y));
+            UV[i - vertices.Count + 4] = uvVector;
+        }
+
+        return UV;
+    }
 }

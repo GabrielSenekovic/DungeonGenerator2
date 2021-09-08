@@ -14,6 +14,17 @@ public static class Extensions
     {
         return Random.Range(0, list.Count);
     }
+    //!Mesh
+    public static void Init(this Mesh mesh, Vector3[] vertices, int[] indices, Vector2[] UVs)
+    {
+        mesh.Clear();
+        mesh.vertices = vertices;
+        mesh.triangles = indices;
+        mesh.uv = UVs; 
+        mesh.Optimize();
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+    }
     //!Texture2D
     public static void Finish(this Texture2D tex, Color[] col)
     {
