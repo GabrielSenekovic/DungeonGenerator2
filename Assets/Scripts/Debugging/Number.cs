@@ -4,20 +4,20 @@ using UnityEngine;
 
 public class Number : MonoBehaviour
 {
-    [SerializeField] Sprite[] m_numbers;
-    [SerializeField] SpriteRenderer[] m_numbersToDisplay;
+    [SerializeField] Sprite[] sprites;
+    [SerializeField] SpriteRenderer[] currentNumber;
 
     public void OnDisplayNumber(int value)
     {
         if(value > 9)
         {
-            m_numbersToDisplay[1].sprite = m_numbers[(int)value % 10];
-            m_numbersToDisplay[0].sprite = m_numbers[(int)value / 10];
+            currentNumber[1].sprite = sprites[(int)value % 10];
+            currentNumber[0].sprite = sprites[(int)value / 10];
             transform.position = new Vector2(transform.position.x - 4, transform.position.y);
         }
         else
         {
-            m_numbersToDisplay[0].sprite = m_numbers[value];
+            currentNumber[0].sprite = sprites[value];
         }
     }
 }

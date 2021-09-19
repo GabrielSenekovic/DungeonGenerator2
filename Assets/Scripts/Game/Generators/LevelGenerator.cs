@@ -64,7 +64,7 @@ public partial class LevelGenerator : MonoBehaviour
     {
         System.DateTime before = System.DateTime.Now;
 
-        UnityEngine.Random.InitState(GameData.m_LevelConstructionSeed);
+        UnityEngine.Random.InitState(GameData.levelConstructionSeed);
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
 
@@ -254,7 +254,7 @@ public partial class LevelGenerator : MonoBehaviour
                 count++;
             }
         }
-        //PlantFlora(ref templates);
+        PlantFlora(ref templates);
     }
     void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin)
     {
@@ -682,7 +682,7 @@ public partial class LevelGenerator : MonoBehaviour
 
                 for(int j = 0; j < sections[i].rooms.Count; j++)
                 {
-                    GLFunctions.DrawSquare(sections[i].rooms[j].transform.position - new Vector3(10, 10, 0), sections[i].rooms[j].size, transform, sectionColor);
+                    GLFunctions.DrawSquareFromCorner(sections[i].rooms[j].transform.position - new Vector3(10, 10, 0), sections[i].rooms[j].size, transform, sectionColor);
                 }
             }
         }

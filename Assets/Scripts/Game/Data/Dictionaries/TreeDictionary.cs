@@ -4,7 +4,6 @@ using UnityEngine;
 
 public partial class TreeGenerator
 {
-    public Leaf[] leaves;
     List<TreeData> data = new List<TreeData>
     {
         new TreeData(TreeData.TreeType.Apple, new Vector2Int(3,4), new Vector2Int(5, 8), new Vector2Int(8,8), 4),

@@ -36,7 +36,7 @@ public enum Mood
     List<AudioClip> m_melody = new List<AudioClip>();
     List<AudioClip> m_baseLine = new List<AudioClip>();
 
-    public Vector2Int m_amountOfRoomsCap = new Vector2Int(80, 100);
+    public Vector2Int m_amountOfRoomsCap = new Vector2Int(60, 100);
     public Vector2Int amountOfSections = new Vector2Int(1,1);
 
     public Mood[] m_mood = new Mood[2];
@@ -100,7 +100,7 @@ public class LevelDataGenerator : MonoBehaviour
 {
     static public LevelData Initialize(int LevelDataSeed)
     {
-        GameData.m_LevelDataSeed = LevelDataSeed;
+        GameData.levelDataSeed = LevelDataSeed;
         LevelData data = new LevelData();
         Random.InitState(LevelDataSeed);
         ChooseLocation(data);
@@ -270,6 +270,8 @@ public class LevelManager : MonoBehaviour
 
     LevelGenerator generator;
 
+    bool renderGrassChunks;
+
     private void Awake() 
     {
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
@@ -278,6 +280,7 @@ public class LevelManager : MonoBehaviour
         {
             GameData.SetPlayerPosition(new Vector2(GameData.GetPlayerPosition().x + RoomSize.x/2, GameData.GetPlayerPosition().y + RoomSize.y/2));
         }
+        renderGrassChunks = true;
     }
     private void Start() 
     {
@@ -295,7 +298,7 @@ public class LevelManager : MonoBehaviour
             }
             catch
             {
-                Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.m_LevelConstructionSeed + " and: " + GameData.m_LevelDataSeed);
+                Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
                 Debug.Break();
             }
         }
@@ -334,7 +337,7 @@ public class LevelManager : MonoBehaviour
             if (CameraMovement.Instance.MoveCamera(new Vector3(newPos.x, newPos.y, CameraMovement.GetRotationObject().transform.position.z), prevPos.ToV3()))
             {
                 CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x,currentRoom.transform.position.x + currentRoom.size.x - 20) , new Vector2(currentRoom.transform.position.y - currentRoom.size.y + 20, currentRoom.transform.position.y));
-                previousRoom.gameObject.SetActive(false);
+               // previousRoom.gameObject.SetActive(false);
                 UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
             }
         }
@@ -349,7 +352,7 @@ public class LevelManager : MonoBehaviour
             }
             catch
             {
-                Debug.LogError("<color=red>Error: Found broken seed when building!:</color> " + GameData.m_LevelConstructionSeed + " and: " + GameData.m_LevelDataSeed);
+                Debug.LogError("<color=red>Error: Found broken seed when building!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
                 Debug.Break();
             }
         }
@@ -412,6 +415,14 @@ public class LevelManager : MonoBehaviour
             case QuestData.MissionType.Investigation:
                 return q_data.GetStatus();
             default: return false;
+        }
+    }
+
+    private void OnRenderObject() 
+    {
+        if(renderGrassChunks && currentRoom.GetComponentInChildren<Grass>())
+        {
+            currentRoom.GetComponentInChildren<Grass>().RenderGrassChunkCenters(transform);
         }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GLFunctions : MonoBehaviour
 {
-    public static void DrawSquare(Vector3 origin, Vector2 dimensions, Transform trans, Color color)
+    public static void DrawSquareFromCorner(Vector3 origin, Vector2 dimensions, Transform trans, Color color) //Draws a square using basic OpenGL
     {
         GL.PushMatrix();
         GL.MultMatrix(trans.localToWorldMatrix);
@@ -16,16 +16,18 @@ public class GLFunctions : MonoBehaviour
         // Draw lines
         GL.Begin(GL.LINE_STRIP);
 
-        float shrinkBox = 2;
+        float shrinkBox = 0;
 
-        GL.Vertex3(origin.x + shrinkBox, origin.y + shrinkBox, -1000);
-        Vector3 vertex = origin + new Vector3(dimensions.x - shrinkBox, shrinkBox, -1000);
+        int z = -100;
+
+        GL.Vertex3(origin.x + shrinkBox, origin.y + shrinkBox, z);
+        Vector3 vertex = origin + new Vector3(dimensions.x - shrinkBox, shrinkBox, z);
         GL.Vertex3(vertex.x, vertex.y, vertex.z);
-        vertex = origin + new Vector3(dimensions.x - shrinkBox, dimensions.y - shrinkBox, -1000);
+        vertex = origin + new Vector3(dimensions.x - shrinkBox, dimensions.y - shrinkBox, z);
         GL.Vertex3(vertex.x, vertex.y, vertex.z);
-        vertex = origin + new Vector3(shrinkBox, dimensions.y - shrinkBox, -1000);
+        vertex = origin + new Vector3(shrinkBox, dimensions.y - shrinkBox, z);
         GL.Vertex3(vertex.x, vertex.y, vertex.z);
-        GL.Vertex3(origin.x + shrinkBox, origin.y + shrinkBox, -1000);
+        GL.Vertex3(origin.x + shrinkBox, origin.y + shrinkBox, z);
 
         GL.End();
         GL.PopMatrix();

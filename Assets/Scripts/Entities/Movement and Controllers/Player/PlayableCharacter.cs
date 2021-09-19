@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class PlayableCharacter : MonoBehaviour
 {
-    PlayerData m_data;
-
     [SerializeField] Collider2D m_collider;
 
     MovementModel m_PMM;

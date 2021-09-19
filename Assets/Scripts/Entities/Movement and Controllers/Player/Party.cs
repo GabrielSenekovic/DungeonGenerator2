@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class Party : MonoBehaviour
 {
     public static Party instance;
-    List<PlayableCharacter> m_PartyMembers;
-    [SerializeField]PlayableCharacter m_PartyLeader;
+    List<PlayableCharacter> partyMembers;
+    [SerializeField]PlayableCharacter partyLeader; //Currently played by player
 
     float movementSpeed = 0.1f;
 
@@ -20,12 +20,12 @@ public class Party : MonoBehaviour
 
     public void ChangePartyLeader(int index)
     {
-        m_PartyLeader = m_PartyMembers[index];
+        partyLeader = partyMembers[index];
     }
 
     public PlayableCharacter GetPartyLeader()
     {
-        return m_PartyLeader;
+        return partyLeader;
     }
 
     public static void AddKey()

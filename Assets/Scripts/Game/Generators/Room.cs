@@ -1147,12 +1147,12 @@ public partial class Room: MonoBehaviour
         {
             wallMaterial.mainTexture = floorMaterial_in.mainTexture;
             wallMaterial.color = color + Color.white / 10;
+            floorMaterial.color = color;
         }
         else
         {
             floorMaterial.SetTexture("_BaseMap", Resources.Load<Texture>("Art/Earth"));
         }
-        floorMaterial.color = color;
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SaveTemplateTexture(template);

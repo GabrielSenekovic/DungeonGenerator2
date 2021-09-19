@@ -10,8 +10,8 @@ public class DebugText : MonoBehaviour
     public void Display(LevelData levelData)
     {
         m_DebugText = GetComponentInChildren<Text>();
-        m_DebugText.text += "Level Construction Seed: " + GameData.m_LevelConstructionSeed + "\n";
-        m_DebugText.text += "Level Data Seed: " + GameData.m_LevelDataSeed + "\n";
+        m_DebugText.text += "Level Construction Seed: " + GameData.levelConstructionSeed + "\n";
+        m_DebugText.text += "Level Data Seed: " + GameData.levelDataSeed + "\n";
         m_DebugText.text += "Is Dungeon: " + levelData.dungeon + "\n";
         m_DebugText.text += "Biome: " + levelData.m_biome + "\n";
         m_DebugText.text += "Mood 1: " + levelData.GetMood(0) + "\n";

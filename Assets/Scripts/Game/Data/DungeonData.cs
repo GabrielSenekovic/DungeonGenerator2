@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public enum DungeonType
+public enum DungeonPreset
 {
     Cistern = 0,
     Sewers = 1,
@@ -19,13 +19,13 @@ public enum DungeonType
 
 public class DungeonData : MonoBehaviour
 {
-    DungeonType m_dungeonType;
+    DungeonPreset dungeonType;
     public void Initialize()
     {
-        m_dungeonType = DungeonType.Sewers;
+        dungeonType = DungeonPreset.Sewers;
     }
-    public DungeonType GetDungeonType()
+    public DungeonPreset GetDungeonType()
     {
-        return m_dungeonType;
+        return dungeonType;
     }
 }

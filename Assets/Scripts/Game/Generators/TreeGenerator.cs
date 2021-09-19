@@ -86,6 +86,5 @@ public partial class TreeGenerator : MonoBehaviour
 
     void CreateLeaves(TreeData.TreeType type)
     {
-        Leaf prefab = leaves[(int) type];
     }
 }
