@@ -131,7 +131,7 @@ public class MeshMaker : MonoBehaviour
         mesh.RecalculateNormals();
     }
     
-    public static void CreateTuft(Mesh mesh)
+    public static void CreateTuft(Mesh mesh, int quadsPerGrass, int amountOfStraws, float grassWidth)
     {
         List<int> newTriangles = new List<int>();
         List<Vector3> newVertices = new List<Vector3>();
@@ -142,11 +142,7 @@ public class MeshMaker : MonoBehaviour
         float angle_increase = (360.0f / 1.618033f) * Mathf.Deg2Rad;
         float radius = 0.05f;
         float maxRadius = 0.3f;
-        float amountOfStraws = 40;
         float radius_increase = (maxRadius - radius) / amountOfStraws;
-        float grassWidth = 0.1f;
-
-        float quadsPerGrass = 4; //10
 
         AnimationCurve curve = new AnimationCurve();
         curve.AddKey(0, 0);

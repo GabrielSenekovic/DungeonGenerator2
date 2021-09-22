@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 
-public class ObjectData
+[System.Serializable]public class ObjectData
 {
     public Vector3 pos;
     public Vector3 scale;
@@ -24,9 +24,14 @@ public class ObjectData
 }
 public class Grass : MonoBehaviour
 {
-    // Start is called before the first frame update
-    public int renderDistance;
-    Mesh mesh; //The grass mesh
+    public int renderDistanceOne;
+    Mesh meshOne; //The grass mesh
+    public int renderDistanceTwo;
+    Mesh meshTwo; //The lower res mesh
+    public int renderDistanceThree;
+
+    Mesh meshThree; //Lower res
+    Mesh meshFour; //Rasterised
     public Material grassMaterial; //The material used for grass
     public Vector2Int area;
     public int grassPerTile;
@@ -59,7 +64,7 @@ public class Grass : MonoBehaviour
             batches = batches_in;
         }
     }
-    List<MeshBatch> batches = new List<MeshBatch>();
+    public List<MeshBatch> batches = new List<MeshBatch>();
 
     [System.Serializable]public class GrassTile
     {
@@ -81,40 +86,51 @@ public class Grass : MonoBehaviour
 
     public List<VFXData> VFX = new List<VFXData>();
     List<BurningMeshBatch> burningBatches = new List<BurningMeshBatch>();
+
+    float batchDistanceToEdge;
     
     private void Awake() 
     {
-        mesh = new Mesh();
-        MeshMaker.CreateTuft(mesh);
-    }
-    void Start()
-    {
+        meshOne = new Mesh();
+        MeshMaker.CreateTuft(meshOne, 4, 40, 0.1f);
+        meshTwo = new Mesh();
+        MeshMaker.CreateTuft(meshTwo, 2, 20, 0.2f);
+        meshThree = new Mesh();
+        MeshMaker.CreateTuft(meshThree, 1, 15, 0.2f);
+        renderDistanceOne = 15;
+        renderDistanceTwo = 25;
+        renderDistanceThree = 35;
+        batchDistanceToEdge = 5;
     }
     public void PlantFlora(Room.RoomTemplate template)
     {
         Debug.Log("NEW FLORA");
         int batchIndexNum = 0;
         List<ObjectData> currentBatch = new List<ObjectData>();
-        //! Go through every 20x20 chunk of a room and put down grass for it
-        for(int i = 0; i < (area.x / 20) * (area.y / 20); i++) //Go through every chunk of the area
+        int chunkDivision = 10;
+        //! Go through every 10x10 chunk of a room and put down grass for it
+        for(int i = 0; i < (area.x / chunkDivision) * (area.y / chunkDivision); i++) //Go through every chunk of the area
         {
-            int chunk_x = (int)(i % ((float)area.x/20));
-            int chunk_y = (int)(i / ((float)area.x/20));
-            Vector3 chunkCenter = new Vector3(chunk_x * 20 + 10, -chunk_y * 20 + 10) + transform.position;
-            for(int j = 0; j < 20; j++)
+            int chunk_x = (int)(i % ((float)area.x/chunkDivision));
+            int chunk_y = (int)(i / ((float)area.x/chunkDivision));
+            Vector3 chunkCenter = new Vector3(chunk_x * chunkDivision + 5, -chunk_y * chunkDivision + 15) + transform.position;
+            for(int j = 0; j < chunkDivision; j++)
             {
-                for(int k = 0; k < 20; k++)
+                for(int k = 0; k < chunkDivision; k++)
                 {
+                    int index = (j + chunkDivision * chunk_x) + area.x * (k + chunkDivision * chunk_y);
                     //Going through all tiles of that chunk
                     tiles.Add(new GrassTile()); //Create new grass tile
-                    int x = j + chunk_x;
-                    int y = -(k + chunk_y);
+                    int x = j + chunk_x * chunkDivision + (int)transform.position.x;
+                    int y = -(k + chunk_y * chunkDivision) + (int)transform.position.y + 19;
                     for(int l = 0; l < grassPerTile; l++) //Make a set amount of grass for this one tile
                     {
-                        AddObject(currentBatch, i, new Vector2(Random.Range(x, x + 1.0f), Random.Range(y, y+1.0f))); //Adds one singular blade of grass to "currentBatch" 
+                        float elevation = template.positions[index].wall ? 0 : -template.positions[index].elevation;
+                        AddObject(currentBatch, i, new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y+1.0f), elevation)); //Adds one singular blade of grass to "currentBatch" 
                         batchIndexNum++;
                         if(batchIndexNum >= 1000)
                         {
+                            Debug.Log("I ended up here but shouldnt");
                             batches.Add(new MeshBatch(chunkCenter, currentBatch));
                             tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - l, l + 1)); //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
                             currentBatch = BuildNewBatch();
@@ -135,54 +151,16 @@ public class Grass : MonoBehaviour
             }
             if(batchIndexNum > 0 && batchIndexNum < 1000)
             {
+                Debug.Log("Im supposed to find myself here");
                 batches.Add(new MeshBatch(chunkCenter, currentBatch)); //Add last batch
+                currentBatch = BuildNewBatch();
+                batchIndexNum = 0;
             }
-        }
-    }
-    public void PlantFlorap(Room.RoomTemplate template)
-    {
-        int batchIndexNum = 0;
-        List<ObjectData> currentBatch = new List<ObjectData>();
-        for(int i = 0; i < area.x * area.y; i++) //Go through every tile of the area
-        {
-            tiles.Add(new GrassTile()); //Create new grass tile
-            int x = (int)(i % (float)area.x) + (int)transform.position.x;
-            int y = (int)(i / (float)area.y) + (int)transform.position.y;
-
-            //if(template.positions[i].identity == 0){continue;}
-
-            for(int j = 0; j < grassPerTile; j++) //Make a set amount of grass for this one tile
-            {
-                AddObject(currentBatch, i, new Vector2(Random.Range(x, x + 1.0f), Random.Range(y, y+1.0f))); //Adds one singular blade of grass to "currentBatch" 
-                batchIndexNum++;
-                if(batchIndexNum >= 1000)
-                {
-                    batches.Add(new MeshBatch(currentBatch[0].pos, currentBatch));
-                    tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - j, j + 1)); //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
-                    currentBatch = BuildNewBatch();
-                    batchIndexNum = 0;
-                }
-            }
-            if(tiles.Count > 0 && tiles[tiles.Count - 1].batchIndices.Count > 0 && tiles[tiles.Count - 1].batchIndices[0].z < grassPerTile) //If you didn't fill up all the grass there
-            {
-                tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count, 0, grassPerTile - tiles[tiles.Count - 1].batchIndices[0].z)); 
-                //Just Count because it's going into the next batch made. Logically it also starts at 0
-            }
-            else if(tiles.Count > 0 && tiles[tiles.Count - 1].batchIndices.Count == 0)
-            {
-                //If you went through the for loop and didn't add blades to the tile
-                tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count, currentBatch.Count - grassPerTile, grassPerTile));
-            }
-        }
-        if(batchIndexNum > 0 && batchIndexNum < 1000)
-        {
-            batches.Add(new MeshBatch(Vector3.zero, currentBatch)); //Add last batch
         }
     }
     void AddObject(List<ObjectData> currentBatch, int i, Vector3 position)
     {
         Vector2 textureSize = new Vector2(grassMaterial.mainTexture.width, grassMaterial.mainTexture.height);
-        position.Set(position.x, position.y, 0);
         currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.identity));
     }
 
@@ -231,20 +209,43 @@ public class Grass : MonoBehaviour
 
     void RenderBatches()
     {
+        //Vector3[] frustumCorners = new Vector3[4];
+        //Camera.main.CalculateFrustumCorners(new Rect(0, 0, 1, 1), Camera.main.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
+
         foreach(var b in batches)
         {
-            if((b.position - Camera.main.transform.position).magnitude < renderDistance)
+            //The fives have to account for rotation
+            //Vector3 rotation = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * Vector2.up; rotation.Normalize();
+            Vector2 northPoint =  Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
+            Vector2 southPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
+            Vector2 leftPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
+            Vector2 rightPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
+
+            if((leftPoint.x > 0 && leftPoint.x < Camera.main.pixelWidth && leftPoint.y > 0 && leftPoint.y < Camera.main.pixelHeight) ||
+               (rightPoint.x > 0 && rightPoint.x < Camera.main.pixelWidth && rightPoint.y > 0 && rightPoint.y < Camera.main.pixelHeight) ||
+               (northPoint.y > 0 && northPoint.y < Camera.main.pixelHeight && northPoint.x > 0 && northPoint.x < Camera.main.pixelWidth) ||
+               (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
             {
-                Graphics.DrawMeshInstanced(mesh, 0, grassMaterial, b.batches.Select((a) => a.matrix).ToList());
+                float dist = (b.position - Camera.main.transform.position).magnitude;
+                Mesh mesh = dist < renderDistanceOne ? meshOne : dist < renderDistanceTwo ? meshTwo : dist < renderDistanceThree ? meshThree : meshThree;
+                if(mesh != null)
+                {
+                    Graphics.DrawMeshInstanced(mesh, 0, grassMaterial, b.batches.Select((a) => a.matrix).ToList());
+                }
             }
         }
         foreach(var b in burningBatches)
         {
-            if((b.position - Camera.main.transform.position).magnitude < renderDistance)
+            if(CloseEnough(b.position))
             {
-                Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
+                Graphics.DrawMeshInstanced(meshOne, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
             }
         }
+    }
+
+    public bool CloseEnough(Vector3 position)
+    {
+        return (position - Camera.main.transform.position).magnitude < renderDistanceOne;
     }
 
     public void RenderGrassChunkCenters(Transform trans)
@@ -257,11 +258,27 @@ public class Grass : MonoBehaviour
 
     private void OnDrawGizmos() 
     {
-        for(int i = 0; i < area.x * area.y; i++)
+        /*for(int i = 0; i < area.x * area.y; i++)
         {
             Vector3 center = new Vector3((int)(i%(float)area.x) + 0.5f + transform.position.x, (int)(i/(float)area.x) + 0.5f + transform.position.y, -0.5f);
             Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
             Gizmos.DrawCube(center, size);
+        }*/
+        foreach(var b in batches)
+        {
+            //? this gizmo shows the point from the camera to each grass batch
+           // Gizmos.color = CloseEnough(b.position) ? Color.magenta : Color.blue;
+            //Gizmos.DrawLine(Camera.main.transform.position, b.position);
+
+            Vector2 northPoint =  Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position;
+            Vector2 southPoint = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position;
+            Vector2 leftPoint = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position;
+            Vector2 rightPoint = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position;
+
+            Gizmos.DrawLine(northPoint, new Vector3(northPoint.x, northPoint.y, 3));
+            Gizmos.DrawLine(southPoint, new Vector3(southPoint.x, southPoint.y, 3));
+            Gizmos.DrawLine(leftPoint, new Vector3(leftPoint.x, leftPoint.y, 3));
+            Gizmos.DrawLine(rightPoint, new Vector3(rightPoint.x, rightPoint.y, 3));
         }
     }
     void CheckCollision()
