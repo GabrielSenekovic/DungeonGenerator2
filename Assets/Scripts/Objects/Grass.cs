@@ -25,12 +25,12 @@ using System.Linq;
 public class Grass : MonoBehaviour
 {
     public int renderDistanceOne;
-    Mesh meshOne; //The grass mesh
+    public Mesh meshOne; //The grass mesh
     public int renderDistanceTwo;
-    Mesh meshTwo; //The lower res mesh
+    public Mesh meshTwo; //The lower res mesh
     public int renderDistanceThree;
 
-    Mesh meshThree; //Lower res
+    public Mesh meshThree; //Lower res
     Mesh meshFour; //Rasterised
     public Material grassMaterial; //The material used for grass
     public Vector2Int area;
@@ -102,7 +102,7 @@ public class Grass : MonoBehaviour
         renderDistanceThree = 35;
         batchDistanceToEdge = 5;
     }
-    public void PlantFlora(Room.RoomTemplate template)
+    public void PlantFlora(Room room)
     {
         Debug.Log("NEW FLORA");
         int batchIndexNum = 0;
@@ -118,23 +118,27 @@ public class Grass : MonoBehaviour
             {
                 for(int k = 0; k < chunkDivision; k++)
                 {
-                    int index = (j + chunkDivision * chunk_x) + area.x * (k + chunkDivision * chunk_y);
+                    int index = (j + chunkDivision * chunk_x) * 2 + area.x * 2 * (k + chunkDivision * chunk_y) * 2;
                     //Going through all tiles of that chunk
                     tiles.Add(new GrassTile()); //Create new grass tile
-                    int x = j + chunk_x * chunkDivision + (int)transform.position.x;
-                    int y = -(k + chunk_y * chunkDivision) + (int)transform.position.y + 19;
+                    int x = j + chunk_x * chunkDivision;
+                    int y = k + chunk_y * chunkDivision;
                     for(int l = 0; l < grassPerTile; l++) //Make a set amount of grass for this one tile
                     {
-                        float elevation = template.positions[index].wall ? 0 : -template.positions[index].elevation;
-                        AddObject(currentBatch, i, new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y+1.0f), elevation)); //Adds one singular blade of grass to "currentBatch" 
-                        batchIndexNum++;
-                        if(batchIndexNum >= 1000)
+                        float elevation = room.placementGrid[index].elevation;
+                        Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y-1.0f), -elevation);
+                        if(room.RequestPosition(position, new Vector2Int(1,1)))
                         {
-                            Debug.Log("I ended up here but shouldnt");
-                            batches.Add(new MeshBatch(chunkCenter, currentBatch));
-                            tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - l, l + 1)); //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
-                            currentBatch = BuildNewBatch();
-                            batchIndexNum = 0;
+                            position = new Vector3(position.x + (int)transform.position.x, -position.y + (int)transform.position.y + 19, position.z);
+                            AddObject(currentBatch, i, position); //Adds one singular blade of grass to "currentBatch" 
+                            batchIndexNum++;
+                            if(batchIndexNum >= 1000)
+                            {
+                                batches.Add(new MeshBatch(chunkCenter, currentBatch));
+                                tiles[tiles.Count - 1].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - l, l + 1)); //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
+                                currentBatch = BuildNewBatch();
+                                batchIndexNum = 0;
+                            }
                         }
                     }
                     if(tiles.Count > 0 && tiles[tiles.Count - 1].batchIndices.Count > 0 && tiles[tiles.Count - 1].batchIndices[0].z < grassPerTile) //If you didn't fill up all the grass there
@@ -151,7 +155,6 @@ public class Grass : MonoBehaviour
             }
             if(batchIndexNum > 0 && batchIndexNum < 1000)
             {
-                Debug.Log("Im supposed to find myself here");
                 batches.Add(new MeshBatch(chunkCenter, currentBatch)); //Add last batch
                 currentBatch = BuildNewBatch();
                 batchIndexNum = 0;
@@ -267,7 +270,7 @@ public class Grass : MonoBehaviour
         foreach(var b in batches)
         {
             //? this gizmo shows the point from the camera to each grass batch
-           // Gizmos.color = CloseEnough(b.position) ? Color.magenta : Color.blue;
+            //Gizmos.color = CloseEnough(b.position) ? Color.magenta : Color.blue;
             //Gizmos.DrawLine(Camera.main.transform.position, b.position);
 
             Vector2 northPoint =  Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position;

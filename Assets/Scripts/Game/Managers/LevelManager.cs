@@ -272,6 +272,11 @@ public class LevelManager : MonoBehaviour
 
     bool renderGrassChunks;
 
+    public Mesh placementQuad;
+    public Material placementMat;
+
+    public bool buildMode;
+
     private void Awake() 
     {
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
@@ -281,6 +286,9 @@ public class LevelManager : MonoBehaviour
             GameData.SetPlayerPosition(new Vector2(GameData.GetPlayerPosition().x + RoomSize.x/2, GameData.GetPlayerPosition().y + RoomSize.y/2));
         }
         renderGrassChunks = true;
+        placementQuad = MeshMaker.GetQuad();
+        placementMat = Resources.Load<Material>("Materials/Placement");
+        buildMode = false;
     }
     private void Start() 
     {
@@ -341,6 +349,7 @@ public class LevelManager : MonoBehaviour
                 UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
             }
         }
+
     }
     void BuildLevel()
     {
@@ -417,12 +426,21 @@ public class LevelManager : MonoBehaviour
             default: return false;
         }
     }
+    public void ToggleBuildMode()
+    {
+        buildMode = !buildMode;
+        //Do stuff with the camera later to make it easier to see the room?
+    }
 
     private void OnRenderObject() 
     {
         if(renderGrassChunks && currentRoom.GetComponentInChildren<Grass>())
         {
             currentRoom.GetComponentInChildren<Grass>().RenderGrassChunkCenters(transform);
+        }
+        if(buildMode)
+        {
+            currentRoom.RenderPlacementGrid(placementQuad, placementMat);
         }
     }
 }

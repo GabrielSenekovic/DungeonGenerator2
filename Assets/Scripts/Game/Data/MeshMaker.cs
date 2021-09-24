@@ -1113,4 +1113,38 @@ public class MeshMaker : MonoBehaviour
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
     }
+    static public Mesh GetQuad()
+    {
+        Mesh mesh = new Mesh();
+        List<int> newTriangles = new List<int>();
+        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector2> newUV = new List<Vector2>();
+
+        newVertices.Add(new Vector3(1,1,0));
+        newVertices.Add(new Vector3(0,1,0));
+        newVertices.Add(new Vector3(0,0,0));
+        newVertices.Add(new Vector3(1,0,0));
+
+        newTriangles.Add(3);
+        newTriangles.Add(1);
+        newTriangles.Add(0);
+        newTriangles.Add(3);
+        newTriangles.Add(2);
+        newTriangles.Add(1);
+
+        newUV.Add(new Vector2 (1,0));                      //1,0
+        newUV.Add(new Vector2 (0,0));                      //0,0
+        newUV.Add(new Vector2 (0,1)); //0,1
+        newUV.Add(new Vector2 (1,1)); 
+
+        mesh.Clear ();
+        mesh.vertices = newVertices.ToArray();
+        mesh.triangles = newTriangles.ToArray();
+        mesh.uv = newUV.ToArray(); 
+        mesh.Optimize();
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
 }

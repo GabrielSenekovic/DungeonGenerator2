@@ -51,7 +51,8 @@ public partial class TreeGenerator : MonoBehaviour
     void GenerateTree(TreeData.TreeType type)
     {
         GameObject Tree = new GameObject(type + " tree");
-        TreeData tree = data[(int)type];
+        TreeData tree = new TreeData();
+        //data[(int)type];
         TreePart trunk = CreateTrunk((int)Random.Range(tree.minmaxTrunkHeight.x, tree.minmaxTrunkHeight.y), (int)Random.Range(tree.minmaxWidth.x, tree.minmaxWidth.y), 10, Tree.transform);
         Branch(trunk.Segments[Random.Range(tree.branchThreshold, trunk.Segments.Count)]); //Obviously not going to be the final code
         //Because this implies the branches could start at the base of the trunk

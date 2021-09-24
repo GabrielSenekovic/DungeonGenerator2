@@ -39,6 +39,9 @@ public class CommandBox : MonoBehaviour
                     Party.instance.GetPartyLeader().GetStatusConditionModel().AddCondition(new StatusConditionModel.StatusCondition((Condition)Enum.Parse(typeof(Condition), partsOfCommand[1]), float.Parse(partsOfCommand[2], CultureInfo.InvariantCulture.NumberFormat)));
                 }
             break;
+            case "Buildmode" :
+                GameObject.FindObjectOfType<LevelManager>().ToggleBuildMode();
+            break;
             case "Give" :
                 if(partsOfCommand.Length == 1){return;}
                 if(partsOfCommand[1] == "Key")

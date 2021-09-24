@@ -92,14 +92,9 @@ public class Grid <T>
         return (x >= 0 && x < size.x && y <= 0 && y > -size.y );
     }
 
-    public bool IsPositionWithinBounds(Vector2Int pos)
+    public bool IsWithinBounds(Vector2Int pos)
     {
-        if(pos.x >= 0 && pos.x < size.x && pos.y <= 0 && pos.y > -size.y )
-        {
-            return true;
-        }
-        // Debug.Log(pos + " <color=red>is not within bounds</color>");
-        return false;
+        return (pos.x >= 0 && pos.x < size.x && pos.y <= 0 && pos.y > -size.y );
     }
     public int[] GetValidConstraints(int x, int y)
     {
@@ -167,5 +162,13 @@ public class Grid <T>
         if (yLimit > size.y) { yLimit = size.y; }
 
         return new int[4]{startX, startY, xLimit, yLimit };
+    }
+    public Vector2 Position(int index)
+    {
+        return new Vector2(index % size.x, index / size.x);
+    }
+    public Vector2Int GetRandomPosition()
+    {
+        return new Vector2Int(Random.Range(0, size.x), Random.Range(0, size.y));
     }
 }
