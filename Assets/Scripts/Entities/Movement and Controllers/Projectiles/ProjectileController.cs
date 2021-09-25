@@ -47,6 +47,8 @@ public class ProjectileController : MovementModel
     [SerializeField]List<GameObject> visuals;
 
     public int lifeLength;
+
+    public int ID = 0;
     int lifeTimer = 0;
     void Start()
     {
@@ -187,6 +189,7 @@ public class ProjectileController : MovementModel
     public virtual void OnDestroy()
     {
         if(blastRadius > 0 && explosionPower > 0){Explode();}
+        EntityManager.Instance.Remove(ID);
         Destroy(this.gameObject);
     }
 }

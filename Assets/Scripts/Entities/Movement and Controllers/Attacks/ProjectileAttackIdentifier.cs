@@ -78,8 +78,8 @@ public class ProjectileAttackIdentifier : AttackIdentifier
     protected override void OnAttack(Vector3 direction, Vector3 source, Collider collider)
     {
         ProjectileController temp = Instantiate(projectile, source, Quaternion.identity);
+        EntityManager.Instance.Add(ref temp);
         if(!temp.placedProjectile) {SetDirectionAndRotate(ref temp, direction); }
-        Debug.Log("Ignore between " + collider.gameObject.name + " and " + temp.gameObject.name);
         if(!temp.collideWithCaster)
         {
             Physics.IgnoreCollision(collider, temp.GetComponent<SphereCollider>());
@@ -88,6 +88,7 @@ public class ProjectileAttackIdentifier : AttackIdentifier
     protected override void OnAttack(Vector3 direction, Vector3 source, Vector3 origin, float orbitSpeed, Collider collider)
     {
         ProjectileController temp = Instantiate(projectile, source, Quaternion.identity);
+        EntityManager.Instance.Add(ref temp);
         if(!temp.placedProjectile){ SetDirectionAndRotate(ref temp, direction); }
         temp.orbitPoint = origin; temp.orbitSpeed = orbitSpeed;
         if(!temp.collideWithCaster)

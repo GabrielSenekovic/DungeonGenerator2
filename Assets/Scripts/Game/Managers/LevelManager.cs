@@ -277,6 +277,8 @@ public class LevelManager : MonoBehaviour
 
     public bool buildMode;
 
+    EntityManager entityManager;
+
     private void Awake() 
     {
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
@@ -289,6 +291,7 @@ public class LevelManager : MonoBehaviour
         placementQuad = MeshMaker.GetQuad();
         placementMat = Resources.Load<Material>("Materials/Placement");
         buildMode = false;
+        entityManager = GetComponent<EntityManager>();
     }
     private void Start() 
     {
@@ -334,6 +337,7 @@ public class LevelManager : MonoBehaviour
             party.GetPartyLeader().GetPMM().SetCanMove(false);
             CameraMovement.SetMovingRoom(true);
         }
+        entityManager.CheckProjectileGrassCollision(currentRoom);
     }
     private void LateUpdate()
     {
@@ -434,9 +438,9 @@ public class LevelManager : MonoBehaviour
 
     private void OnRenderObject() 
     {
-        if(renderGrassChunks && currentRoom.GetComponentInChildren<Grass>())
+        if(renderGrassChunks && currentRoom.grass != null)
         {
-            currentRoom.GetComponentInChildren<Grass>().RenderGrassChunkCenters(transform);
+            currentRoom.grass.RenderGrassChunkCenters(transform);
         }
         if(buildMode)
         {

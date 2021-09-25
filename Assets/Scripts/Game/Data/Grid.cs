@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Grid <T>
+[System.Serializable]public class Grid <T>
 {
     public List<T> items = new List<T>();
 

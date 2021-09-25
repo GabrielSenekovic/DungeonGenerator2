@@ -72,7 +72,14 @@ public class MovementModel : MonoBehaviour
 
     public void Move()
     {
-        body.MovePosition(transform.position + movementDirection.normalized * statistics.Speed * 0.1f); //0.1 is because on a scale of 1, the player moves 1 tile per Move()
+        if(statistics != null)
+        {
+            body.MovePosition(transform.position + movementDirection.normalized * statistics.Speed * 0.1f); //0.1 is because on a scale of 1, the player moves 1 tile per Move()
+        }
+        else
+        {
+            body.MovePosition(transform.position + movementDirection.normalized * 0.1f); //0.1 is because on a scale of 1, the player moves 1 tile per Move()
+        }
         movementDirection = Vector3.zero;
     }
 
@@ -91,7 +98,14 @@ public class MovementModel : MonoBehaviour
     }
     public void SetConstantVelocity(Vector3 velocity_in)
     {
-        body.velocity = velocity_in.normalized * statistics.Speed;
+        if(statistics != null)
+        {
+            body.velocity = velocity_in.normalized * statistics.Speed;
+        }
+        else
+        {
+            body.velocity = velocity_in.normalized;
+        }
     }
     public void SetCanMove(bool value)
     {
