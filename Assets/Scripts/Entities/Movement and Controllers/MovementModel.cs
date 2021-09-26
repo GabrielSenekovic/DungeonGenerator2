@@ -78,7 +78,7 @@ public class MovementModel : MonoBehaviour
         }
         else
         {
-            body.MovePosition(transform.position + movementDirection.normalized * 0.1f); //0.1 is because on a scale of 1, the player moves 1 tile per Move()
+            body.MovePosition(transform.position + movementDirection.normalized); //0.1 is because on a scale of 1, the player moves 1 tile per Move()
         }
         movementDirection = Vector3.zero;
     }

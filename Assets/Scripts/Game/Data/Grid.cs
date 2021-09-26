@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [System.Serializable]public class Grid <T>
 {
@@ -15,6 +16,11 @@ using UnityEngine;
     public Grid(Vector2Int size_in)
     {
         size = size_in;
+    }
+
+    public void Init()
+    {
+        items = Enumerable.Repeat(default(T), size.x * size.y).ToList();
     }
     public T this[int i]
     {

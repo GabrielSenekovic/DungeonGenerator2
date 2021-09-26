@@ -109,7 +109,7 @@ public class Grass : MonoBehaviour
     public void PlantFlora(Room room)
     {
         Debug.Log("NEW FLORA");
-        tiles = new Grid<GrassTile>(room.size);
+        tiles = new Grid<GrassTile>(room.size); tiles.Init();
         int batchIndexNum = 0;
         List<ObjectData> currentBatch = new List<ObjectData>();
         int chunkDivision = 10;
@@ -123,11 +123,11 @@ public class Grass : MonoBehaviour
             {
                 for(int k = 0; k < chunkDivision; k++)
                 {
-                    int index = (j + chunkDivision * chunk_x) * 2 + area.x * 2 * (k + chunkDivision * chunk_y) * 2;
+                    int index = (k + chunkDivision * chunk_x) * 2 + area.x * 2 * (j + chunkDivision * chunk_y) * 2;
                     //Going through all tiles of that chunk
-                    tiles.Add(new GrassTile()); //Create new grass tile
-                    int x = j + chunk_x * chunkDivision;
-                    int y = k + chunk_y * chunkDivision;
+                    int x = k + chunk_x * chunkDivision;
+                    int y = j + chunk_y * chunkDivision;
+                    tiles[x,y] = new GrassTile(); //Create new grass tile
                     int succeededGrasses = 0;
                     for(int l = 0; l < grassPerTile; l++) //Make a set amount of grass for this one tile
                     {
@@ -143,27 +143,27 @@ public class Grass : MonoBehaviour
                             {
                                 //If you are currently adding grass to the tile, but you ran out of space in the batch, save the batch and continue adding grass
                                 batches.Add(new MeshBatch(chunkCenter, currentBatch, grassMaterial));
-                                tiles[tiles.items.Count - 1].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - succeededGrasses, succeededGrasses + 1)); 
+                                tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - succeededGrasses, succeededGrasses + 1)); 
                                 //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
                                 currentBatch = BuildNewBatch();
                                 batchIndexNum = 0;
                             }
                         }
                     }
-                    if(tiles.items.Count > 0 && tiles[tiles.items.Count - 1].batchIndices.Count > 0 && tiles[tiles.items.Count - 1].batchIndices[0].z < grassPerTile)
+                    if(tiles[x,y].batchIndices.Count > 0 && tiles[x,y].batchIndices[0].z < grassPerTile)
                     {
                         //If there are tiles, and the latest tile has more than zero batch indices, but it doesn't have the max amount of grass in it
                         //Then the tile needs to have two batch indices
                         //This currently doesn't get entered, since the grid has become so small
-                        tiles[tiles.items.Count - 1].batchIndices.Add(new Vector3Int(batches.Count, 0, grassPerTile - tiles[tiles.items.Count - 1].batchIndices[0].z)); 
+                        tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count, 0, grassPerTile - tiles[tiles.items.Count - 1].batchIndices[0].z)); 
                         //Just Count because it's going into the next batch made. Logically it also starts at 0
                     }
-                    else if(tiles.items.Count > 0 && tiles[tiles.items.Count - 1].batchIndices.Count == 0)
+                    else if(tiles[x,y].batchIndices.Count == 0)
                     {
                         //If you went through the for loop and didn't add blades to the tile
                         //This is because you never hit the match batchIndexNum. For instance, the grid is 10x10 so with 3 grass per grid you only get 300 before you restart
                         //Its batches.Count instead of batches.Count - 1, because the new batch hasnt been added yes as opposed to the if statement in the for loop
-                        tiles[tiles.items.Count - 1].batchIndices.Add(new Vector3Int(batches.Count, currentBatch.Count - succeededGrasses, succeededGrasses));
+                        tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count, currentBatch.Count - succeededGrasses, succeededGrasses));
                     }
                 }
             }
@@ -297,13 +297,13 @@ public class Grass : MonoBehaviour
 
     private void OnDrawGizmos() 
     {
-        /*for(int i = 0; i < area.x * area.y; i++)
+       /* for(int i = 0; i < area.x * area.y; i++)
         {
             Vector3 center = new Vector3((int)(i%(float)area.x) + 0.5f + transform.position.x, (int)(i/(float)area.x) + 0.5f + transform.position.y, -0.5f);
             Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
             Gizmos.DrawCube(center, size);
-        }*/
-        foreach(var b in batches)
+        }
+       /* foreach(var b in batches)
         {
             //? this gizmo shows the point from the camera to each grass batch
             //Gizmos.color = CloseEnough(b.position) ? Color.magenta : Color.blue;
@@ -318,18 +318,16 @@ public class Grass : MonoBehaviour
             Gizmos.DrawLine(southPoint, new Vector3(southPoint.x, southPoint.y, 3));
             Gizmos.DrawLine(leftPoint, new Vector3(leftPoint.x, leftPoint.y, 3));
             Gizmos.DrawLine(rightPoint, new Vector3(rightPoint.x, rightPoint.y, 3));
-        }
+        }*/
     }
 
-    public void CheckCollision(Vector2 pos)
+    public void CheckCollision(Vector2 pos, Vector3 actualPos)
     {
         //!this position given has to have the room position subtracted from it
         Vector2Int posInt = pos.ToV2Int();
         if(tiles[posInt].burning){return;}
-        Vector3 center = new Vector3((int)pos.x + 0.5f + transform.position.x, pos.y + 0.5f + transform.position.y, -0.5f);
+        Vector3 center = new Vector3(Mathf.RoundToInt(actualPos.x) + 0.5f, Mathf.RoundToInt(actualPos.y) + 0.5f, actualPos.z);
         Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
-        //Debug.Log("Position " + pos);
-        //Debug.Log("Center " + center);
         Collider[] hitColliders = Physics.OverlapBox(center, size, Quaternion.identity, layerMask, QueryTriggerInteraction.UseGlobal);
         for(int j = 0; j < hitColliders.Length; j++)
         {
@@ -390,6 +388,7 @@ public class Grass : MonoBehaviour
 
     void DEBUGColorFire(int i) 
     {
+        Debug.Log("Index colored: " + i);
         List<Vector3Int> indices = tiles[i].batchIndices;
         tiles[i].burning = true; //Setting a bool like this prevents negative indices to be read
         
@@ -397,15 +396,11 @@ public class Grass : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            DEBUGbatches.Add(new MeshBatch(Vector3.zero, new List<ObjectData>(), new Material(grassMaterial)));
+            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), new Material(grassMaterial)));
             DEBUGbatches[DEBUGbatches.Count - 1].material.SetColor("_Color", Color.red);
-            Debug.Log(indices[k].x + " and " + indices[k].y + " and " + indices[k].z);
-            Debug.Log(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z).Count);
             DEBUGbatches[DEBUGbatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
-            Debug.Log("Batches count: " + batches[indices[k].x].batches.Count);
             batches[indices[k].x].batches.RemoveRange(indices[k].y,indices[k].z); 
-            Debug.Log("Batches count: " + batches[indices[k].x].batches.Count);
             //! if removing, then every single index has to be changed in all the tiles whose indices are in index[k].x
             //! I guess thats the fall I have to take since I can't figure out an alternative
             //! it has to do this because otherwise they're references indices in batches that has been removed (RemoveRange)
@@ -413,9 +408,9 @@ public class Grass : MonoBehaviour
             {
                 //Going through all tiles from the point you hit
                 //Start from i, since it was the grass of tile i that was removed. Then work your way up and left shift all the indices by indices[k].z
-                if(tiles[l].batchIndices[0].x > indices[k].x) //! if the first indices of this tile are from a batch higher up than the one with removed grass, then you can exit this for loop
+                if(tiles[l].batchIndices[0].x != indices[k].x) //! if the first indices of this tile are from a batch higher up than the one with removed grass, then you can exit this for loop
                 {
-                    break;
+                    continue;
                 }
 
                 //Going through all indices of this tile

@@ -66,8 +66,9 @@ public class EntityManager : MonoBehaviour
     {
         for(int i = 0; i < projectiles.Count; i++)
         {
-            Vector3 pos = projectiles[i].transform.position + room.transform.position + new Vector3(10, -30, 0);
-            room.grass.CheckCollision(pos);
+            Vector3 pos = new Vector3(projectiles[i].transform.position.x, -projectiles[i].transform.position.y) + new Vector3(-room.transform.position.x, room.transform.position.y) + new Vector3(10, 9, 0);
+            //The positions y has to be adjusted so that it starts at 0 in the top corner and goes up when going down
+            room.grass.CheckCollision(pos, projectiles[i].transform.position);
         }
     }
 }
