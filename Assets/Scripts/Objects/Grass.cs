@@ -32,7 +32,11 @@ public class Grass : MonoBehaviour
 
     public Mesh meshThree; //Lower res
     Mesh meshFour; //Rasterised
+
+    public Mesh tulip;
     public Material grassMaterial; //The material used for grass
+
+    public Material tulipMaterial;
     public Vector2Int area;
     public int grassPerTile;
 
@@ -92,6 +96,8 @@ public class Grass : MonoBehaviour
     List<BurningMeshBatch> burningBatches = new List<BurningMeshBatch>();
 
     float batchDistanceToEdge;
+    public AnimationCurve curve1;
+    public Texture2D tulipTexture;
     
     private void Awake() 
     {
@@ -109,6 +115,30 @@ public class Grass : MonoBehaviour
     public void PlantFlora(Room room)
     {
         Debug.Log("NEW FLORA");
+
+        tulip = new Mesh();
+
+        AnimationCurve curve = new AnimationCurve();
+        Keyframe temp = new Keyframe();
+
+        temp.time = 0;
+        temp.value = (1f/16f);
+        curve.AddKey(temp);
+        temp.time = 0.3f;
+        temp.value = (1f/32f * 3);
+        curve.AddKey(temp);
+        temp.time = 1;
+        temp.value = (1f/16f - 1f/32f);
+        curve.AddKey(temp);
+
+        tulipMaterial = new Material(grassMaterial);
+        tulipMaterial.SetFloat("_Gravity", 0);
+        tulipMaterial.SetColor("_Color", Color.white);
+
+        tulipTexture = MeshMaker.CreateFlower(tulip, tulipMaterial, 1, 1f/16f * 3, 2, 3, curve, new List<Color>(){new Color32(56, 158, 85, 255), Color.red});
+
+        curve1 = curve;
+
         tiles = new Grid<GrassTile>(room.size); tiles.Init();
         int batchIndexNum = 0;
         List<ObjectData> currentBatch = new List<ObjectData>();
@@ -119,7 +149,7 @@ public class Grass : MonoBehaviour
             int chunk_x = (int)(i % ((float)area.x/chunkDivision));
             int chunk_y = (int)(i / ((float)area.x/chunkDivision));
             Vector3 chunkCenter = new Vector3(chunk_x * chunkDivision + 5, -chunk_y * chunkDivision + 15) + transform.position;
-            for(int j = 0; j < chunkDivision; j++)
+            for(int j = 0; j < chunkDivision; j++) 
             {
                 for(int k = 0; k < chunkDivision; k++)
                 {
@@ -247,11 +277,11 @@ public class Grass : MonoBehaviour
                 Mesh mesh = dist < renderDistanceOne ? meshOne : dist < renderDistanceTwo ? meshTwo : dist < renderDistanceThree ? meshThree : meshThree;
                 if(mesh != null)
                 {
-                    Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
+                    Graphics.DrawMeshInstanced(tulip, 0, tulipMaterial, b.batches.Select((a) => a.matrix).ToList());
                 }
             }
         }
-        foreach(var b in DEBUGbatches)
+       /* foreach(var b in DEBUGbatches)
         {
             //The fives have to account for rotation
             //Vector3 rotation = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * Vector2.up; rotation.Normalize();
@@ -272,7 +302,7 @@ public class Grass : MonoBehaviour
                     Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
                 }
             }
-        }
+        }*/
         foreach(var b in burningBatches)
         {
             if(CloseEnough(b.position))

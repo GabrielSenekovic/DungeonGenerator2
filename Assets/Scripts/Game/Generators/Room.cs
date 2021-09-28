@@ -1176,9 +1176,9 @@ public partial class Room: MonoBehaviour
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
-        Debug.Log("Creating walls");
+        //Debug.Log("Creating walls");
         List<Tuple<List<MeshMaker.WallData>, bool>> data = template.ExtractWalls(directions);
-        Debug.Log("Data size: " + data.Count);
+       // Debug.Log("Data size: " + data.Count);
 
         for(int i = 0; i < data.Count; i++)
         {

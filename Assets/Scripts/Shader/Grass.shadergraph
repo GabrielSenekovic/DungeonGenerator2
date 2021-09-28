@@ -2948,7 +2948,7 @@
     },
     "m_Name": "Gravity",
     "m_DefaultReferenceName": "Vector1_BA84DD84",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "_Gravity",
     "m_GeneratePropertyBlock": true,
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,

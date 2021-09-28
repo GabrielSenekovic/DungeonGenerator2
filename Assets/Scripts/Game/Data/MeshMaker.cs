@@ -130,6 +130,144 @@ public class MeshMaker : MonoBehaviour
         mesh.Optimize();
         mesh.RecalculateNormals();
     }
+
+    public static Texture2D CreateFlower(Mesh mesh, Material tulipMaterial, float height, float bulbHeight, int whorls, int merosity, AnimationCurve curve, List<Color> colors)
+    {
+        //Create a stalk, create leaves and add a perianth to the top of the stalk
+        //The stalk is triangular so it can be seen from all angles
+        //Tulip grow about 30cm high
+        List<int> newTriangles = new List<int>();
+        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector2> newUV = new List<Vector2>();
+
+        //!The height will also determine the height of the texture
+        Texture2D texture = new Texture2D(2, (int)height * 16, TextureFormat.ARGB32, false); //1 in height corresponds to 16 pixels
+        Debug.Log("Height of texture: " + (height * 16) + " When it starts drawing red: " + (int)(height * 16 - bulbHeight * 16));
+        for(int i = 0; i < texture.width * texture.height; i++)
+        {
+            if(i/texture.width < (int)(height * 16 - bulbHeight * 16))
+            {
+                texture.SetPixel(i%texture.width, i/texture.width, colors[0]);
+            }
+            else
+            {
+                texture.SetPixel(i%texture.width, i/texture.width, colors[1]);
+            }
+        }
+        texture.Apply();
+        texture.filterMode = FilterMode.Point;
+        tulipMaterial.SetTexture("_MainTex", texture);
+
+        List<Vector3> positions = new List<Vector3>();
+        float currentHeight = 0;
+        float amountOfVerticesVertical = 5;
+        float heightIncrement = (height - bulbHeight) / amountOfVerticesVertical;
+
+        float angle = 0; float angleIncrement = 120;
+
+        int stepsAroundCenter = 3;
+
+        for(int i = 0; i < amountOfVerticesVertical; i++)
+        {
+            for(int j = 0; j < stepsAroundCenter; j++)
+            {
+                positions.Add(new Vector3((1f/32f) * Mathf.Sin(angle * Mathf.Deg2Rad), (1f/32f) * Mathf.Cos(angle* Mathf.Deg2Rad), -currentHeight));
+                angle += angleIncrement;
+            }
+            currentHeight += heightIncrement;
+        }
+
+        for(int j = 0; j < positions.Count -3; j++)
+        {
+            newVertices.Add(positions[0 + j]);
+            newVertices.Add(positions[(1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)j/(float)stepsAroundCenter)]);
+            newVertices.Add(positions[(stepsAroundCenter + 1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)(j+3)/(float)stepsAroundCenter)]);
+            newVertices.Add(positions[stepsAroundCenter + j]);
+
+            int[] indexValue = new int[]{0,1,3,1,2,3};
+
+            for(int index = 0; index < indexValue.Length; index++)
+            {
+                newTriangles.Add(indexValue[index] + j * 4);
+            }
+        }
+        float amountOfQuadsVertical = amountOfVerticesVertical -1;
+        for(int j = 0; j < amountOfQuadsVertical; j++)
+        {
+            for(int k = 0; k < stepsAroundCenter; k++) //Minus one because there are 4 quads if there are 5 vertices upwards
+            {
+                newUV.Add(new Vector2 (1, (height - bulbHeight) / amountOfQuadsVertical * j));     //1,0         1.0f / amountOfQuadsVertical * j
+                newUV.Add(new Vector2 (0, (height - bulbHeight) / amountOfQuadsVertical * j));     //0,0
+                newUV.Add(new Vector2 (0, (height - bulbHeight) / amountOfQuadsVertical * (j+1))); //0,1
+                newUV.Add(new Vector2 (1, (height - bulbHeight) / amountOfQuadsVertical * (j+1))); //1,1
+            }
+        }
+        //Stalk done, lets add Perianth
+        CreatePerianth(ref newVertices, ref newTriangles, ref newUV, currentHeight - heightIncrement, bulbHeight, whorls, merosity, height - bulbHeight, curve); 
+        //!height - bulbheight only works because height is 1, so its already procentual
+
+        DebugLog.Report(newVertices, newTriangles, newUV);
+
+        mesh.Clear ();
+        mesh.vertices = newVertices.ToArray();
+        mesh.triangles = newTriangles.ToArray();
+        mesh.uv = newUV.ToArray(); 
+        mesh.Optimize();
+        mesh.RecalculateNormals();
+
+        return texture;
+    }
+
+    public static void CreatePerianth(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, float startPoint, float height, int whorls, int merosity, float UVStart, AnimationCurve curve)
+    {
+        List<Vector3> positions = new List<Vector3>();
+        float angle = 0;
+        float angleIncrement = 360f / (merosity * 3f); //Time 3 since each petal stretches one step outwards on each side
+        float currentHeight = startPoint;
+        float heightIncrement = height / 2f;
+
+        float amountOfVerticesVertical = 4;
+        float amountOfQuadsVertical = amountOfVerticesVertical - 1;
+
+        for(int i = 0; i < amountOfVerticesVertical; i++) //4 steps up. Should be enough for tulip. That makes 3 quads
+        {
+            float radius = curve.Evaluate((float)i/4f);
+            for(int j = 0; j < 3 * 3; j++) //Three steps around, times three because each petal stretches one step outwards on each side
+            {
+                positions.Add(new Vector3(radius * Mathf.Sin(angle * Mathf.Deg2Rad), radius * Mathf.Cos(angle* Mathf.Deg2Rad), -currentHeight));
+                angle += angleIncrement;
+            }
+            currentHeight += heightIncrement;
+        }
+
+        int startIndex = vertices.Count;
+
+        for(int j = 0; j < positions.Count -9; j++)
+        {
+            vertices.Add(positions[0 + j]);
+            vertices.Add(positions[(1 + j)%9 + 9 * (int)((float)j/9.0f)]);
+            vertices.Add(positions[(10 + j)%9 + 9 * (int)((float)(j+9)/9.0f)]);
+            vertices.Add(positions[9 + j]);
+
+            int[] indexValue = new int[]{0,1,3,1,2,3};
+
+            for(int index = 0; index < indexValue.Length; index++)
+            {
+                indices.Add(startIndex + indexValue[index] + j * 4);
+            }
+        }
+        for(int j = 0; j < amountOfQuadsVertical; j++)
+        {
+            for(int k = 0; k < 3 * 3; k++) 
+            {
+                Debug.Log(UVStart + height / amountOfQuadsVertical * j);
+                UV.Add(new Vector2 (1, UVStart + height / amountOfQuadsVertical * j));     //1,0 + height / amountOfQuadsVertical * j
+                UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * j));     //0,0
+                UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * (j+1))); //0,1
+                UV.Add(new Vector2 (1, UVStart + height / amountOfQuadsVertical * (j+1))); //1,1
+            } 
+        }
+    }
     
     public static void CreateTuft(Mesh mesh, int quadsPerGrass, int amountOfStraws, float grassWidth)
     {
@@ -240,7 +378,6 @@ public class MeshMaker : MonoBehaviour
         vase.AddComponent<DropItems>();
         if(vase.GetComponent<DropItems>())
         {
-            Debug.Log("This vase has drop items");
             vase.GetComponent<DropItems>().Initialize(UIManager.GetCurrency());
         }
         vase.AddComponent<AnimationCurveTest>();
@@ -367,10 +504,10 @@ public class MeshMaker : MonoBehaviour
     }
     public static void CreateWall(GameObject wall, Material wallMaterial, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles)
     {
-        Debug.Log("Enters CreateWall");
+        //Debug.Log("Enters CreateWall");
         //ref List<Room.EntranceData> entrancesOfThisRoom, ref List<Room.EntranceData> entrancesOfRoomAtStart, ref List<Room.EntranceData> entrancesOfRoomAtEnd
         float jaggedness = 0.04f;
-        Debug.Log("Instructions: " + instructions.Count);
+       // Debug.Log("Instructions: " + instructions.Count);
         Vector2 divisions = new Vector2(instructions[0].divisions.x +1, instructions[0].divisions.y+1);
         if(instructions[0].divisions.x == 1)
         {
