@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class DebugLog : MonoBehaviour
 {
+    public static void ReportBrokenSeed(int dataSeed, int constructionSeed, string text)
+    {
+        text = "<color=red>" + text + " ERROR: Data seed: " + dataSeed + "Construction seed: " + constructionSeed;
+    }
     public static void Report(List<Vector3>vertices, List<int>indices, List<Vector2>UV)
     {
         string text = "Vertices: " + vertices.Count + " Indices: " + indices.Count + " UV: " + UV.Count;

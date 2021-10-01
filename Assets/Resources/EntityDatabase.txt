@@ -1,0 +1,15 @@
+Name: Grass
+Type: Tuft
+Quads: 4
+Straws: 40
+Width: 0.1f
+
+Name: Tulip
+Variety: Red
+Type: Flower
+Height: 1
+Bulb: 0.0625
+Whorls: 2
+Merosity: 3
+Curve:
+Colors: (56, 158, 85) (230, 0, 0)

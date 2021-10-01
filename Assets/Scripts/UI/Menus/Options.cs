@@ -14,6 +14,24 @@ public class Options : MonoBehaviour
     public Scrollbar PrimaryMenuColor;
     public Scrollbar SaturationSlider;
 
+    private void Awake() 
+    {
+        SFXSlider.enabled = false;
+        MusicSlider.enabled = false;
+        VolumeSlider.enabled = false;
+        PrimaryMenuColor.enabled = false;
+        SaturationSlider.enabled = false;
+    }
+
+    public void Activate(bool value)
+    {
+        SFXSlider.enabled = value;
+        MusicSlider.enabled = value;
+        VolumeSlider.enabled = value;
+        PrimaryMenuColor.enabled = value;
+        SaturationSlider.enabled = value;
+    }
+
     public void ChangeSFXVolume()
     {
         AudioManager.SFX_volume = SFXSlider.value;

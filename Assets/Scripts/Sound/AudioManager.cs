@@ -19,7 +19,7 @@ public sealed class AudioManager : MonoBehaviour
     {
         public string name;
 
-        public AudioClip clip;
+        public List<AudioClip> clips;
     }
     [System.Serializable]public class Music
     {
@@ -70,7 +70,7 @@ public sealed class AudioManager : MonoBehaviour
     }
     public static void PlaySFX(Sound sound)
     {
-        SFX_source[nextSFX_source].clip = sound.clip;
+        SFX_source[nextSFX_source].clip = sound.clips[UnityEngine.Random.Range(0, sound.clips.Count)];
         SFX_source[nextSFX_source].volume = SFX_volume * global_volume;
         SFX_source[nextSFX_source].Play();
         Debug.Log("Playing SFX: " + sound.name);

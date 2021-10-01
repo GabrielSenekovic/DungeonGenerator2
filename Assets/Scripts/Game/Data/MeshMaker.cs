@@ -373,6 +373,7 @@ public class MeshMaker : MonoBehaviour
         col.radius = 0.5f;
 
         HealthModel health = vase.AddComponent<HealthModel>();
+        health.deathSound = "pot_break";
         health.maxHealth = 1; health.currentHealth = 1;
 
         vase.AddComponent<DropItems>();

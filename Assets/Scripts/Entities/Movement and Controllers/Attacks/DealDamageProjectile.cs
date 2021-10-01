@@ -13,6 +13,6 @@ public class DealDamageProjectile : DealDamage
     }
     protected override void OnImpact()
     {
-        GetComponent<ProjectileController>().OnDestroy();
+        Destroy(gameObject);
     }
 }

@@ -190,6 +190,5 @@ public class ProjectileController : MovementModel
     {
         if(blastRadius > 0 && explosionPower > 0){Explode();}
         EntityManager.Instance.Remove(ID);
-        Destroy(this.gameObject);
     }
 }

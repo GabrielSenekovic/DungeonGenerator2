@@ -90,7 +90,6 @@ public partial class LevelGenerator : MonoBehaviour
         System.DateTime after = System.DateTime.Now; 
         System.TimeSpan duration = after.Subtract(before);
         Debug.Log("<color=blue>Time to generate: </color>" + duration.TotalMilliseconds + " milliseconds, which is: " + duration.TotalSeconds + " seconds");
-        if(DebuggingTools.spawnOnlyBasicRooms){FindObjectOfType<DebugText>().Display(level.l_data);}
     }
    
     public void PutDownQuestObjects(LevelManager level, QuestData data)

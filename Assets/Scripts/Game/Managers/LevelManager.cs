@@ -300,31 +300,31 @@ public class LevelManager : MonoBehaviour
         l_data.dungeon = true;
         q_data = GameData.GetCurrentQuestData();
         generator = GetComponent<LevelGenerator>();
-        if(DebuggingTools.checkForBrokenSeeds)
-        {
-            try
-            {
-                generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
-                generator.PutDownQuestObjects(this, q_data);
-            }
-            catch
-            {
-                Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
-                Debug.Break();
-            }
-        }
-        else
-        {
-            generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
-            generator.PutDownQuestObjects(this, q_data);
-        }
+
+        generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
+        generator.PutDownQuestObjects(this, q_data);
+
         currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
         CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
+    public void TryGenerateLevel()
+    {
+        try
+        {
+            generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
+            generator.PutDownQuestObjects(this, q_data);
+        }
+        catch
+        {
+            DebugLog.ReportBrokenSeed(GameData.levelDataSeed, GameData.levelConstructionSeed, "Generation");
+            // Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
+            Debug.Break();
+        }
+    }
     private void Update()
     {
-        if(!generator.levelGenerated){BuildLevel();}
+        if(!generator.levelGenerated){generator.BuildLevel(l_data, currentRoom);}
         if(party == null){return;}
         if(UpdateQuest())
         {
@@ -337,7 +337,10 @@ public class LevelManager : MonoBehaviour
             party.GetPartyLeader().GetPMM().SetCanMove(false);
             CameraMovement.SetMovingRoom(true);
         }
-        entityManager.CheckProjectileGrassCollision(currentRoom);
+        if(currentRoom.grass != null)
+        {
+            entityManager.CheckProjectileGrassCollision(currentRoom);
+        }
     }
     private void LateUpdate()
     {
@@ -355,23 +358,16 @@ public class LevelManager : MonoBehaviour
         }
 
     }
-    void BuildLevel()
+    void TryBuildLevel()
     {
-        if (DebuggingTools.checkForBrokenSeeds)
-        {
-            try
-            {
-                generator.BuildLevel(l_data, currentRoom);
-            }
-            catch
-            {
-                Debug.LogError("<color=red>Error: Found broken seed when building!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
-                Debug.Break();
-            }
-        }
-        else
+        try
         {
             generator.BuildLevel(l_data, currentRoom);
+        }
+        catch
+        {
+            DebugLog.ReportBrokenSeed(GameData.levelDataSeed, GameData.levelConstructionSeed, "Building");
+            Debug.Break();
         }
     }
     bool CheckIfChangeRoom()

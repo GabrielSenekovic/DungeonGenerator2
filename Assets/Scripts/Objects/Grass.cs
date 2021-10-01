@@ -49,26 +49,30 @@ public class Grass : MonoBehaviour
     [System.Serializable]public class MeshBatch
     {
         public Vector3 position; //Used for LOD
+        public string name; //What name to search for meshes
         public List<ObjectData> batches;
-
         public Material material;
-        public MeshBatch(Vector3 position_in, List<ObjectData> batches_in, Material material_in)
+
+        public MeshBatch(Vector3 position_in, List<ObjectData> batches_in, string name_in, Material material_in)
         {
             position = position_in;
             batches = batches_in;
+            name = name_in;
             material = material_in;
         }
     }
     [System.Serializable]public class BurningMeshBatch //Find a way to draw them by the chunks
     {
         public Vector3 position;
+        public string name;
         public Material material;
         public VFXData vFX;
         public List<ObjectData> batches;
-        public BurningMeshBatch(Vector3 position_in, List<ObjectData> batches_in, Material material_in, VFXData vFX_in)
+        public BurningMeshBatch(Vector3 position_in, List<ObjectData> batches_in, Material material_in, VFXData vFX_in, string name_in)
         {
             position = position_in;
             batches = batches_in;
+            name = name_in;
         }
     }
     public List<MeshBatch> batches = new List<MeshBatch>();
@@ -172,7 +176,7 @@ public class Grass : MonoBehaviour
                             if(batchIndexNum >= 1000)
                             {
                                 //If you are currently adding grass to the tile, but you ran out of space in the batch, save the batch and continue adding grass
-                                batches.Add(new MeshBatch(chunkCenter, currentBatch, grassMaterial));
+                                batches.Add(new MeshBatch(chunkCenter, currentBatch, "grass", grassMaterial));
                                 tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - succeededGrasses, succeededGrasses + 1)); 
                                 //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
                                 currentBatch = BuildNewBatch();
@@ -199,7 +203,7 @@ public class Grass : MonoBehaviour
             }
             if(batchIndexNum > 0 && batchIndexNum < 1000)
             {
-                batches.Add(new MeshBatch(chunkCenter, currentBatch, grassMaterial)); //Add last batch
+                batches.Add(new MeshBatch(chunkCenter, currentBatch, "grass", grassMaterial)); //Add last batch
                 currentBatch = BuildNewBatch();
                 batchIndexNum = 0;
             }
@@ -261,25 +265,7 @@ public class Grass : MonoBehaviour
 
         foreach(var b in batches)
         {
-            //The fives have to account for rotation
-            //Vector3 rotation = Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * Vector2.up; rotation.Normalize();
-            Vector2 northPoint =  Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
-            Vector2 southPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
-            Vector2 leftPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
-            Vector2 rightPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
-
-            if((leftPoint.x > 0 && leftPoint.x < Camera.main.pixelWidth && leftPoint.y > 0 && leftPoint.y < Camera.main.pixelHeight) ||
-               (rightPoint.x > 0 && rightPoint.x < Camera.main.pixelWidth && rightPoint.y > 0 && rightPoint.y < Camera.main.pixelHeight) ||
-               (northPoint.y > 0 && northPoint.y < Camera.main.pixelHeight && northPoint.x > 0 && northPoint.x < Camera.main.pixelWidth) ||
-               (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
-            {
-                float dist = (b.position - Camera.main.transform.position).magnitude;
-                Mesh mesh = dist < renderDistanceOne ? meshOne : dist < renderDistanceTwo ? meshTwo : dist < renderDistanceThree ? meshThree : meshThree;
-                if(mesh != null)
-                {
-                    Graphics.DrawMeshInstanced(tulip, 0, tulipMaterial, b.batches.Select((a) => a.matrix).ToList());
-                }
-            }
+            MeshBatchRenderer.RenderBatches(b, batchDistanceToEdge);
         }
        /* foreach(var b in DEBUGbatches)
         {
@@ -305,10 +291,7 @@ public class Grass : MonoBehaviour
         }*/
         foreach(var b in burningBatches)
         {
-            if(CloseEnough(b.position))
-            {
-                Graphics.DrawMeshInstanced(meshOne, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
-            }
+            MeshBatchRenderer.RenderBatches(b, batchDistanceToEdge);
         }
     }
 
@@ -426,7 +409,7 @@ public class Grass : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), new Material(grassMaterial)));
+            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), "grass", grassMaterial));
             DEBUGbatches[DEBUGbatches.Count - 1].material.SetColor("_Color", Color.red);
             DEBUGbatches[DEBUGbatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
@@ -468,7 +451,7 @@ public class Grass : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(grassMaterial), new VFXData()));
+            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(grassMaterial), new VFXData(), batches[indices[k].x].name));
             burningBatches[burningBatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
             batches[indices[k].x].batches.RemoveRange(indices[k].y,indices[k].z); 

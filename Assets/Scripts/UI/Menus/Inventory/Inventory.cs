@@ -34,14 +34,14 @@ public class Inventory : MonoBehaviour
             inventorySlots[i].index += i;
             inventorySlots_Item.Add(null);
         }
-        if(DebuggingTools.fillInventoryWithRandomItems)
+    }
+    public void FillInventoryWithRandomItems()
+    {
+        for(int i = 0; i < inventorySlots.Count; i++)
         {
-            for(int i = 0; i < inventorySlots.Count; i++)
-            {
-                Sprite temp = itemGenerator.GenerateItemSprite();
-                if (temp == null) { return; }
-                AddItem(GenerateRandomItem(temp));
-            }
+            Sprite temp = itemGenerator.GenerateItemSprite();
+            if (temp == null) { return; }
+            AddItem(GenerateRandomItem(temp));
         }
     }
     public Item GenerateRandomItem(Sprite sprite)

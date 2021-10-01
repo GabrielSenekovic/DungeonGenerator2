@@ -8,6 +8,8 @@ public class Party : MonoBehaviour
     List<PlayableCharacter> partyMembers;
     [SerializeField]PlayableCharacter partyLeader; //Currently played by player
 
+    public Inventory inventory;
+
     float movementSpeed = 0.1f;
 
     public uint keys;

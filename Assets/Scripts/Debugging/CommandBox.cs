@@ -42,6 +42,9 @@ public class CommandBox : MonoBehaviour
             case "Buildmode" :
                 GameObject.FindObjectOfType<LevelManager>().ToggleBuildMode();
             break;
+            case "FillInventory" :
+                Party.instance.inventory.FillInventoryWithRandomItems();
+            break;
             case "Give" :
                 if(partsOfCommand.Length == 1){return;}
                 if(partsOfCommand[1] == "Key")

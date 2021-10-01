@@ -6,6 +6,8 @@ public class HealthModel : MonoBehaviour
 {
     public float currentHealth;
     public int maxHealth;
+
+    public string deathSound;
     private void Awake() 
     {
         currentHealth = maxHealth;
@@ -14,6 +16,7 @@ public class HealthModel : MonoBehaviour
     {
         if(currentHealth - damage <= 0)
         {
+            AudioManager.PlaySFX(deathSound);
             gameObject.SetActive(false);
             if(GetComponent<DropItems>())
             {
@@ -27,11 +30,18 @@ public class HealthModel : MonoBehaviour
     }
     public void TakeDamage(DealDamage.Damage damage)
     {
-        GetComponent<EntityStatistics>().AdjustDamage(ref damage);
-        GetComponent<StatusConditionModel>().ReactToDamage(ref damage);
+        if(GetComponent<EntityStatistics>())
+        {
+            GetComponent<EntityStatistics>().AdjustDamage(ref damage);
+        }
+        if(GetComponent<StatusConditionModel>())
+        {
+            GetComponent<StatusConditionModel>().ReactToDamage(ref damage);
+        }
 
         if(currentHealth - damage.damage <= 0)
         {
+            AudioManager.PlaySFX(deathSound);
             gameObject.SetActive(false);
             if(GetComponent<DropItems>())
             {

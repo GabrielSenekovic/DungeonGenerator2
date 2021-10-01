@@ -124,7 +124,6 @@ public class SpriteText : MonoBehaviour
         while(currentLetter != ' ' && (int)currentLetter != 10 && i+j < text.Length)
         {
             wordWidth += font.Find(currentLetter).sprite.texture.width;
-            Debug.Log(i + j);
             currentLetter = text[i + j];
             j++;
         }

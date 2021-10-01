@@ -1196,16 +1196,6 @@ public partial class Room: MonoBehaviour
 
         MeshMaker.CreateSurface(template.ExtractFloor(), floorObject.transform, floorMaterial);
         floorObject.transform.localPosition = new Vector3(- 10, 10, 0);
-
-        /*for(int i = 0; i < 17; i++)
-        {
-            GameObject vase = MeshMaker.CreateVase(floorMaterial);
-            vase.transform.parent = this.gameObject.transform;
-            vase.transform.localPosition = new Vector3(-i + 8, -1, 0);
-        }
-
-        //vase.AddComponent<Rigidbody>(); dont add it yet, because the vase has no bottom!!*/
-
     }
 
     void Furnish(Material mat)
