@@ -283,7 +283,7 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }
     }
-     public void PlantFlora(ref List<Room.RoomTemplate> templates)
+    public void PlantFlora(ref List<Room.RoomTemplate> templates)
     {
         for(int i = 0; i < sections.Count; i++)
         {
@@ -294,8 +294,7 @@ public partial class LevelGenerator : MonoBehaviour
                     GameObject lawn = new GameObject("Lawn");
                     lawn.transform.parent = sections[i].rooms[j].transform;
 
-                    Grass grass = lawn.AddComponent<Grass>();
-                    grass.grassMaterial = Resources.Load<Material>("Materials/Grass");
+                    Vegetation grass = lawn.AddComponent<Vegetation>();
                     grass.area = templates[j].size;
                     grass.grassPerTile = 3;
                     grass.burningSpeed = 0.001f;

@@ -12,3 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35f6fcf9aa5e2db4aae914eb4877507b, type: 3}
   m_Name: EntityDatabase
   m_EditorClassIdentifier: 
+  database:
+  - name: Grass
+    amountPerTile: 3
+    material: {fileID: 2100000, guid: a572486a140469948b90a1bcbc7ab969, type: 2}
+    mesh:
+    - mesh: {fileID: 0}
+      renderDistance: 15
+    - mesh: {fileID: 0}
+      renderDistance: 25
+    - mesh: {fileID: 0}
+      renderDistance: Infinity
+  - name: Tulip
+    amountPerTile: 3
+    material: {fileID: 0}
+    mesh:
+    - mesh: {fileID: 0}
+      renderDistance: Infinity

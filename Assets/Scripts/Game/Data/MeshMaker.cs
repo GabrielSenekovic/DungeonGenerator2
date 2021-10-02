@@ -260,7 +260,7 @@ public class MeshMaker : MonoBehaviour
         {
             for(int k = 0; k < 3 * 3; k++) 
             {
-                Debug.Log(UVStart + height / amountOfQuadsVertical * j);
+//                Debug.Log(UVStart + height / amountOfQuadsVertical * j);
                 UV.Add(new Vector2 (1, UVStart + height / amountOfQuadsVertical * j));     //1,0 + height / amountOfQuadsVertical * j
                 UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * j));     //0,0
                 UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * (j+1))); //0,1

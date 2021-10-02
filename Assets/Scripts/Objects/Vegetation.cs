@@ -4,39 +4,8 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 
-[System.Serializable]public class ObjectData
+public class Vegetation : MonoBehaviour
 {
-    public Vector3 pos;
-    public Vector3 scale;
-    public Quaternion rot;
-    public Matrix4x4 matrix
-    {
-        get
-        {
-            return Matrix4x4.TRS(pos, rot, scale);
-        }
-    }
-
-   public ObjectData(Vector3 pos_in, Vector3 scale_in, Quaternion rot_in)
-   {
-       pos = pos_in; scale = scale_in; rot = rot_in;
-   }
-}
-public class Grass : MonoBehaviour
-{
-    public int renderDistanceOne;
-    public Mesh meshOne; //The grass mesh
-    public int renderDistanceTwo;
-    public Mesh meshTwo; //The lower res mesh
-    public int renderDistanceThree;
-
-    public Mesh meshThree; //Lower res
-    Mesh meshFour; //Rasterised
-
-    public Mesh tulip;
-    public Material grassMaterial; //The material used for grass
-
-    public Material tulipMaterial;
     public Vector2Int area;
     public int grassPerTile;
 
@@ -100,124 +69,14 @@ public class Grass : MonoBehaviour
     List<BurningMeshBatch> burningBatches = new List<BurningMeshBatch>();
 
     float batchDistanceToEdge;
-    public AnimationCurve curve1;
-    public Texture2D tulipTexture;
     
     private void Awake() 
     {
-        meshOne = new Mesh();
-        MeshMaker.CreateTuft(meshOne, 4, 40, 0.1f);
-        meshTwo = new Mesh();
-        MeshMaker.CreateTuft(meshTwo, 2, 20, 0.2f);
-        meshThree = new Mesh();
-        MeshMaker.CreateTuft(meshThree, 1, 15, 0.2f);
-        renderDistanceOne = 15;
-        renderDistanceTwo = 25;
-        renderDistanceThree = 35;
         batchDistanceToEdge = 5;
     }
     public void PlantFlora(Room room)
     {
-        Debug.Log("NEW FLORA");
-
-        tulip = new Mesh();
-
-        AnimationCurve curve = new AnimationCurve();
-        Keyframe temp = new Keyframe();
-
-        temp.time = 0;
-        temp.value = (1f/16f);
-        curve.AddKey(temp);
-        temp.time = 0.3f;
-        temp.value = (1f/32f * 3);
-        curve.AddKey(temp);
-        temp.time = 1;
-        temp.value = (1f/16f - 1f/32f);
-        curve.AddKey(temp);
-
-        tulipMaterial = new Material(grassMaterial);
-        tulipMaterial.SetFloat("_Gravity", 0);
-        tulipMaterial.SetColor("_Color", Color.white);
-
-        tulipTexture = MeshMaker.CreateFlower(tulip, tulipMaterial, 1, 1f/16f * 3, 2, 3, curve, new List<Color>(){new Color32(56, 158, 85, 255), Color.red});
-
-        curve1 = curve;
-
-        tiles = new Grid<GrassTile>(room.size); tiles.Init();
-        int batchIndexNum = 0;
-        List<ObjectData> currentBatch = new List<ObjectData>();
-        int chunkDivision = 10;
-        //! Go through every 10x10 chunk of a room and put down grass for it
-        for(int i = 0; i < (area.x / chunkDivision) * (area.y / chunkDivision); i++) //Go through every chunk of the area
-        {
-            int chunk_x = (int)(i % ((float)area.x/chunkDivision));
-            int chunk_y = (int)(i / ((float)area.x/chunkDivision));
-            Vector3 chunkCenter = new Vector3(chunk_x * chunkDivision + 5, -chunk_y * chunkDivision + 15) + transform.position;
-            for(int j = 0; j < chunkDivision; j++) 
-            {
-                for(int k = 0; k < chunkDivision; k++)
-                {
-                    int index = (k + chunkDivision * chunk_x) * 2 + area.x * 2 * (j + chunkDivision * chunk_y) * 2;
-                    //Going through all tiles of that chunk
-                    int x = k + chunk_x * chunkDivision;
-                    int y = j + chunk_y * chunkDivision;
-                    tiles[x,y] = new GrassTile(); //Create new grass tile
-                    int succeededGrasses = 0;
-                    for(int l = 0; l < grassPerTile; l++) //Make a set amount of grass for this one tile
-                    {
-                        float elevation = room.placementGrid[index].elevation;
-                        Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y-1.0f), -elevation);
-                        if(room.RequestPosition(position, new Vector2Int(1,1)))
-                        {
-                            position = new Vector3(position.x + (int)transform.position.x, -position.y + (int)transform.position.y + 19, position.z);
-                            AddObject(currentBatch, i, position); //Adds one singular blade of grass to "currentBatch" 
-                            batchIndexNum++;
-                            succeededGrasses++;
-                            if(batchIndexNum >= 1000)
-                            {
-                                //If you are currently adding grass to the tile, but you ran out of space in the batch, save the batch and continue adding grass
-                                batches.Add(new MeshBatch(chunkCenter, currentBatch, "grass", grassMaterial));
-                                tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count - 1, currentBatch.Count - 1 - succeededGrasses, succeededGrasses + 1)); 
-                                //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
-                                currentBatch = BuildNewBatch();
-                                batchIndexNum = 0;
-                            }
-                        }
-                    }
-                    if(tiles[x,y].batchIndices.Count > 0 && tiles[x,y].batchIndices[0].z < grassPerTile)
-                    {
-                        //If there are tiles, and the latest tile has more than zero batch indices, but it doesn't have the max amount of grass in it
-                        //Then the tile needs to have two batch indices
-                        //This currently doesn't get entered, since the grid has become so small
-                        tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count, 0, grassPerTile - tiles[tiles.items.Count - 1].batchIndices[0].z)); 
-                        //Just Count because it's going into the next batch made. Logically it also starts at 0
-                    }
-                    else if(tiles[x,y].batchIndices.Count == 0)
-                    {
-                        //If you went through the for loop and didn't add blades to the tile
-                        //This is because you never hit the match batchIndexNum. For instance, the grid is 10x10 so with 3 grass per grid you only get 300 before you restart
-                        //Its batches.Count instead of batches.Count - 1, because the new batch hasnt been added yes as opposed to the if statement in the for loop
-                        tiles[x,y].batchIndices.Add(new Vector3Int(batches.Count, currentBatch.Count - succeededGrasses, succeededGrasses));
-                    }
-                }
-            }
-            if(batchIndexNum > 0 && batchIndexNum < 1000)
-            {
-                batches.Add(new MeshBatch(chunkCenter, currentBatch, "grass", grassMaterial)); //Add last batch
-                currentBatch = BuildNewBatch();
-                batchIndexNum = 0;
-            }
-        }
-    }
-    void AddObject(List<ObjectData> currentBatch, int i, Vector3 position)
-    {
-        Vector2 textureSize = new Vector2(grassMaterial.mainTexture.width, grassMaterial.mainTexture.height);
-        currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.identity));
-    }
-
-    List<ObjectData> BuildNewBatch()
-    {
-        return new List<ObjectData>();
+        MeshBatchRenderer.CreateBatches(this, room);
     }
 
     private void Update() 
@@ -293,11 +152,6 @@ public class Grass : MonoBehaviour
         {
             MeshBatchRenderer.RenderBatches(b, batchDistanceToEdge);
         }
-    }
-
-    public bool CloseEnough(Vector3 position)
-    {
-        return (position - Camera.main.transform.position).magnitude < renderDistanceOne;
     }
 
     public void RenderGrassChunkCenters(Transform trans)
@@ -409,7 +263,7 @@ public class Grass : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), "grass", grassMaterial));
+            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), "grass", batches[indices[k].x].material));
             DEBUGbatches[DEBUGbatches.Count - 1].material.SetColor("_Color", Color.red);
             DEBUGbatches[DEBUGbatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
@@ -451,7 +305,7 @@ public class Grass : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(grassMaterial), new VFXData(), batches[indices[k].x].name));
+            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(batches[indices[k].x].material), new VFXData(), batches[indices[k].x].name));
             burningBatches[burningBatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
             batches[indices[k].x].batches.RemoveRange(indices[k].y,indices[k].z); 

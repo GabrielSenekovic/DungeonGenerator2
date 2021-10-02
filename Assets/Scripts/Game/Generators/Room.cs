@@ -1113,7 +1113,7 @@ public partial class Room: MonoBehaviour
     public Texture2D templateTexture;
     public Texture2D mapTexture;
     public int section;
-    public Grass grass;
+    public Vegetation grass;
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
     {

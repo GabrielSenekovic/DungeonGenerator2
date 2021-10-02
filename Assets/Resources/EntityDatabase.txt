@@ -1,15 +1,27 @@
 Name: Grass
 Type: Tuft
+Amount: 3
 Quads: 4
 Straws: 40
-Width: 0.1f
+Width: 0.1
+RenderDistance: 15
+Quads: 2
+Straws: 20
+Width: 0.2
+RenderDistance: 25
+Quads: 1
+Straws: 35
+Width: 0.2
+RenderDistance: -1
 
 Name: Tulip
-Variety: Red
 Type: Flower
+Amount: 3
+Variety: Red
+RenderDistance: -1
 Height: 1
-Bulb: 0.0625
+Bulb: 0.1875
 Whorls: 2
 Merosity: 3
-Curve:
+Curve: (0, 0.0625) (0.3, 0.09375) (1, 0.03125)
 Colors: (56, 158, 85) (230, 0, 0)
