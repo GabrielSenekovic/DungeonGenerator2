@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 public partial class LevelGenerator : MonoBehaviour
 {
@@ -11,8 +12,8 @@ public partial class LevelGenerator : MonoBehaviour
     }
     [SerializeField]List<Section> sections = new List<Section>();
     [SerializeField]List<Tuple<Vector2Int, Room>> roomGrid = new List<Tuple<Vector2Int, Room>> { }; //Separate rooms into rooms and roomGrid. roomGrid is all positions on the grid that are occupied. This is so that I wont have to look through the list of rooms
-    List<MeshRenderer> surroundings = new List<MeshRenderer>{};
     
+    List<Tuple<Vector2Int, Room>> surroundingPositions = new List<Tuple<Vector2Int, Room>>();
     [SerializeField]protected Room RoomPrefab;
 
     int numberOfRooms = 1;
@@ -38,7 +39,7 @@ public partial class LevelGenerator : MonoBehaviour
         //Called when not in the level
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
-        sections[0].rooms[0].Initialize(new Vector2Int(20,20), false, 0, ref templates);
+        sections[0].rooms[0].Initialize(new Vector2Int(20,20), false, 0, ref templates, false);
         templates[0].AddEntrancesToRoom(sections[0].rooms[0].directions);
         Room.RoomTemplate template = templates[0];
         sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
@@ -71,7 +72,7 @@ public partial class LevelGenerator : MonoBehaviour
         sections.Add(new Section()); 
         sections[0].rooms.Add(Instantiate(RoomPrefab, Vector3.zero, Quaternion.identity, transform));
         roomGrid.Add(new Tuple<Vector2Int, Room>(Vector2Int.zero, sections[0].rooms[0]));
-        sections[0].rooms[0].Initialize(RoomSize, true, 0, ref templates);
+        sections[0].rooms[0].Initialize(RoomSize, true, 0, ref templates, false);
 
         SpawnRooms(UnityEngine.Random.Range((int)(amountOfRooms.x + sections[0].rooms.Count),
                                 (int)(amountOfRooms.y + sections[0].rooms.Count)), UnityEngine.Random.Range((int)(amountOfSections.x),
@@ -79,6 +80,7 @@ public partial class LevelGenerator : MonoBehaviour
 
        // Debug.Log("RoomGrid size " + roomGrid.Count);
 
+        GenerateSurroundings(ref templates);
         BuildRooms(ref templates);
 
         level.firstRoom = sections[0].rooms[0];
@@ -90,6 +92,50 @@ public partial class LevelGenerator : MonoBehaviour
         System.DateTime after = System.DateTime.Now; 
         System.TimeSpan duration = after.Subtract(before);
         Debug.Log("<color=blue>Time to generate: </color>" + duration.TotalMilliseconds + " milliseconds, which is: " + duration.TotalSeconds + " seconds");
+    }
+
+    void GenerateSurroundings(ref List<Room.RoomTemplate> templates)
+    {
+        GameObject surroundings = new GameObject("Surroundings");
+        surroundings.transform.parent = gameObject.transform;
+        //Go through every single position saved and spawned, and check next to them. If theres nothing in that specific position, spawn a room there like usual, on a higher level
+        for(int i = 0; i < roomGrid.Count; i++)
+        {
+            for(int x = -1; x < 2; x++)
+            {
+                for(int y = -1; y < 2; y++)
+                {
+                    if(!CheckIfCoordinatesOccupied(roomGrid[i].Item1 + new Vector2Int(x,y)) && !surroundingPositions.Any(j => j.Item1 == roomGrid[i].Item1 + new Vector2Int(x,y)))
+                    {
+                        //Create room here
+                        Room temp = Instantiate(RoomPrefab, transform);
+                        temp.gameObject.name = "Surrounding";
+                        temp.transform.parent = gameObject.transform;
+                        temp.Initialize(roomGrid[i].Item1 * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
+                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(roomGrid[i].Item1 + new Vector2Int(x,y),temp));
+                    }
+                }
+            }
+        }
+        int limit = surroundingPositions.Count;
+        for(int i = 0; i < limit; i++)
+        {
+            for(int x = -1; x < 2; x++)
+            {
+                for(int y = -1; y < 2; y++)
+                {
+                    if(!CheckIfCoordinatesOccupied(surroundingPositions[i].Item1 + new Vector2Int(x,y)) && !surroundingPositions.Any(j => j.Item1 == surroundingPositions[i].Item1 + new Vector2Int(x,y)))
+                    {
+                        //Create room here
+                        Room temp = Instantiate(RoomPrefab, transform);
+                        temp.gameObject.name = "Surrounding";
+                        temp.transform.parent = gameObject.transform;
+                        temp.Initialize(surroundingPositions[i].Item1 * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
+                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(surroundingPositions[i].Item1 + new Vector2Int(x,y),temp));
+                    }
+                }
+            }
+        }
     }
    
     public void PutDownQuestObjects(LevelManager level, QuestData data)
@@ -185,7 +231,7 @@ public partial class LevelGenerator : MonoBehaviour
                 //data.dungeon ? UnityEngine.Random.Range(0, 100) < 80 : false;
 
                 Vector2Int gridPositionWhereTheNewRoomConnects = Vector2Int.zero;
-                sections[i].rooms[j].Initialize(GetNewRoomCoordinates(sections[i].rooms[j], originRoom.Item1.transform.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereTheNewRoomConnects), currentRoomSize * 20, indoors, i, ref templates);
+                sections[i].rooms[j].Initialize(GetNewRoomCoordinates(sections[i].rooms[j], originRoom.Item1.transform.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereTheNewRoomConnects), currentRoomSize * 20, indoors, i, ref templates, false);
                 sections[i].rooms[j].roomData.stepsAwayFromMainRoom = originRoom.Item1.roomData.stepsAwayFromMainRoom + 1;
                 if(sections[i].rooms[j].roomData.stepsAwayFromMainRoom > furthestDistanceFromSpawn)
                 {
@@ -253,6 +299,12 @@ public partial class LevelGenerator : MonoBehaviour
                 count++;
             }
         }
+        for(int i = 0; i < surroundingPositions.Count; i++)
+        {
+            Room.RoomTemplate template = templates[count];
+            surroundingPositions[i].Item2.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+            count++;
+        }
         PlantFlora(ref templates);
     }
     void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin)
@@ -310,6 +362,25 @@ public partial class LevelGenerator : MonoBehaviour
                     //grass.PlantFlora(templates[j+i]);
                 }
             }
+        }
+        for(int i = 0; i < surroundingPositions.Count; i++)
+        {
+            GameObject lawn = new GameObject("Lawn");
+            lawn.transform.parent = surroundingPositions[i].Item2.transform;
+
+            Vegetation grass = lawn.AddComponent<Vegetation>();
+            grass.area = surroundingPositions[i].Item2.size;
+            grass.grassPerTile = 3;
+            grass.burningSpeed = 0.001f;
+            grass.fireColor = Color.red;
+            grass.grassRotation = new Vector3(-90, 90, -90);
+            grass.layerMask = ~0;
+            grass.VFX_Burning = Resources.Load<UnityEngine.VFX.VisualEffectAsset>("VFX/Burning");
+
+            lawn.transform.localPosition = new Vector3(-10, -10, -0.5f);
+
+            grass.PlantFlora(surroundingPositions[i].Item2);
+            surroundingPositions[i].Item2.grass = grass;
         }
     }
 

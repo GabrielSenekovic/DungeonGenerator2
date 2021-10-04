@@ -245,11 +245,13 @@ public partial class Room: MonoBehaviour
         public Vector2Int size;
         public Grid<TileTemplate> positions;
         public bool indoors;
-        public RoomTemplate(Vector2Int size_in, Grid<TileTemplate> positions_in, bool indoors_in)
+        public bool surrounding;
+        public RoomTemplate(Vector2Int size_in, Grid<TileTemplate> positions_in, bool indoors_in, bool surrounding_in)
         {
             size = size_in;
             positions = positions_in;
             indoors = indoors_in;
+            surrounding = surrounding_in;
             CreateRoomTemplate();
         }
         void CreateRoomTemplate()
@@ -264,11 +266,15 @@ public partial class Room: MonoBehaviour
                 {
                     Vector2Int divisions = new Vector2Int(1,1); //1,1
                     if(!indoors){divisions = new Vector2Int(3,3);}
-                    positions.Add(new RoomTemplate.TileTemplate(0, divisions));
+                    int elevation = surrounding ? 4 : 0;
+                    positions.Add(new RoomTemplate.TileTemplate(elevation, divisions));
 
-                    CreateRoomTemplate_Square(new Vector2(2,2), x, y); //?Basic thickness. Can't be thinner than 2
-                    if(!indoors){CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y);}
-                    //CreateRoomTemplate_Cross(wallThickness, x, y);
+                    if(!surrounding)
+                    {
+                        CreateRoomTemplate_Square(new Vector2(2,2), x, y, 4); //?Basic thickness. Can't be thinner than 2
+                        if(!indoors){CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y);}
+                        //CreateRoomTemplate_Cross(wallThickness, x, y);
+                    }
                 }
             }
             SmoothenOut();
@@ -351,20 +357,20 @@ public partial class Room: MonoBehaviour
                 }
             }
         }
-        void CreateRoomTemplate_Square(Vector2 wallThickness, int x, int y)
+        void CreateRoomTemplate_Square(Vector2 wallThickness, int x, int y, int elevation)
         {
             if(x < wallThickness.x || x > size.x - wallThickness.x - 1||
                y < wallThickness.y || y > size.y - wallThickness.y - 1)
             {
-                positions[x + (int)size.x * y].elevation = 4;
+                positions[x + (int)size.x * y].elevation = elevation;
             }
         }
-        void CreateRoomTemplate_Cross(Vector2 wallThickness, int x, int y)
+        void CreateRoomTemplate_Cross(Vector2 wallThickness, int x, int y, int elevation)
         {
             if((x < wallThickness.x || x > size.x - wallThickness.x -1)&&
                (y < wallThickness.y || y > size.y - wallThickness.y -1))
             {
-                positions[x + (int)size.x * y].elevation = 4;
+                positions[x + (int)size.x * y].elevation = elevation;
             }
         }
 
@@ -1123,27 +1129,27 @@ public partial class Room: MonoBehaviour
         }
         directions.OpenAllEntrances();
     }
-    public void Initialize(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates)
+    public void Initialize(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
     {
         Debug.Log("<color=green>Initializing the Origin Room</color>");
         //This Initialize() function is for the origin room specifically, as it already has its own position
         section = section_in;
-        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates);
+        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates, surrounding);
         OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
     }
 
-    public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates)
+    public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
     {
         transform.position = new Vector2(location.x, location.y);
         section = section_in;
-        OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates);
+        OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
     }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates) 
+    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding) 
     {
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20);
         //Build wall meshes all around the start area in a 30 x 30 square
-        RoomTemplate template = new RoomTemplate(roomSize, new Grid<RoomTemplate.TileTemplate>(roomSize), indoors);
+        RoomTemplate template = new RoomTemplate(roomSize, new Grid<RoomTemplate.TileTemplate>(roomSize), indoors, surrounding);
         //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
@@ -1222,8 +1228,9 @@ public partial class Room: MonoBehaviour
             {
                 for(int y = 0; y < size.y; y++)
                 {
+                    Debug.Log(new Vector2Int(startPos.x + x, startPos.y + y));
                     positions.Add(new Vector2Int(startPos.x + x, startPos.y + y));
-                    if(!placementGrid.IsWithinBounds(startPos.x + x, -startPos.y + y) || 
+                    if(!placementGrid.IsWithinBounds(startPos.x + x, -startPos.y - y) || 
                         placementGrid[startPos.x + x, startPos.y + y].occupied || 
                         placementGrid[startPos.x + x, startPos.y + y].elevation != placementGrid[startPos].elevation)
                     {

@@ -41,10 +41,10 @@ public class MeshBatchRenderer : MonoBehaviour
     public static void CreateBatches(Vegetation vegetation, Room room)
     {
         vegetation.tiles = new Grid<Vegetation.GrassTile>(room.size); vegetation.tiles.Init();
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass"));
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip"));
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip"), 0.1f);
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass"), 1000);
     }
-    public static void OnCreateBatches(Vegetation vegetation, Room room, EntityDatabase.DatabaseEntry databaseEntry)
+    public static void OnCreateBatches(Vegetation vegetation, Room room, EntityDatabase.DatabaseEntry databaseEntry, float density)
     {
         int batchIndexNum = 0;
         List<ObjectData> currentBatch = new List<ObjectData>();
@@ -65,7 +65,8 @@ public class MeshBatchRenderer : MonoBehaviour
                     int y = j + chunk_y * chunkDivision;
                     vegetation.tiles[x,y] = new Vegetation.GrassTile(); //Create new grass tile
                     int succeededGrasses = 0;
-                    for(int l = 0; l < vegetation.grassPerTile; l++) //Make a set amount of grass for this one tile
+                    int amountForThisTile = (int)(vegetation.grassPerTile * Mathf.PerlinNoise(x * density,y * density));
+                    for(int l = 0; l < amountForThisTile; l++) //Make a set amount of grass for this one tile
                     {
                         float elevation = room.placementGrid[index].elevation;
                         Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y-1.0f), -elevation);

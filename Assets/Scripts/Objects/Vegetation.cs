@@ -119,9 +119,6 @@ public class Vegetation : MonoBehaviour
 
     void RenderBatches()
     {
-        //Vector3[] frustumCorners = new Vector3[4];
-        //Camera.main.CalculateFrustumCorners(new Rect(0, 0, 1, 1), Camera.main.farClipPlane, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
-
         foreach(var b in batches)
         {
             MeshBatchRenderer.RenderBatches(b, batchDistanceToEdge);
