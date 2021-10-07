@@ -52,6 +52,14 @@ public class Math : MonoBehaviour
         }
         return false;
     }
+    public static float ConvertCentimetersToPixels(int cm)
+    {
+        //if 3 tiles is one meter, then 1 tile is 1/3 * 100 centimeters
+        //and 1cm is (3 * 16) / 100d since there are 16 pixels per tile
+        double unit = 1d/32d;
+        //(3d * 16) / 100d = 0.03 which is roughly 1/32 = 0.03125
+        return (float)(unit * cm); 
+    }
     public static int[] GetValidConstraints(int i, int range, Vector2Int grid)
     {
         int targY = (i / grid.x);

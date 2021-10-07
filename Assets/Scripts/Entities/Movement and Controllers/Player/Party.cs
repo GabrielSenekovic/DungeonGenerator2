@@ -14,6 +14,8 @@ public class Party : MonoBehaviour
 
     public uint keys;
 
+    public Texture retfgM;
+
     private void Awake() 
     {
         instance = this;

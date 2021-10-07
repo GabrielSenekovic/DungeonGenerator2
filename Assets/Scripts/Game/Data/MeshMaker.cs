@@ -135,7 +135,7 @@ public class MeshMaker : MonoBehaviour
         mesh.RecalculateNormals();
     }
 
-    public static Texture2D CreateFlower(Mesh mesh, Material flowerMaterial, float height, float bulbHeight, int whorls, int merosity, float openness, Vector2 offset, AnimationCurve curve, List<Color> colors)
+    public static Texture2D CreateFlower(Mesh mesh, Material flowerMaterial, float height, float bulbHeight, int whorls, int merosity, float openness, Vector2 offset, AnimationCurve curve, AnimationCurve flowerShape, List<Color> colors, bool spread)
     {
         //Create a stalk, create leaves and add a perianth to the top of the stalk
         //The stalk is triangular so it can be seen from all angles
@@ -144,9 +144,14 @@ public class MeshMaker : MonoBehaviour
         List<Vector3> newVertices = new List<Vector3>();
         List<Vector2> newUV = new List<Vector2>();
 
+        height = Math.ConvertCentimetersToPixels((int)height);
+        bulbHeight = Math.ConvertCentimetersToPixels((int)bulbHeight);
+
+        Debug.Log("Height: " + height + " BulbHeight: " + bulbHeight);
+
         //!The height will also determine the height of the texture
-        Texture2D texture = new Texture2D(2, (int)height * 16, TextureFormat.ARGB32, false); //1 in height corresponds to 16 pixels
-        Debug.Log("Height of texture: " + (height * 16) + " When it starts drawing red: " + (int)(height * 16 - bulbHeight * 16));
+        Texture2D texture = new Texture2D(2, (int)(height * 16), TextureFormat.ARGB32, false); //1 in height corresponds to 16 pixels
+        Debug.Log("Height of texture: " + (height) * 16 + " When it starts drawing red: " + (int)(height * 16 - bulbHeight * 16));
         for(int i = 0; i < texture.width * texture.height; i++)
         {
             if(i/texture.width < (int)(height * 16 - bulbHeight * 16))
@@ -161,6 +166,7 @@ public class MeshMaker : MonoBehaviour
         texture.Apply();
         texture.filterMode = FilterMode.Point;
         flowerMaterial.SetTexture("_MainTex", texture);
+        Party.instance.retfgM = texture;
 
         List<Vector3> positions = new List<Vector3>();
         float currentHeight = 0;
@@ -200,15 +206,15 @@ public class MeshMaker : MonoBehaviour
         {
             for(int k = 0; k < stepsAroundCenter; k++) //Minus one because there are 4 quads if there are 5 vertices upwards
             {
-                newUV.Add(new Vector2 (1, (height - bulbHeight) / amountOfQuadsVertical * j));     //1,0         1.0f / amountOfQuadsVertical * j
-                newUV.Add(new Vector2 (0, (height - bulbHeight) / amountOfQuadsVertical * j));     //0,0
-                newUV.Add(new Vector2 (0, (height - bulbHeight) / amountOfQuadsVertical * (j+1))); //0,1
-                newUV.Add(new Vector2 (1, (height - bulbHeight) / amountOfQuadsVertical * (j+1))); //1,1
+                newUV.Add(new Vector2 (1, ((height - bulbHeight)/height) / amountOfQuadsVertical * j));     //1,0         1.0f / amountOfQuadsVertical * j
+                newUV.Add(new Vector2 (0, ((height - bulbHeight)/height) / amountOfQuadsVertical * j));     //0,0
+                newUV.Add(new Vector2 (0, ((height - bulbHeight)/height) / amountOfQuadsVertical * (j+1))); //0,1
+                newUV.Add(new Vector2 (1, ((height - bulbHeight)/height) / amountOfQuadsVertical * (j+1))); //1,1
             }
         }
         Debug.Log("Time for perianth");
         //Stalk done, lets add Perianth
-        CreatePerianth(ref newVertices, ref newTriangles, ref newUV, currentHeight - heightIncrement, bulbHeight, whorls, merosity, height - bulbHeight, openness, offset, curve); 
+        CreatePerianth(ref newVertices, ref newTriangles, ref newUV, currentHeight - heightIncrement, bulbHeight, whorls, merosity, (height - bulbHeight)/height, openness, offset, curve, flowerShape, spread); 
         //!height - bulbheight only works because height is 1, so its already procentual
 
         DebugLog.Report(newVertices, newTriangles, newUV);
@@ -223,7 +229,7 @@ public class MeshMaker : MonoBehaviour
         return texture;
     }
 
-    public static void CreatePerianth(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, float startPoint, float height, int whorls, int merosity, float UVStart, float openness, Vector2 offset, AnimationCurve curve)
+    public static void CreatePerianth(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, float startPoint, float height, int whorls, int merosity, float UVStart, float openness, Vector2 offset, AnimationCurve curve, AnimationCurve flowerShape, bool spread)
     {
         List<Vector3> positions = new List<Vector3>();
         float angle = 0;
@@ -233,39 +239,41 @@ public class MeshMaker : MonoBehaviour
 
         float amountOfVerticesVertical = 4;
         float amountOfQuadsVertical = amountOfVerticesVertical - 1;
-        float petalAngle = 0;
 
         for(int i = 0; i < amountOfVerticesVertical; i++) 
         {
             float radius = curve.Evaluate((float)i/(float)amountOfVerticesVertical);
+            float petalValueSaved = 0;
+            if(flowerShape != null && flowerShape.keys.Length > 0)
+            {
+                petalValueSaved = flowerShape.Evaluate((float)i/(float)amountOfVerticesVertical);
+            }
+            Vector2 normalizedDir = Vector2.zero;
             for(int j = 0; j < merosity * 3; j++) //Three steps around, times three because each petal stretches one step outwards on each side
             {
-                if(j % 3 == 0)
-                {
-                    petalAngle = angle + angleIncrement;
-                }
 
-                Vector3 position = new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad) + offset.x, radius * Mathf.Sin(angle* Mathf.Deg2Rad) + offset.y, -currentHeight);
+                float petalValue = j % 3 == 1 ? 0 : j % 3 == 0 ? -petalValueSaved : petalValueSaved;
+
+                Vector3 position = new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad + petalValue) + offset.x, radius * Mathf.Sin(angle* Mathf.Deg2Rad + petalValue) + offset.y, -currentHeight);
+
+                if(j % 3 == 0 && !spread)
+                {
+                    normalizedDir = new Vector3(radius * Mathf.Cos((angle + angleIncrement) * Mathf.Deg2Rad) + offset.x, radius * Mathf.Sin((angle + angleIncrement) * Mathf.Deg2Rad) + offset.y, -currentHeight);
+                    normalizedDir.Normalize();
+                }
+                else if(spread)
+                {
+                    normalizedDir = position.normalized;
+                }
+                
                 if(i > 0)
                 {
                     GameObject temp = new GameObject();
                     Vector3 origin = new Vector3(positions[j].x, positions[j].y, -startPoint);
-                    //Vector3 dir = position - origin;
-                    Vector2 normalizedDir = position;
-                    Debug.Log("Position: " + position);
-                    normalizedDir.Normalize();
 
                     temp.transform.position = new Vector3(position.x, position.y, position.z); //Set to the vertex position
                     temp.transform.RotateAround(origin, new Vector2(normalizedDir.y, -normalizedDir.x), openness * 90); //Rotate vertex around
-                    //new Vector2(normalizedDir.y, -normalizedDir.x) almost
-
-                    //dir = Quaternion.Euler(normalizedDir.y * openness * 90, -normalizedDir.x * openness * 90, 0) * dir;
-                    /*Debug.Log("Angle: " + angle + 
-                    " Rotation: " + new Vector2(normalizedDir.x * openness * 90, -normalizedDir.y * openness * 90) +
-                    " Normal X: " + normalizedDir.x + " Y: " + normalizedDir.y + 
-                    " Dir X: " + dir.x + " Y: " + dir.y
-                    );*/
-                    //position = dir + origin;
+           
                     position = temp.transform.position;
                     Destroy(temp);
                 }
@@ -278,29 +286,33 @@ public class MeshMaker : MonoBehaviour
 
         int startIndex = vertices.Count;
 
+        int m = 0;
         for(int j = 0; j < positions.Count - merosity * 3; j++)
         {
+            //I have to skip one quad
+            if(j % 3 == 2){continue;}
             vertices.Add(positions[0 + j]);
             vertices.Add(positions[(1 + j)%(merosity * 3) + (merosity * 3) * (int)((float)j/(merosity * 3))]);
             vertices.Add(positions[((merosity * 3 + 1) + j)%(merosity * 3) + (merosity * 3) * (int)((float)(j+(merosity * 3))/(merosity * 3))]);
             vertices.Add(positions[merosity * 3 + j]);
 
-            int[] indexValue = new int[]{0,1,3,1,2,3};
+            int[] indexValue = new int[]{0,3,1,1,3,2};
 
             for(int index = 0; index < indexValue.Length; index++)
             {
-                indices.Add(startIndex + indexValue[index] + j * 4);
+                indices.Add(startIndex + indexValue[index] + m * 4 );
             }
+            m++;
         }
         for(int j = 0; j < amountOfQuadsVertical; j++)
         {
             for(int k = 0; k < merosity * 3; k++) 
             {
-//                Debug.Log(UVStart + height / amountOfQuadsVertical * j);
-                UV.Add(new Vector2 (1, UVStart + height / amountOfQuadsVertical * j));     //1,0 + height / amountOfQuadsVertical * j
-                UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * j));     //0,0
-                UV.Add(new Vector2 (0, UVStart + height / amountOfQuadsVertical * (j+1))); //0,1
-                UV.Add(new Vector2 (1, UVStart + height / amountOfQuadsVertical * (j+1))); //1,1
+                if(k % 3 == 0) {continue;}
+                UV.Add(new Vector2 (1, UVStart + (1f - UVStart) / amountOfQuadsVertical * j));     //1,0 + height / amountOfQuadsVertical * j
+                UV.Add(new Vector2 (0, UVStart + (1f - UVStart) / amountOfQuadsVertical * j));     //0,0
+                UV.Add(new Vector2 (0, UVStart + (1f - UVStart) / amountOfQuadsVertical * (j+1))); //0,1
+                UV.Add(new Vector2 (1, UVStart + (1f - UVStart) / amountOfQuadsVertical * (j+1))); //1,1
             } 
         }
     }

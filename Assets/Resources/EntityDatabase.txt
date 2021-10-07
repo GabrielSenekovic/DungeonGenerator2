@@ -14,15 +14,31 @@ Straws: 35
 Width: 0.2
 RenderDistance: -1
 
+Name: Poppy
+Type: Flower
+Amount: 3
+Height: 100
+Bulb: 10
+Whorls: 2
+Merosity: 4
+Openness: 1.0
+Spread: true
+Curve: (0, 0.02) (0.3, 0.05) (1, 0.01)
+PetalShape: (0, 0.05) (0.3, 0.3) (1, 0.05)
+Colors: (56, 158, 85) (255, 85, 56)
+RenderDistance: -1
+
 Name: Tulip
 Type: Flower
 Amount: 3
 Variety: Red
-Height: 1
-Bulb: 0.1875
+Height: 70
+Bulb: 8
 Whorls: 2
-Merosity: 4
+Merosity: 3
 Openness: 0.0
-Curve: (0, 0.0625) (0.3, 0.09375) (1, 0.03125)
+Spread: false
+Curve: (0, 0.02) (0.3, 0.09375) (1, 0.03125)
+PetalShape: (0, 0.05) (0.3, 0.4) (1, 0.05)
 Colors: (56, 158, 85) (230, 0, 0)
 RenderDistance: -1

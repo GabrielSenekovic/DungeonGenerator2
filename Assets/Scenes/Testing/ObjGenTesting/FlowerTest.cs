@@ -36,6 +36,9 @@ public class FlowerTest : MonoBehaviour
         public AnimationCurve curve = null; 
         public List<Color> colors = new List<Color>(); 
         public float openness = 0;
+        public AnimationCurve petalShape = null;
+
+        public bool spread = false;
     }
 
     public List<FlowerTestObject> objects = new List<FlowerTestObject>();
@@ -100,6 +103,7 @@ public class FlowerTest : MonoBehaviour
                         case "Whorls:": int.TryParse(allData[i][j+1], out flowerCreationData.whorls); break;
                         case "Merosity:": int.TryParse(allData[i][j+1], out flowerCreationData.merosity); break;
                         case "Openness:": float.TryParse(allData[i][j+1], out flowerCreationData.openness); break;
+                        case "Spread:": bool.TryParse(allData[i][j+1], out flowerCreationData.spread); break;
                         case "Curve:": 
                             {
                                 flowerCreationData.curve = new AnimationCurve(); Keyframe keyFrame = new Keyframe();
@@ -111,6 +115,21 @@ public class FlowerTest : MonoBehaviour
                                     float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
                                     keyFrame.time = time; keyFrame.value = curveValue;
                                     flowerCreationData.curve.AddKey(keyFrame);
+                                    k+= 2;
+                                }
+                            }
+                        break;
+                        case "PetalShape:":
+                            {
+                                flowerCreationData.petalShape = new AnimationCurve(); Keyframe keyFrame = new Keyframe();
+                                int k = 1;
+                                while(!allData[i][j+k].Any(x => char.IsLetter(x)))
+                                {
+                                    float time, curveValue;
+                                    float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""), out time);
+                                    float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
+                                    keyFrame.time = time; keyFrame.value = curveValue;
+                                    flowerCreationData.petalShape.AddKey(keyFrame);
                                     k+= 2;
                                 }
                             }
@@ -138,7 +157,7 @@ public class FlowerTest : MonoBehaviour
     private void Update() 
     {
         bool updated = false;
-        if(Input.GetKeyDown(KeyCode.D) && Camera.main.transform.position.x < objects.Count)
+        if(Input.GetKeyDown(KeyCode.D) && Camera.main.transform.position.x < objects.Count - 1)
         {
             Camera.main.transform.position += new Vector3(1,0,0);
             updated = true;
@@ -174,7 +193,7 @@ public class FlowerTest : MonoBehaviour
     {
         FlowerCreationData data = objects[(int)Camera.main.transform.position.x].creationData as FlowerCreationData;
         MeshMaker.CreateFlower(database.GetMesh(objects[(int)Camera.main.transform.position.x].name, 0), objects[(int)Camera.main.transform.position.x].material, 
-        data.height, data.bulbHeight, data.whorls, data.merosity, openness.value, Vector2.zero, data.curve, data.colors);
+        data.height, data.bulbHeight, data.whorls, data.merosity, openness.value, Vector2.zero, data.curve, data.petalShape, data.colors, data.spread);
     }
 
     private void LateUpdate() 

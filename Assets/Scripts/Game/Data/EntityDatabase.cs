@@ -73,7 +73,7 @@ public class EntityDatabase :ScriptableObject
                     flowerMaterial.SetFloat("_Gravity", 0);
                     flowerMaterial.SetColor("_Color", Color.white);
                     float height = 0; float bulbHeight = 0; int whorls = 0; int merosity = 0; AnimationCurve curve = null; List<Color> colors = new List<Color>(); float renderDistance = 0; int amount = 0;
-                    float openness = 0;
+                    float openness = 0; AnimationCurve flowerShape = null; bool spread = false;
                     for(int j = 3; j < allData[i].Count; j++)
                     {
                         switch(allData[i][j])
@@ -85,6 +85,7 @@ public class EntityDatabase :ScriptableObject
                             case "Merosity:": int.TryParse(allData[i][j+1], out merosity); break;
                             case "RenderDistance:": float.TryParse(allData[i][j+1], out renderDistance); renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance; break;
                             case "Openness:": float.TryParse(allData[i][j+1], out openness); break;
+                            case "Spread:": bool.TryParse(allData[i][j+1], out spread); break;
                             case "Curve:": 
                                 {
                                     curve = new AnimationCurve(); Keyframe keyFrame = new Keyframe();
@@ -96,6 +97,21 @@ public class EntityDatabase :ScriptableObject
                                         float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
                                         keyFrame.time = time; keyFrame.value = curveValue;
                                         curve.AddKey(keyFrame);
+                                        k+= 2;
+                                    }
+                                }
+                            break;
+                            case "PetalShape:":
+                                {
+                                    flowerShape = new AnimationCurve(); Keyframe keyFrame = new Keyframe();
+                                    int k = 1;
+                                    while(!allData[i][j+k].Any(x => char.IsLetter(x)))
+                                    {
+                                        float time, curveValue;
+                                        float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""), out time);
+                                        float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
+                                        keyFrame.time = time; keyFrame.value = curveValue;
+                                        flowerShape.AddKey(keyFrame);
                                         k+= 2;
                                     }
                                 }
@@ -116,7 +132,7 @@ public class EntityDatabase :ScriptableObject
                             break; 
                         }
                     }
-                    Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, colors);
+                    Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, flowerShape, colors, spread);
                     flowerMaterial.SetTexture("_MainTex", flowerTexture);
                     DatabaseEntry.MeshLOD tempFlower = new DatabaseEntry.MeshLOD(flowerMesh, renderDistance);
                     flowerEntry.AddMesh(tempFlower);
