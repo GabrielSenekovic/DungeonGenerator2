@@ -21,7 +21,8 @@ Variety: Red
 Height: 1
 Bulb: 0.1875
 Whorls: 2
-Merosity: 3
+Merosity: 4
+Openness: 0.0
 Curve: (0, 0.0625) (0.3, 0.09375) (1, 0.03125)
 Colors: (56, 158, 85) (230, 0, 0)
 RenderDistance: -1

@@ -20,14 +20,16 @@ public class EntityDatabase :ScriptableObject
             }
         }
         public string name;
+        public string type;
 
         public int amountPerTile;
         public Material material;
         public List<MeshLOD> mesh;
 
-        public DatabaseEntry(string name_in)
+        public DatabaseEntry(string name_in, string type_in)
         {
             name = name_in;
+            type = type_in;
             mesh = new List<MeshLOD>();
         }
         public void AddMesh(MeshLOD mesh_in)
@@ -65,12 +67,13 @@ public class EntityDatabase :ScriptableObject
             {
                 case "Flower":
                 {
-                    DatabaseEntry flowerEntry = new DatabaseEntry(allData[i][1]);
+                    DatabaseEntry flowerEntry = new DatabaseEntry(allData[i][1], "Flower");
                     Mesh flowerMesh = new Mesh();
                     Material flowerMaterial = new Material(defaultMaterial);
                     flowerMaterial.SetFloat("_Gravity", 0);
                     flowerMaterial.SetColor("_Color", Color.white);
                     float height = 0; float bulbHeight = 0; int whorls = 0; int merosity = 0; AnimationCurve curve = null; List<Color> colors = new List<Color>(); float renderDistance = 0; int amount = 0;
+                    float openness = 0;
                     for(int j = 3; j < allData[i].Count; j++)
                     {
                         switch(allData[i][j])
@@ -80,7 +83,8 @@ public class EntityDatabase :ScriptableObject
                             case "Bulb:": float.TryParse(allData[i][j+1], out bulbHeight); break;
                             case "Whorls:": int.TryParse(allData[i][j+1], out whorls); break;
                             case "Merosity:": int.TryParse(allData[i][j+1], out merosity); break;
-                            case "RenderDistance:": float.TryParse(allData[i][j+i], out renderDistance); renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance; break;
+                            case "RenderDistance:": float.TryParse(allData[i][j+1], out renderDistance); renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance; break;
+                            case "Openness:": float.TryParse(allData[i][j+1], out openness); break;
                             case "Curve:": 
                                 {
                                     curve = new AnimationCurve(); Keyframe keyFrame = new Keyframe();
@@ -112,7 +116,7 @@ public class EntityDatabase :ScriptableObject
                             break; 
                         }
                     }
-                    Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, curve, colors);
+                    Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, colors);
                     flowerMaterial.SetTexture("_MainTex", flowerTexture);
                     DatabaseEntry.MeshLOD tempFlower = new DatabaseEntry.MeshLOD(flowerMesh, renderDistance);
                     flowerEntry.AddMesh(tempFlower);
@@ -123,7 +127,7 @@ public class EntityDatabase :ScriptableObject
                 break;
                 case "Tuft":
                 {
-                    DatabaseEntry tuftEntry = new DatabaseEntry(allData[i][1]);
+                    DatabaseEntry tuftEntry = new DatabaseEntry(allData[i][1], "Tuft");
                     Mesh tuftMesh = new Mesh();
                     int quads = 0; int straws = 0; float width = 0; float renderDistance = 0; int amount = 0;
                     for(int j = 3; j < allData[i].Count; j++)
