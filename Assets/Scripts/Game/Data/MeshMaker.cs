@@ -79,60 +79,21 @@ public class MeshMaker : MonoBehaviour
         //Like in Minecraft
         //Start from the back then forward. Save the points on the top where the lid will rotate around
     }
-    public static void CreateCylinder(Mesh mesh, float height)
+    public static void CreateCylinder(ref List<Vector3> positions, ref float currentHeight, int limit, int stepsAroundCenter, float heightIncrement, AnimationCurve curve)
     {
-        //Create a vase from a sinewave controlling a radius
-        List<Vector3> positions = new List<Vector3>();
-        float angleIncrement = 360.0f / 10.0f;
-        float currentHeight = 0;
-        float heightIncrement = height / 10.0f;
+        float angle = 0; float angleIncrement = 360 / stepsAroundCenter;
 
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < limit; i++)
         {
-            //Go through all levels upwards
-            float angle = 0;
-            float currentRadius = 0.5f;
-
-            for(int j = 0; j < 10; j++)
+            for(int j = 0; j < stepsAroundCenter; j++)
             {
-                //Go around the circle
-                positions.Add(new Vector3(currentRadius * Mathf.Sin(angle * Mathf.Deg2Rad), currentRadius * Mathf.Cos(angle* Mathf.Deg2Rad), -currentHeight));
+                float radius = curve != null? curve.Evaluate((float)i/(float)limit): (1f/32f);
+                Debug.Log(radius);
+                positions.Add(new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle* Mathf.Deg2Rad), -currentHeight));
                 angle += angleIncrement;
             }
             currentHeight += heightIncrement;
         }
-        Debug.Log("Amount of positions: " + positions.Count);
-
-        List<int> newTriangles = new List<int>();
-        List<Vector3> newVertices = new List<Vector3>();
-        List<Vector2> newUV = new List<Vector2>();
-
-        //Now fill up the vertices
-        for(int i = 0; i < positions.Count - 10; i++)
-        {
-            newVertices.Add(positions[0 + i]);
-            newVertices.Add(positions[(1 + i)%10 + 10 * (int)((float)i/10.0f)]);
-            newVertices.Add(positions[(11 + i)%10 + 10 * (int)((float)(i+10)/10.0f)]);
-            newVertices.Add(positions[10 + i]);
-
-            newUV.Add(new Vector2 (1, 0));                      //1,0
-            newUV.Add(new Vector2 (0, 0));                      //0,0
-            newUV.Add(new Vector2 (0, 1)); //0,1
-            newUV.Add(new Vector2 (1, 1)); //1,1
-
-            int[] indexValue = new int[]{0,1,3,1,2,3};
-            for(int index = 0; index < indexValue.Length; index++)
-            {
-                newTriangles.Add(indexValue[index] + i * 4);
-            }
-        }
-
-        mesh.Clear ();
-        mesh.vertices = newVertices.ToArray();
-        mesh.triangles = newTriangles.ToArray();
-        mesh.uv = newUV.ToArray(); 
-        mesh.Optimize();
-        mesh.RecalculateNormals();
     }
 
     public static Texture2D CreateFlower(Mesh mesh, Material flowerMaterial, float height, float bulbHeight, int whorls, int merosity, float openness, Vector2 offset, AnimationCurve curve, AnimationCurve flowerShape, List<Color> colors, bool spread)
@@ -173,19 +134,9 @@ public class MeshMaker : MonoBehaviour
         float amountOfVerticesVertical = 5;
         float heightIncrement = (height - bulbHeight) / amountOfVerticesVertical;
 
-        float angle = 0; float angleIncrement = 120;
-
         int stepsAroundCenter = 3;
 
-        for(int i = 0; i < amountOfVerticesVertical; i++)
-        {
-            for(int j = 0; j < stepsAroundCenter; j++)
-            {
-                positions.Add(new Vector3((1f/32f) * Mathf.Cos(angle * Mathf.Deg2Rad), (1f/32f) * Mathf.Sin(angle* Mathf.Deg2Rad), -currentHeight));
-                angle += angleIncrement;
-            }
-            currentHeight += heightIncrement;
-        }
+        CreateCylinder(ref positions, ref currentHeight, (int)amountOfVerticesVertical, stepsAroundCenter, heightIncrement, null);
 
         for(int j = 0; j < positions.Count -3; j++)
         {
@@ -485,21 +436,7 @@ public class MeshMaker : MonoBehaviour
         float currentHeight = 0;
         float heightIncrement = height / (float)amountOfQuadsVertical;
 
-        for(int j = 0; j < amountOfQuadsVertical; j++)
-        {
-            //Go through all levels upwards
-            float angle = 0;
-            //0.5f radius is base radius, cuz it fills up one tile
-            float currentRadius = curve.Evaluate((float)j/(float)amountOfQuadsVertical);
-
-            for(int k = 0; k < 10; k++)
-            {
-                //Go around the circle
-                positions.Add(new Vector3(currentRadius * Mathf.Sin(angle * Mathf.Deg2Rad), currentRadius * Mathf.Cos(angle* Mathf.Deg2Rad), -currentHeight));
-                angle += angleIncrement;
-            }
-            currentHeight += heightIncrement;
-        }
+        CreateCylinder(ref positions, ref currentHeight, amountOfQuadsVertical, 10, heightIncrement, curve);
 
         currentHeight-=heightIncrement;
 
@@ -512,7 +449,7 @@ public class MeshMaker : MonoBehaviour
             for(int k = 9; k >= 0; k--)
             {
                 //Go around the circle
-                positions.Add(new Vector3(currentRadius * Mathf.Sin(angle * Mathf.Deg2Rad), currentRadius * Mathf.Cos(angle* Mathf.Deg2Rad), -currentHeight));
+                positions.Add(new Vector3(currentRadius * Mathf.Cos(angle * Mathf.Deg2Rad), currentRadius * Mathf.Sin(angle* Mathf.Deg2Rad), -currentHeight));
                 angle += angleIncrement;
             }
             currentHeight -= heightIncrement;

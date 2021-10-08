@@ -46,9 +46,9 @@ public class GameData : MonoBehaviour
     static LevelData currentLevel;
     public static QuestData currentQuest;
 
-    public static int levelConstructionSeed; //Used by the room generator to generate the room
-    public static int levelDataSeed;
-    public static int questDataSeed;
+    public int levelConstructionSeed; //Used by the room generator to generate the room
+    public int levelDataSeed;
+    public int questDataSeed;
 
     public GameData()
     {
@@ -70,9 +70,9 @@ public class GameData : MonoBehaviour
     {
         Debug.Log("The construction seed is: " + constructionSeed);
         Debug.Log("The data seed is: " + levelDataSeed);
-        levelConstructionSeed = constructionSeed;
-        GameData.levelDataSeed = levelDataSeed;
-        GameData.questDataSeed = questDataSeed;
+        Instance.levelConstructionSeed = constructionSeed;
+        Instance.levelDataSeed = levelDataSeed;
+        Instance.questDataSeed = questDataSeed;
     }
     public static Vector2 GetPlayerPosition()
     {
@@ -90,7 +90,7 @@ public class GameData : MonoBehaviour
         }
         else
         {
-            return LevelDataGenerator.Initialize(levelDataSeed);
+            return LevelDataGenerator.Initialize(Instance.levelDataSeed);
         }
     }
     public static QuestData GetCurrentQuestData()
@@ -101,7 +101,7 @@ public class GameData : MonoBehaviour
         }
         else
         {
-            return QuestDataGenerator.Initialize(questDataSeed);
+            return QuestDataGenerator.Initialize(Instance.questDataSeed);
         }
     }
 }

@@ -100,7 +100,7 @@ public class LevelDataGenerator : MonoBehaviour
 {
     static public LevelData Initialize(int LevelDataSeed)
     {
-        GameData.levelDataSeed = LevelDataSeed;
+        GameData.Instance.levelDataSeed = LevelDataSeed;
         LevelData data = new LevelData();
         Random.InitState(LevelDataSeed);
         ChooseLocation(data);
@@ -317,7 +317,7 @@ public class LevelManager : MonoBehaviour
         }
         catch
         {
-            DebugLog.ReportBrokenSeed(GameData.levelDataSeed, GameData.levelConstructionSeed, "Generation");
+            DebugLog.ReportBrokenSeed(GameData.Instance.levelDataSeed, GameData.Instance.levelConstructionSeed, "Generation");
             // Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
             Debug.Break();
         }
@@ -366,7 +366,7 @@ public class LevelManager : MonoBehaviour
         }
         catch
         {
-            DebugLog.ReportBrokenSeed(GameData.levelDataSeed, GameData.levelConstructionSeed, "Building");
+            DebugLog.ReportBrokenSeed(GameData.Instance.levelDataSeed, GameData.Instance.levelConstructionSeed, "Building");
             Debug.Break();
         }
     }

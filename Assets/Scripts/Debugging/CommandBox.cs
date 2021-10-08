@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Globalization;
+using UnityEngine.SceneManagement;
 
 public class CommandBox : MonoBehaviour
 {
@@ -55,6 +56,18 @@ public class CommandBox : MonoBehaviour
                 else
                 {
                     append = ". Command not found!";
+                }
+            break;
+            case "Scene" : 
+                if(partsOfCommand.Length == 1){return;}
+                switch(partsOfCommand[1])
+                {
+                    case "Flowers": SceneManager.LoadScene("FlowerTest", LoadSceneMode.Single);
+                    break;
+                    case "Level": SceneManager.LoadScene("Level", LoadSceneMode.Single);
+                    break;
+                    case "Projectiles": SceneManager.LoadScene("ProjectileTest", LoadSceneMode.Single);
+                    break;
                 }
             break;
             case "ShowAll" :

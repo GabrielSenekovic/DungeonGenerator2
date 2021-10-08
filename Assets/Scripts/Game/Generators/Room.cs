@@ -1228,7 +1228,6 @@ public partial class Room: MonoBehaviour
             {
                 for(int y = 0; y < size.y; y++)
                 {
-                    Debug.Log(new Vector2Int(startPos.x + x, startPos.y + y));
                     positions.Add(new Vector2Int(startPos.x + x, startPos.y + y));
                     if(!placementGrid.IsWithinBounds(startPos.x + x, -startPos.y - y) || 
                         placementGrid[startPos.x + x, startPos.y + y].occupied || 
