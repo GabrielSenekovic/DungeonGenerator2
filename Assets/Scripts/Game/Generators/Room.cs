@@ -176,10 +176,11 @@ public partial class Room: MonoBehaviour
             }
             return new Tuple<bool, Entrance>(false, new Entrance(Vector2Int.zero, Vector2Int.zero));
         }
-        public void SetEntranceVertices(ref RoomTemplate template, RoomTemplate originTemplate, Entrance entrance, Entrance originEntrance) //The template of this room and the template from the other room
+        public void SetEntranceVertices(ref RoomTemplate template, RoomTemplate originTemplate, Entrance entrance, Entrance originEntrance, Vector3 originRoomPosition, Vector3 destinationRoomPosition) //The template of this room and the template from the other room
         {
-            template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[1]).endVertices, entrance.positions[0], true); //Origin end to destination start
-            template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[0]).startVertices, entrance.positions[1], false); //Origin start to destination end
+            //template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[1]).endVertices, entrance.positions[0], originRoomPosition, destinationRoomPosition, true); //Origin end to destination start
+            template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[1]).startVertices, entrance.positions[0], originRoomPosition, destinationRoomPosition, false); //Origin start to destination end
+            Debug.Log("Set origin start to destination end at position: " + entrance.positions[0] + " with a total of: " + originTemplate.GetEntranceTile(originEntrance.positions[1]).startVertices.Count + " vertices at " + originEntrance.positions[1]);
         }
     }
     public class EntranceData
@@ -1045,7 +1046,7 @@ public partial class Room: MonoBehaviour
         {
             return positions[position.x + size.x * position.y];
         }
-        public void SetEntranceTileVertices(List<Vector3> vertices, Vector2Int position, bool start) //The entrance of this room
+        public void SetEntranceTileVertices(List<Vector3> vertices, Vector2Int position, Vector3 originRoomPosition, Vector3 destinationRoomPosition, bool start) //The entrance of this room
         {
             if(start)
             {
@@ -1053,7 +1054,17 @@ public partial class Room: MonoBehaviour
             }
             else
             {
-                positions[position].endVertices = vertices;
+                if(positions[position].endVertices.Count > 0)
+                {
+                    Debug.Log("Tried to add when there is already data");
+                    return;
+                }
+                Debug.Log("Setting end vertices here with: " + vertices.Count + " vertices");
+                Vector3 adjustmentVector = originRoomPosition - destinationRoomPosition;
+                for(int i = 0; i < vertices.Count; i++)
+                {
+                    positions[position].endVertices.Add(vertices[i] + adjustmentVector);
+                }
             }
         }
         void EnsureEntranceReachability(Entrances.Entrance entrance)
@@ -1306,7 +1317,7 @@ public partial class Room: MonoBehaviour
             for(int y = 0; y < template.size.y; y++)
             {
                 RoomTemplate.TileTemplate temp = grid[x,y];
-                Color color = temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255): temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
+                Color color = temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255): temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
                 templateTexture.SetPixel(x, y, color);
             }
         }

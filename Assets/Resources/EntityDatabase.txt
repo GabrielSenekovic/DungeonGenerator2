@@ -17,8 +17,8 @@ RenderDistance: -1
 Name: Poppy
 Type: Flower
 Amount: 3
-Height: 100
-Bulb: 10
+Height: 50
+Bulb: 8
 Whorls: 2
 Merosity: 4
 Openness: 1.0
@@ -32,7 +32,7 @@ Name: Tulip
 Type: Flower
 Amount: 3
 Variety: Red
-Height: 70
+Height: 50
 Bulb: 8
 Whorls: 2
 Merosity: 3

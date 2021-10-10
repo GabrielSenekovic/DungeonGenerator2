@@ -65,7 +65,7 @@ public partial class LevelGenerator : MonoBehaviour
     {
         System.DateTime before = System.DateTime.Now;
 
-        UnityEngine.Random.InitState(GameData.levelConstructionSeed);
+        UnityEngine.Random.InitState(GameData.Instance.levelConstructionSeed);
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
 
@@ -110,7 +110,7 @@ public partial class LevelGenerator : MonoBehaviour
                         //Create room here
                         Room temp = Instantiate(RoomPrefab, transform);
                         temp.gameObject.name = "Surrounding";
-                        temp.transform.parent = gameObject.transform;
+                        temp.transform.parent = surroundings.transform;
                         temp.Initialize(roomGrid[i].Item1 * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
                         surroundingPositions.Add(new Tuple<Vector2Int, Room>(roomGrid[i].Item1 + new Vector2Int(x,y),temp));
                     }
@@ -129,7 +129,7 @@ public partial class LevelGenerator : MonoBehaviour
                         //Create room here
                         Room temp = Instantiate(RoomPrefab, transform);
                         temp.gameObject.name = "Surrounding";
-                        temp.transform.parent = gameObject.transform;
+                        temp.transform.parent = surroundings.transform;
                         temp.Initialize(surroundingPositions[i].Item1 * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
                         surroundingPositions.Add(new Tuple<Vector2Int, Room>(surroundingPositions[i].Item1 + new Vector2Int(x,y),temp));
                     }
@@ -311,6 +311,7 @@ public partial class LevelGenerator : MonoBehaviour
     {
         //Set the entrance vertices of all adjacent rooms
         List<Tuple<Vector2Int, Vector2Int, Room>> roomList = GetAllAdjacentRooms(origin);
+        Debug.Log("The room: " + origin.gameObject.name + " found this many neighbors: " + roomList.Count);
         //Item1 is the adjacent gridposition, Item2 is the gridposition it connects to in the origin room
         for(int k = 0; k < roomList.Count; k++)
         {
@@ -322,14 +323,14 @@ public partial class LevelGenerator : MonoBehaviour
                     n++;
                     if(roomList[k].Item1 == sections[l].rooms[m].transform.position.ToV2Int()/20) //found the index for templates
                     {
-                       // Debug.Log("Saving wall vertices from: " + roomList[k].Item2 + " to: " + roomList[k].Item1);
+                        Debug.Log("Saving wall vertices from: " + roomList[k].Item2 + " to: " + roomList[k].Item1);
                         Room.RoomTemplate adjTemplate = templates[n-1];
                         
                         Vector2 direction = (new Vector2(roomList[k].Item1.x, roomList[k].Item1.y) - roomList[k].Item2).normalized;
                         Tuple<bool, Room.Entrances.Entrance> adjEntrance = roomList[k].Item3.directions.GetEntrance(roomList[k].Item1, -direction.ToV2Int());
                         Tuple<bool, Room.Entrances.Entrance> myEntrance = origin.directions.GetEntrance(roomList[k].Item1 + adjEntrance.Item2.dir, -adjEntrance.Item2.dir);
 
-                        roomList[k].Item3.directions.SetEntranceVertices(ref adjTemplate, originTemplate, adjEntrance.Item2, myEntrance.Item2);
+                        roomList[k].Item3.directions.SetEntranceVertices(ref adjTemplate, originTemplate, adjEntrance.Item2, myEntrance.Item2, origin.transform.position, roomList[k].Item3.transform.position);
                     }
                 }
             }
@@ -357,9 +358,8 @@ public partial class LevelGenerator : MonoBehaviour
 
                     lawn.transform.localPosition = new Vector3(-10, -10, -0.5f);
 
-                    grass.PlantFlora(sections[i].rooms[j]);
+                    //grass.PlantFlora(sections[i].rooms[j]);
                     sections[i].rooms[j].grass = grass;
-                    //grass.PlantFlora(templates[j+i]);
                 }
             }
         }
