@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using UnityEngine.Rendering;
-using UnityEditor;
+//using UnityEditor;
 using System.Linq;
 
-[CustomEditor(typeof(Room))]
+/*[CustomEditor(typeof(Room))]
 public class RoomEditor:Editor
 {
     public override void OnInspectorGUI()
@@ -40,7 +40,7 @@ public class RoomEditor:Editor
         //var result = (Texture2D)EditorGUILayout.ObjectField(texture, typeof(Texture2D), false, GUILayout.Width(400), GUILayout.Height(400));
         GUILayout.EndVertical();
     }
-}
+}*/
 
 [System.Serializable]public class RoomData
 {

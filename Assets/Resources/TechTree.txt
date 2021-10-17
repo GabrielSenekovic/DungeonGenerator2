@@ -1,0 +1,49 @@
+// -> means that this science is required for the following science
+// >> means that when you have this science, the following can appear by itself. For instance, calligraphy cant be investigated. It just appears
+
+Pottery
+-> Irrigation
+-> Writing //Because they couldn't do writing until they had clay slabs to write on
+
+Animal Husbandry: Ability to research cattle
+-> Archery
+
+Mining: Make mines
+-> Masonry
+-> Bronze Working
+-> Wheel
+
+Astrology
+-> Celestial Navigation
+
+Sailing: Make fisheries
+-> Shipbuilding
+
+Irrigation
+
+Writing
+>> Calligraphy
+
+Archery
+-> Longbow //It seems that longbows were invented after normal bows
+-> Mounted Archery
+
+Bronze Working
+-> Coinage //Because most civilisations had to master metallurgy before they could make coins. They already had currency
+-> Iron Working
+
+Currency: An alternative to bartering
+-> Coinage
+
+Mathematics
+-> Buttress
+
+Wheel
+-> Engineering
+
+Engineering: Build catapults and aqueducts
+
+Coinage: Making it a lot easier to carry around money
+-> Paper Currency
+
+Paper Currency: Even easier to carry around than coins
