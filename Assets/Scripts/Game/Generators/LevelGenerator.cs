@@ -358,7 +358,7 @@ public partial class LevelGenerator : MonoBehaviour
 
                     lawn.transform.localPosition = new Vector3(-10, -10, -0.5f);
 
-                    //grass.PlantFlora(sections[i].rooms[j]);
+                    grass.PlantFlora(sections[i].rooms[j]);
                     sections[i].rooms[j].grass = grass;
                 }
             }

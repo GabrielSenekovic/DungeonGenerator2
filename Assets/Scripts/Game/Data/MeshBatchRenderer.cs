@@ -29,12 +29,10 @@ public class MeshBatchRenderer : MonoBehaviour
     private void Awake() 
     {
         database = Resources.Load<EntityDatabase>("EntityDatabase");
+        TextAsset reader = Resources.Load<TextAsset>("EntityDatabase");
         //Load the info how to make the grass and tulips from a file
-        string path = "Assets/Resources/EntityDatabase.txt";
         //Read the text from directly from the test.txt file
-        StreamReader reader = new StreamReader(path); 
-        database.Initialise(reader.ReadToEnd());
-        reader.Close();
+        database.Initialise(reader.text);
         Debug.Log("Database loaded");
     }
     //Move code from Grass.cs to here, so that other scripts can use it

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 
 [System.Serializable]
 [CreateAssetMenu(fileName = "EntityDatabase", menuName = "Dungeon Generator/EntityDatabase", order = 2)]
@@ -79,12 +80,12 @@ public class EntityDatabase :ScriptableObject
                         switch(allData[i][j])
                         {
                             case "Amount:": int.TryParse(allData[i][j+1], out amount); break;
-                            case "Height:": float.TryParse(allData[i][j+1], out height); break;
-                            case "Bulb:": float.TryParse(allData[i][j+1], out bulbHeight); break;
+                            case "Height:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out height); break;
+                            case "Bulb:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out bulbHeight); break;
                             case "Whorls:": int.TryParse(allData[i][j+1], out whorls); break;
                             case "Merosity:": int.TryParse(allData[i][j+1], out merosity); break;
-                            case "RenderDistance:": float.TryParse(allData[i][j+1], out renderDistance); renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance; break;
-                            case "Openness:": float.TryParse(allData[i][j+1], out openness); break;
+                            case "RenderDistance:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance; break;
+                            case "Openness:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out openness); break;
                             case "Spread:": bool.TryParse(allData[i][j+1], out spread); break;
                             case "Curve:": 
                                 {
@@ -93,8 +94,8 @@ public class EntityDatabase :ScriptableObject
                                     while(!allData[i][j+k].Any(x => char.IsLetter(x)))
                                     {
                                         float time, curveValue;
-                                        float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""), out time);
-                                        float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
+                                        float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""),NumberStyles.Any, CultureInfo.InvariantCulture, out time);
+                                        float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""),NumberStyles.Any, CultureInfo.InvariantCulture, out curveValue);
                                         keyFrame.time = time; keyFrame.value = curveValue;
                                         curve.AddKey(keyFrame);
                                         k+= 2;
@@ -108,8 +109,8 @@ public class EntityDatabase :ScriptableObject
                                     while(!allData[i][j+k].Any(x => char.IsLetter(x)))
                                     {
                                         float time, curveValue;
-                                        float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""), out time);
-                                        float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out curveValue);
+                                        float.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""),NumberStyles.Any, CultureInfo.InvariantCulture, out time);
+                                        float.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""),NumberStyles.Any, CultureInfo.InvariantCulture,out curveValue);
                                         keyFrame.time = time; keyFrame.value = curveValue;
                                         flowerShape.AddKey(keyFrame);
                                         k+= 2;
@@ -132,6 +133,11 @@ public class EntityDatabase :ScriptableObject
                             break; 
                         }
                     }
+                    Debug.Log("Creating a flower with: " + "height: " + height + " bulb: " + bulbHeight + " whorls: " + whorls + " merosity: " + merosity + " openness: " + openness);
+                    if(curve == null)
+                    {
+                        Debug.Log("Curve is null");
+                    }
                     Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, flowerShape, colors, spread);
                     flowerMaterial.SetTexture("_MainTex", flowerTexture);
                     DatabaseEntry.MeshLOD tempFlower = new DatabaseEntry.MeshLOD(flowerMesh, renderDistance);
@@ -152,17 +158,19 @@ public class EntityDatabase :ScriptableObject
                         {
                             case "Amount:": int.TryParse(allData[i][j+1], out amount); break;
                             case "RenderDistance:": //Make sure the renderdistance part is at the end of each LOD mesh
-                                float.TryParse(allData[i][j+1], out renderDistance); 
+                                float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); 
                                 renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance;
-                                MeshMaker.CreateTuft(tuftMesh, quads, straws, width);
-                                DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, renderDistance);
+                                MeshMaker.CreateTuft(tuftMesh, quads, straws, (float)width);
+                                DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, (float)renderDistance);
                                 tuftEntry.AddMesh(tempTuft);
                             break;
                             case "Quads:": int.TryParse(allData[i][j+1], out quads); break;
                             case "Straws:":int.TryParse(allData[i][j+1], out straws); break;
-                            case "Width:": float.TryParse(allData[i][j+1], out width); break;
+                            case "Width:": float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out width); Debug.Log("Width: " + allData[i][j+1] + " and " + width);
+                            break;
                         }
                     }
+                    Debug.Log("Amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                     tuftEntry.material = defaultMaterial;
                     tuftEntry.amountPerTile = amount;
                     database.Add(tuftEntry);
