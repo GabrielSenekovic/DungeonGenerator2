@@ -161,8 +161,10 @@ public class EntityDatabase :ScriptableObject
                                 float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); 
                                 renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance;
                                 MeshMaker.CreateTuft(tuftMesh, quads, straws, (float)width);
+                                Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                                 DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, (float)renderDistance);
                                 tuftEntry.AddMesh(tempTuft);
+                                tuftMesh = new Mesh();
                             break;
                             case "Quads:": int.TryParse(allData[i][j+1], out quads); break;
                             case "Straws:":int.TryParse(allData[i][j+1], out straws); break;
@@ -170,7 +172,6 @@ public class EntityDatabase :ScriptableObject
                             break;
                         }
                     }
-                    Debug.Log("Amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                     tuftEntry.material = defaultMaterial;
                     tuftEntry.amountPerTile = amount;
                     database.Add(tuftEntry);
@@ -182,14 +183,16 @@ public class EntityDatabase :ScriptableObject
 
     public Mesh GetMesh(string value, float distance)
     {
-        DatabaseEntry entry = GetDatabaseEntry(value);
-        if(entry != null)
+        DatabaseEntry entry = GetDatabaseEntry(value); //Get the mesh collection of this name
+        if(entry != null) //If it was found
         {
-            for(int i = 0; i < entry.mesh.Count; i++)
+            for(int i = 0; i < entry.mesh.Count; i++) //Go through all of them
             {
-                if(distance < entry.mesh[i].renderDistance)
+                if(distance < entry.mesh[i].renderDistance) //If the given distance is smaller than the distance of the mesh
                 {
-                    return entry.mesh[i].mesh;
+                    //Debug.Log("Distance: " + distance + " was smaller than: " + entry.mesh[i].renderDistance);
+                    //Debug.Break();
+                    return entry.mesh[i].mesh; //Return it
                 }
             }
         }

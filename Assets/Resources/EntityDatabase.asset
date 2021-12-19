@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   database:
   - name: Grass
+    type: Tuft
     amountPerTile: 3
     material: {fileID: 2100000, guid: a572486a140469948b90a1bcbc7ab969, type: 2}
     mesh:
@@ -23,7 +24,15 @@ MonoBehaviour:
       renderDistance: 25
     - mesh: {fileID: 0}
       renderDistance: Infinity
+  - name: Poppy
+    type: Flower
+    amountPerTile: 3
+    material: {fileID: 0}
+    mesh:
+    - mesh: {fileID: 0}
+      renderDistance: Infinity
   - name: Tulip
+    type: Flower
     amountPerTile: 3
     material: {fileID: 0}
     mesh:
