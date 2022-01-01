@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using UnityEngine.Rendering;
-//using UnityEditor;
+using UnityEditor;
 using System.Linq;
 
-/*[CustomEditor(typeof(Room))]
+[CustomEditor(typeof(Room))]
 public class RoomEditor:Editor
 {
     public override void OnInspectorGUI()
@@ -40,7 +40,7 @@ public class RoomEditor:Editor
         //var result = (Texture2D)EditorGUILayout.ObjectField(texture, typeof(Texture2D), false, GUILayout.Width(400), GUILayout.Height(400));
         GUILayout.EndVertical();
     }
-}*/
+}
 
 [System.Serializable]public class RoomData
 {
@@ -613,10 +613,12 @@ public partial class Room: MonoBehaviour
         {
            // Debug.Log("<color=green> NEW ROOM</color>");
             List<Tuple<List<MeshMaker.WallData>, bool>> data = new List<Tuple<List<MeshMaker.WallData>, bool>>();
+            Vector2Int pos = new Vector2Int(-1, -1);
+            int currentAngle = 0;
 
             //Make one that works for all purposes
 
-            if(entrances != null && entrances.entrances.Count > 0)
+            if (entrances != null && entrances.entrances.Count > 0)
             {
               //  Debug.Log("<color=green> NEW WALL</color>");
                 for(int i = 0; i < entrances.entrances.Count; i++) //! makes the code only work when theres a door
@@ -625,38 +627,29 @@ public partial class Room: MonoBehaviour
                     //Go through each entrance, and make a wall to its left. There will only ever be as many walls as there are entrances kappa
                     //Find a wall that has a floor next to it
                     //Debug.Log("Extracting walls");
-                    Vector2Int pos = new Vector2Int(-1,-1);
-                    int currentAngle = 0; //Current angle should only be 0 if the floor found points down.
+                    pos = new Vector2Int(-1,-1);
+                    currentAngle = 0; //Current angle should only be 0 if the floor found points down.
 
                     ExtractWalls_GetStartPosition(ref pos, ref currentAngle, entrances.entrances[i]);
                     OnExtractWalls(ref currentAngle, ref pos, ref data);
                 }
             }
-            else //If this is a closed room without doors
+           // else //If this is a closed room without doors
+            for (int x = 0; x < size.x; x++)
             {
-                Debug.Log("Making a closed room");
-                Vector2Int pos = new Vector2Int(-1,-1);
-                int currentAngle = 0; //Current angle should only be 0 if the floor found points down.
-
-                for(int x = 0; x < size.x; x++)
+                for (int y = 0; y < size.y; y++)
                 {
-                    for(int y = 0; y < size.y; y++)
+                    //Check if there is floor diagonally right down, because walls can only be drawn from left to right
+                    //If there are none, rotate the search three times. If there still are none, then there is an error
+                    if (IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && !positions[x + 1, y + 1].wall
+                        && positions[x, y].wall && !positions[x, y].read
+                        && positions[x, y].elevation > positions[x + 1, y + 1].elevation)
                     {
-                        //Check if there is floor diagonally right down, because walls can only be drawn from left to right
-                        //If there are none, rotate the search three times. If there still are none, then there is an error
-                        if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && x < size.x && !positions[x + 1 + size.x * (y + 1)].wall)
-                        {
-                            pos = new Vector2Int(x, -y); 
-                            currentAngle = 90;
-                            break; 
-                        }
-                    }
-                    if(pos != new Vector2Int(-1,-1))
-                    {
-                        break;
+                        pos = new Vector2Int(x, -y);
+                        currentAngle = 270;
+                        OnExtractWalls(ref currentAngle, ref pos, ref data);
                     }
                 }
-                OnExtractWalls(ref currentAngle, ref pos, ref data);
             }
             
             return data;
@@ -1164,7 +1157,8 @@ public partial class Room: MonoBehaviour
     public bool RequestPosition(Vector2 pos, Vector2Int size)
     {
         List<Vector2Int> positions = new List<Vector2Int>();
-        Vector2Int posInt = (pos * 2).ToV2Int();
+        pos *= 2;
+        Vector2Int posInt = new Vector2Int((int)pos.x + 1, (int)pos.y + 1);
         //Transform pos from worldspace to the gridspace, which is about twice as big
         for(int x = 0; x < size.x; x++)
         {

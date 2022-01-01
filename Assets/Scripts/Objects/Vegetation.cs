@@ -79,7 +79,7 @@ public class Vegetation : MonoBehaviour
         MeshBatchRenderer.CreateBatches(this, room);
     }
 
-    private void Update() 
+    void Update() 
     {
         RenderBatches();
         UpdateFire();

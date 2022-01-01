@@ -490,10 +490,13 @@ public class MeshMaker : MonoBehaviour
     }
     public static void CreateWall(GameObject wall, Material wallMaterial, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles)
     {
+        if(instructions.Count == 0)
+        {
+            DebugLog.WarningMessage("There were no instructions sent!"); return;
+        }
         Debug.Log("Enters CreateWall");
         //ref List<Room.EntranceData> entrancesOfThisRoom, ref List<Room.EntranceData> entrancesOfRoomAtStart, ref List<Room.EntranceData> entrancesOfRoomAtEnd
         float jaggedness = 0.04f;
-       // Debug.Log("Instructions: " + instructions.Count);
         Vector2 divisions = new Vector2(instructions[0].divisions.x +1, instructions[0].divisions.y+1);
         if(instructions[0].divisions.x == 1)
         {
@@ -1101,7 +1104,7 @@ public class MeshMaker : MonoBehaviour
                         //goto end;
                     }
                     debug_info += "_";
-                    //Debug.Log("So far: " + debug_info);
+                   // Debug.Log("So far: " + debug_info);
                 }
 
                 GameObject wallObject = new GameObject("Wall Object " + j);
@@ -1157,6 +1160,7 @@ public class MeshMaker : MonoBehaviour
                 }
             }
         }
+        DebugLog.SuccessMessage("Successfully created a wall!");
     }
     static public void CreateWall_AddVertices(List<Vector3> vertices)
     {

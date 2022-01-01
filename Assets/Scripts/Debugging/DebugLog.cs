@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class DebugLog : MonoBehaviour
 {
+    public static bool SuccessMessagesEnabled;
+    public static bool WarningMessagesEnabled;
     public static void ReportBrokenSeed(int dataSeed, int constructionSeed, string text)
     {
         text = "<color=red>" + text + " ERROR: Data seed: " + dataSeed + "Construction seed: " + constructionSeed;
@@ -20,5 +22,13 @@ public class DebugLog : MonoBehaviour
             text += " Vertices and UV are not the same size! There are too few UVs";
         }
         Debug.Log(text);
+    }
+    public static void WarningMessage(string text)
+    {
+        Debug.Log("<color=red>" + text + "</color>");
+    }
+    public static void SuccessMessage(string text)
+    {
+        Debug.Log("<color=green>" + text + "</color>");
     }
 }

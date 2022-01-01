@@ -89,16 +89,34 @@ public class CommandBox : MonoBehaviour
                 switch(partsOfCommand[1])
                 {
                     case "Grid": //Show placement grid
+                        UnityEngine.Object[] objects = FindObjectsOfType<MeshRenderer>();
+                        Texture texture = Resources.Load<Texture>("Art/Box_Cross");
+                        for (int i = 0; i < objects.Length; i++)
+                        {
+                            if(objects[i].name == "Floor")
+                            {
+                                (objects[i] as MeshRenderer).material.SetTexture("_BaseMap", texture);
+                            }
+                        }
                     break;
                     case "Keys": //Show arrows from keys to the door it is meant to open
                     break;
                     case "Sections": 
-                        GameObject.FindObjectOfType<LevelGenerator>().ToggleRenderSections();
+                        FindObjectOfType<LevelGenerator>().ToggleRenderSections();
                     //Show different colors for different sections of the dungeon
                     break;
                     default:
                         //Command failed
                         append = ". Command not found!";
+                    break;
+                }
+            break;
+            case "Vegetation":
+                if (partsOfCommand.Length == 1) { return; }
+                switch(partsOfCommand[1])
+                {
+                    case "ToggleRandom": //Toggles whether grass is on random positions or exactly in the middle of their tiles
+                        MeshBatchRenderer.RenderRandomPositions = !MeshBatchRenderer.RenderRandomPositions;
                     break;
                 }
             break;

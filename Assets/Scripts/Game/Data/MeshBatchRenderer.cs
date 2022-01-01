@@ -7,6 +7,7 @@ using System.Linq;
 [System.Serializable]public class ObjectData
 {
     public Vector3 pos;
+    public Vector3 tilePos;
     public Vector3 scale;
     public Quaternion rot;
     public Matrix4x4 matrix
@@ -16,15 +17,23 @@ using System.Linq;
             return Matrix4x4.TRS(pos, rot, scale);
         }
     }
+    public Matrix4x4 matrixTile
+    {
+        get
+        {
+            return Matrix4x4.TRS(tilePos, rot, scale);
+        }
+    }
 
-   public ObjectData(Vector3 pos_in, Vector3 scale_in, Quaternion rot_in)
+   public ObjectData(Vector3 pos_in, Vector3 scale_in, Quaternion rot_in, Vector3 tilesPos_in)
    {
-       pos = pos_in; scale = scale_in; rot = rot_in;
+       pos = pos_in; scale = scale_in; rot = rot_in; tilePos = tilesPos_in;
    }
 }
 public class MeshBatchRenderer : MonoBehaviour
 {
     static EntityDatabase database;
+    public static bool RenderRandomPositions;
 
     private void Awake() 
     {
@@ -34,6 +43,7 @@ public class MeshBatchRenderer : MonoBehaviour
         //Read the text from directly from the test.txt file
         database.Initialise(reader.text);
         Debug.Log("Database loaded");
+        RenderRandomPositions = true;
     }
     //Move code from Grass.cs to here, so that other scripts can use it
     public static void CreateBatches(Vegetation vegetation, Room room)
@@ -68,11 +78,11 @@ public class MeshBatchRenderer : MonoBehaviour
                     for(int l = 0; l < amountForThisTile; l++) //Make a set amount of grass for this one tile
                     {
                         float elevation = room.placementGrid[index].elevation;
-                        Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y, y-1.0f), -elevation);
+                        Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y - 1.0f, y), -elevation);
                         if(room.RequestPosition(position, new Vector2Int(1,1)))
                         {
                             position = new Vector3(position.x + (int)vegetation.transform.position.x, -position.y + (int)vegetation.transform.position.y + 19, position.z);
-                            AddObject(currentBatch, position); //Adds one singular blade of grass to "currentBatch" 
+                            currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.identity, new Vector3(x + 0.5f + (int)vegetation.transform.position.x, -(y - 0.5f) + (int)vegetation.transform.position.y + 19, -elevation))); 
                             batchIndexNum++;
                             succeededGrasses++;
                             if(batchIndexNum >= 1000)
@@ -111,10 +121,6 @@ public class MeshBatchRenderer : MonoBehaviour
             }
         }
     }
-    public static void AddObject(List<ObjectData> currentBatch, Vector3 position)
-    {
-        currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.identity));
-    }
     public static List<ObjectData> BuildNewBatch()
     {
         return new List<ObjectData>();
@@ -135,7 +141,8 @@ public class MeshBatchRenderer : MonoBehaviour
             Mesh mesh = database.GetMesh(b.name, dist);
             if(mesh != null)
             {
-                Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());
+                if (RenderRandomPositions) { Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList()); }
+                else { Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrixTile).ToList()); }
             }
         }
     }

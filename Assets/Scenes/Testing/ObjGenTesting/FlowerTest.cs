@@ -60,7 +60,7 @@ public class FlowerTest : MonoBehaviour
 
         for(int i = 0; i < database.database.Count; i++)
         {
-            objects.Add(new FlowerTestObject(database.database[i].name, new ObjectData(new Vector3(i, 0, 0), new Vector3(100, 100, 100), Quaternion.identity), GetCreationData(database.database[i].name), database.database[i].material));
+            objects.Add(new FlowerTestObject(database.database[i].name, new ObjectData(new Vector3(i, 0, 0), new Vector3(100, 100, 100), Quaternion.identity, new Vector3(0,0,0)), GetCreationData(database.database[i].name), database.database[i].material));
         }
         UpdateUI();
     }
