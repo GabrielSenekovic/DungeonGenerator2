@@ -100,7 +100,7 @@ public class MeshMaker : MonoBehaviour
         //Create a stalk, create leaves and add a perianth to the top of the stalk
         //The stalk is triangular so it can be seen from all angles
         //Tulip grow about 30cm high
-        Debug.Log("Creating flower");
+        //Debug.Log("Creating flower");
         List<int> newTriangles = new List<int>();
         List<Vector3> newVertices = new List<Vector3>();
         List<Vector2> newUV = new List<Vector2>();
@@ -109,7 +109,7 @@ public class MeshMaker : MonoBehaviour
         bulbHeight = Math.ConvertCentimetersToPixels((int)bulbHeight);
 
         //!The height will also determine the height of the texture
-        Debug.Log("Making texture");
+        //Debug.Log("Making texture");
         Texture2D texture = new Texture2D(2, (int)(height * 16), TextureFormat.ARGB32, false); //1 in height corresponds to 16 pixels
         for(int i = 0; i < texture.width * texture.height; i++)
         {
@@ -122,7 +122,7 @@ public class MeshMaker : MonoBehaviour
                 texture.SetPixel(i%texture.width, i/texture.width, colors[1]);
             }
         }
-        Debug.Log("Applying texture");
+        //Debug.Log("Applying texture");
         texture.Apply();
         texture.filterMode = FilterMode.Point;
         flowerMaterial.SetTexture("_MainTex", texture);
@@ -134,7 +134,7 @@ public class MeshMaker : MonoBehaviour
 
         int stepsAroundCenter = 3;
 
-        Debug.Log("Creating stalk");
+        //Debug.Log("Creating stalk");
 
         CreateCylinder(ref positions, ref currentHeight, (int)amountOfVerticesVertical, stepsAroundCenter, heightIncrement, null);
 
@@ -164,7 +164,7 @@ public class MeshMaker : MonoBehaviour
             }
         }
         //Stalk done, lets add Perianth
-        Debug.Log("Creating Perianth");
+        //Debug.Log("Creating Perianth");
         CreatePerianth(ref newVertices, ref newTriangles, ref newUV, currentHeight - heightIncrement, bulbHeight, whorls, merosity, (height - bulbHeight)/height, openness, offset, curve, flowerShape, spread); 
         //!height - bulbheight only works because height is 1, so its already procentual
 

@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Math : MonoBehaviour
 {
+    public static Vector2Int[] directions = new Vector2Int[4]{
+            new Vector2Int( -1, 1 ),
+            new Vector2Int( 1, 1 ),
+            new Vector2Int( 1, -1 ),
+            new Vector2Int( -1, -1 ) };
     //1/limit * x^exponent / limit^exponent
     //The x^exponent determines the curve
     //The limit^exponent only brings it down so that when x is limit, y is one

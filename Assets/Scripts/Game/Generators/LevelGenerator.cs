@@ -198,7 +198,8 @@ public partial class LevelGenerator : MonoBehaviour
             int k = 0;
             for (int j = sections[i].rooms.Count; k < amountOfRooms; j++)
             {
-                Debug.Log("<color=yellow>Spawning room: " + j + " in section: " + i + "</color>");
+                DebugLog.AddToMessage("Room", j.ToString());
+                DebugLog.AddToMessage("Section", i.ToString());
                 
                 //Vector2Int currentRoomSize = new Vector2Int(UnityEngine.Random.Range(1,4),UnityEngine.Random.Range(1,4)); //in grid space
                 Vector2Int currentRoomSize = new Vector2Int(5,5);
@@ -209,7 +210,7 @@ public partial class LevelGenerator : MonoBehaviour
                     if(j != 0) //If not the first room every section
                     {
                         originRoom = GetRandomRoomOfSection(i); //! If there are no open entrances in any room, the catch will be executed
-                        Debug.Log("Origin room to spawn new from: " + originRoom.Item1.transform.position);
+                        DebugLog.AddToMessage("Spawning from", originRoom.Item1.transform.position.ToString());
                     }
                     else if(i != 0) //And if not the first room of the first section
                     {
@@ -225,7 +226,7 @@ public partial class LevelGenerator : MonoBehaviour
                 }
                 sections[i].rooms.Add(Instantiate(RoomPrefab, transform));
                 sections[i].rooms[j].name = "Room #" + (numberOfRooms+1); numberOfRooms++;
-                Debug.Log(sections[i].rooms[j].name);
+                DebugLog.AddToMessage("Name", sections[i].rooms[j].name);
 
                 bool indoors = false;
                 //data.dungeon ? UnityEngine.Random.Range(0, 100) < 80 : false;
@@ -241,14 +242,24 @@ public partial class LevelGenerator : MonoBehaviour
                 ActivateEntrances(originRoom.Item1, sections[i].rooms[j], gridPositionWhereTheNewRoomConnects, locked);
                 LinkRoom(sections[i].rooms[j], RoomSize);
                 OpenRandomEntrances(sections[i].rooms[j], data.openDoorProbability);
-                for(int x = 0; x < currentRoomSize.x; x++)
+                /*for (int x = 0; x < currentRoomSize.x; x++)
                 {
-                    for(int y = 0; y < currentRoomSize.y; y++)
+                    for (int y = 0; y < currentRoomSize.y; y++)
                     {
-                        roomGrid.Add(new Tuple<Vector2Int, Room>(sections[i].rooms[j].transform.position.ToV2Int()/20 + new Vector2Int(x,-y), sections[i].rooms[j]));
+                        roomGrid.Add(new Tuple<Vector2Int, Room>(sections[i].rooms[j].transform.position.ToV2Int() / 20 + new Vector2Int(x, -y), sections[i].rooms[j]));
+                        k++;
+                    }
+                }*/
+                for(int x = 0; x < Mathf.Abs(currentRoomSize.x); x++)
+                {
+                    for(int y = 0; y < Mathf.Abs(currentRoomSize.y); y++)
+                    {
+                        roomGrid.Add(new Tuple<Vector2Int, Room>(sections[i].rooms[j].transform.position.ToV2Int()/20 + 
+                            new Vector2Int(x * (int)Mathf.Sign(currentRoomSize.x), y * -(int)Mathf.Sign(currentRoomSize.y)), sections[i].rooms[j]));
                         k++;
                     }
                 }
+                DebugLog.PublishMessage();
             }
             CloseAllEntrances();
         }
@@ -392,8 +403,12 @@ public partial class LevelGenerator : MonoBehaviour
         //!the newroom position is already by nature closest, since its spawned from the direction of a door
 
         //!then you have to make sure that these two rooms connect anywhere else that wasnt intended
-
-        Vector2 direction = ((Vector2)gridPositionWhereOriginConnects - (Vector2)newRoom.transform.position/20).normalized;
+        DebugLog.AddToMessage("Step", "Activating Entrances");
+        Vector2 direction = (gridPositionWhereOriginConnects - (Vector2)newRoom.transform.position/20).normalized;
+        DebugLog.AddToMessage("Origin pos", origin.transform.position.ToString());
+        DebugLog.AddToMessage("Newroom pos", newRoom.transform.position.ToString());
+        //DebugLog.AddToMessage("Grid position where origin connects", gridPositionWhereOriginConnects.ToString());
+        DebugLog.AddToMessage("Direction to attach", direction.ToString());
         //Debug.Log(direction);
 
         Tuple<bool, Room.Entrances.Entrance> adjEntrance = newRoom.directions.GetEntrance(newRoom.transform.position.ToV2Int()/20, direction.ToV2Int());
@@ -432,12 +447,12 @@ public partial class LevelGenerator : MonoBehaviour
             }
             else
             {
-                Debug.LogError("COULDNT FIND THE ORIGIN ENTRANCE DESPITE BEING ADJACENT");
+                DebugLog.TerminateMessage("COULDNT FIND THE ORIGIN ENTRANCE DESPITE BEING ADJACENT");
             }
         }
         else
         {
-            Debug.LogError("COULDNT FIND THE ADJACENT ENTRANCE DESPITE BEING ADJACENT");
+            DebugLog.TerminateMessage("COULDNT FIND THE ADJACENT ENTRANCE DESPITE BEING ADJACENT");
         }
     }
     Vector2Int GetNewRoomCoordinates(Room room, Vector2Int originCoordinates, List<Room.Entrances.Entrance> openEntrances, ref Vector2Int roomSize, ref Vector2Int gridPositonWhereNewRoomConnects) //Roomsize is in grid size
@@ -464,19 +479,94 @@ public partial class LevelGenerator : MonoBehaviour
 
     void AttemptExpansion(Room room, Vector2Int origin, ref Vector2Int roomSize)
     {
+        DebugLog.AddToMessage("Step", "Attempting expansion");
         //Debug.Log("Roomsize before attempting expansion: " + roomSize);
-        int x = 1, y = 1;
-        
-        while(x < roomSize.x || y < roomSize.y)
+        //This function currently only expands down to the right. Let's try expanding it in all directions per size
+        //So do the following function 4 times and choose the biggest room out of them
+
+        List<List<Tuple<Vector2Int, Room>>> potentialExpansions = new List<List<Tuple<Vector2Int, Room>>>();
+        List<Vector2Int> potentialSizes = new List<Vector2Int>();
+
+        for(int i = 0; i < 4; i++)
         {
-            if(x < roomSize.x && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x,0))) //If there is a free spot to the side, then try to expand to the side
+            potentialExpansions.Add(new List<Tuple<Vector2Int, Room>>());
+            potentialSizes.Add(roomSize);
+            int x = 1, y = 1;
+            while (x < Mathf.Abs(potentialSizes[i].x) || y < Mathf.Abs(potentialSizes[i].y))
+            {
+                if (x < Mathf.Abs(potentialSizes[i].x) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x * Math.directions[i].x, 0))) //If there is a free spot to the side, then try to expand to the side
+                {
+                    List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
+                    for (int j = 0; j < y; j++) //Go through all to the side. All of them have to be free
+                    {
+                        if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(x * Math.directions[i].x, j * Math.directions[i].y)))
+                        {
+                            temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(x * Math.directions[i].x, j * Math.directions[i].y), room));
+                        }
+                        else
+                        {
+                            //Debug.Log("Clearing x list");
+                            temp.Clear();
+                            potentialSizes[i] = new Vector2Int(x * Math.directions[i].x, potentialSizes[i].y);
+                        }
+                    }
+                    potentialExpansions[i].AddRange(temp);
+                    // roomGrid.AddRange(temp);
+                    x++;
+                }
+                else
+                {
+                    potentialSizes[i] = new Vector2Int(x * Math.directions[i].x, potentialSizes[i].y);
+                }
+                if (y < Mathf.Abs(potentialSizes[i].y) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0, y * Math.directions[i].y))) //If there is a free spot vertically, then try to expand vertically
+                {
+                    List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
+                    for (int j = 0; j < x; j++)
+                    {
+                        if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(j * Math.directions[i].x, y * Math.directions[i].y)))
+                        {
+                            temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(j  * Math.directions[i].x, y * Math.directions[i].y), room));
+                        }
+                        else
+                        {
+                            //Debug.Log("Clearing y list");
+                            temp.Clear();
+                            potentialSizes[i] = new Vector2Int(potentialSizes[i].x, -y * Math.directions[i].y);
+                        }
+                    }
+                    potentialExpansions[i].AddRange(temp);
+                    //roomGrid.AddRange(temp);
+                    y++;
+                }
+                else
+                {
+                    potentialSizes[i] = new Vector2Int(potentialSizes[i].x, -y * Math.directions[i].y);
+                }
+            }
+        }
+        List<Tuple<Vector2Int, Room>> choice = new List<Tuple<Vector2Int, Room>>();
+        for (int i = 0; i < 4; i++) //Check which room is the biggest
+        {
+            if(potentialExpansions[i].Count > choice.Count)
+            {
+                choice = potentialExpansions[i];
+                roomSize = potentialSizes[i];
+            }
+        }
+        roomGrid.AddRange(choice);
+        
+        /*int x = 1, y = 1;
+
+        while (x < roomSize.x || y < roomSize.y)
+        {
+            if (x < roomSize.x && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x, 0))) //If there is a free spot to the side, then try to expand to the side
             {
                 List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
-                for(int i = 0; i < y; i++) //Go through all to the side. All of them have to be free
+                for (int i = 0; i < y; i++) //Go through all to the side. All of them have to be free
                 {
-                    if(!CheckIfCoordinatesOccupied(origin + new Vector2Int(x,-i)))
+                    if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(x, -i)))
                     {
-                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(x,-i), room));
+                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(x, -i), room));
                     }
                     else
                     {
@@ -492,14 +582,14 @@ public partial class LevelGenerator : MonoBehaviour
             {
                 roomSize = new Vector2Int(x, roomSize.y);
             }
-            if(y < roomSize.y && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0,-y))) //If there is a free spot vertically, then try to expand vertically
+            if (y < roomSize.y && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0, -y))) //If there is a free spot vertically, then try to expand vertically
             {
                 List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
-                for(int i = 0; i < x; i++)
+                for (int i = 0; i < x; i++)
                 {
-                    if(!CheckIfCoordinatesOccupied(origin + new Vector2Int(i,-y)))
+                    if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(i, -y)))
                     {
-                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(i,-y), room));
+                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(i, -y), room));
                     }
                     else
                     {
@@ -515,7 +605,8 @@ public partial class LevelGenerator : MonoBehaviour
             {
                 roomSize = new Vector2Int(roomSize.x, y);
             }
-        }
+        }*/
+        DebugLog.AddToMessage("New Size", roomSize.ToString());
     }
 
     bool CheckIfCoordinatesOccupied(Vector2Int roomPosition)
@@ -534,8 +625,7 @@ public partial class LevelGenerator : MonoBehaviour
     {
         //This function checks if this given room has another spawned room in any direction that it must link to, before it decides if it should link anywhere else
         //It does this by checking if a room in any direction has an open but not spawned gate in its own direction, in which case it opens its own gate in that direction
-
-        //Debug.Log("Getting adjacent rooms of: " + (room.transform.position.ToV2Int() / 20) + " with the size of: " + RoomSize);
+        DebugLog.AddToMessage("Step", "Linking Rooms");
         List<Tuple<Vector2Int, Vector2Int, Room>> roomList = GetAllAdjacentRooms(room);
         //Item1 is the adjacent gridposition, Item2 is the gridposition it connects to in the origin room
         for(int i = 0; i < roomList.Count; i++)
@@ -567,12 +657,12 @@ public partial class LevelGenerator : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("COULDNT FIND THE ORIGIN ENTRANCE DESPITE BEING ADJACENT");
+                    DebugLog.TerminateMessage("COULDNT FIND THE ORIGIN ENTRANCE DESPITE BEING ADJACENT");
                 }
             }
             else
             {
-                Debug.LogError("COULDNT FIND THE ADJACENT ENTRANCE DESPITE BEING ADJACENT");
+                DebugLog.TerminateMessage("COULDNT FIND THE ADJACENT ENTRANCE DESPITE BEING ADJACENT");
             }
         }
     }
@@ -655,22 +745,31 @@ public partial class LevelGenerator : MonoBehaviour
         }
         return temp;
     }
-    public List<Tuple<Vector2Int, Vector2Int, Room>> GetAllAdjacentRooms(Room room)
+    public List<Tuple<Vector2Int, Vector2Int, Room>> GetAllAdjacentRooms(Room room) 
+        //Item1 is the adjacent gridposition, Item2 is the gridposition it connects to in the origin room
     {
+        DebugLog.AddToMessage("Substep", "Getting all adjacent rooms");
         List<Tuple<Vector2Int, Vector2Int, Room>> temp = new List<Tuple<Vector2Int,Vector2Int, Room>>();
-        for(int x = 0; x < room.size.x / 20; x++)
+        for(int x = 0; x < Mathf.Abs(room.size.x / 20); x++)
         {
-            Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x /20 + x, (int)room.transform.position.y/20 ) , Vector2Int.up);
-            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x /20 + x, (int)room.transform.position.y/20) ,temp2.Item2));}
-            temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x/20 + x, (int)room.transform.position.y/20- (room.size.y / 20 - 1)), Vector2Int.down);
-            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x/20 + x, (int)room.transform.position.y/20- (room.size.y / 20 - 1)) ,temp2.Item2));}
+            int _x = x * (int)Mathf.Sign(room.size.x);
+            Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x /20 + _x, (int)room.transform.position.y/20 ) , new Vector2Int(0, (int)-Mathf.Sign(room.size.y)));
+            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x /20 + _x, (int)room.transform.position.y/20) ,temp2.Item2));}
+            temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x/20 + _x, (int)room.transform.position.y/20- (room.size.y / 20 - 1)), Vector2Int.down);
+            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x/20 + _x, (int)room.transform.position.y/20- (room.size.y / 20 - 1)) ,temp2.Item2));}
         }
-        for(int y = 0; y < room.size.y / 20; y++)
+        for(int y = 0; y < Mathf.Abs(room.size.y / 20); y++)
         {
-            Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 - y), Vector2Int.left);
-            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 - y) ,temp2.Item2));}
-            temp2 = FindAdjacentRoom((new Vector2(room.transform.position.x/20 + (room.size.x/20 - 1), room.transform.position.y/20 - y)).ToV2Int(), Vector2Int.right);
-            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, (new Vector2(room.transform.position.x/20 + (room.size.x/20 - 1), room.transform.position.y/20 - y)).ToV2Int() ,temp2.Item2));}
+            int _y = y * (int)Mathf.Sign(room.size.y);
+            Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom(new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 + _y), Vector2Int.left);
+            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 + _y) ,temp2.Item2));}
+            temp2 = FindAdjacentRoom((new Vector2(room.transform.position.x/20 + (room.size.x/20 - 1), room.transform.position.y/20 + _y)).ToV2Int(), Vector2Int.right);
+            if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, (new Vector2(room.transform.position.x/20 + (room.size.x/20 - 1), room.transform.position.y/20 + _y)).ToV2Int() ,temp2.Item2));}
+        }
+        DebugLog.AddToMessage("Adjacent rooms found", temp.Count.ToString());
+        for(int i = 0; i < temp.Count; i++)
+        {
+            DebugLog.AddToMessage("Adjacent Room " + i, temp[i].Item1.ToString());
         }
         return temp;
     }

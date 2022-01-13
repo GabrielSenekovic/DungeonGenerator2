@@ -133,7 +133,7 @@ public class EntityDatabase :ScriptableObject
                             break; 
                         }
                     }
-                    Debug.Log("Creating a flower with: " + "height: " + height + " bulb: " + bulbHeight + " whorls: " + whorls + " merosity: " + merosity + " openness: " + openness);
+                    //Debug.Log("Creating a flower with: " + "height: " + height + " bulb: " + bulbHeight + " whorls: " + whorls + " merosity: " + merosity + " openness: " + openness);
                     if(curve == null)
                     {
                         Debug.Log("Curve is null");
@@ -161,14 +161,15 @@ public class EntityDatabase :ScriptableObject
                                 float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); 
                                 renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance;
                                 MeshMaker.CreateTuft(tuftMesh, quads, straws, (float)width);
-                                Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
+                                //Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                                 DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, (float)renderDistance);
                                 tuftEntry.AddMesh(tempTuft);
                                 tuftMesh = new Mesh();
                             break;
                             case "Quads:": int.TryParse(allData[i][j+1], out quads); break;
                             case "Straws:":int.TryParse(allData[i][j+1], out straws); break;
-                            case "Width:": float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out width); Debug.Log("Width: " + allData[i][j+1] + " and " + width);
+                            case "Width:": float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out width); 
+                                    //Debug.Log("Width: " + allData[i][j+1] + " and " + width);
                             break;
                         }
                     }

@@ -165,10 +165,11 @@ public partial class Room: MonoBehaviour
         }
         public Tuple<bool, Entrance> GetEntrance(Vector2Int gridPosition, Vector2Int direction)
         {
+            DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction);
             //Debug.Log("Grid pos of this room: " + gridPosition + " looking for this direction: " + direction);
             for(int i = 0; i < entrances.Count; i++)
             {
-                //Debug.Log("Found an entrance with grid pos: " + entrances[i].gridPos + " and direction: " + entrances[i].dir);
+                DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
                 if(entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
                 {
                     return new Tuple<bool, Entrance>(true, entrances[i]);
@@ -1041,6 +1042,7 @@ public partial class Room: MonoBehaviour
 
     public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
     {
+        DebugLog.AddToMessage("Step", "Initializing with size: " + roomSize);
         transform.position = new Vector2(location.x, location.y);
         section = section_in;
         OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);

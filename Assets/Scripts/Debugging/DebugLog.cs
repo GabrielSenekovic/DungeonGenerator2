@@ -6,6 +6,8 @@ public class DebugLog : MonoBehaviour
 {
     public static bool SuccessMessagesEnabled;
     public static bool WarningMessagesEnabled;
+
+    public static string CurrentMessage;
     public static void ReportBrokenSeed(int dataSeed, int constructionSeed, string text)
     {
         text = "<color=red>" + text + " ERROR: Data seed: " + dataSeed + "Construction seed: " + constructionSeed;
@@ -30,5 +32,20 @@ public class DebugLog : MonoBehaviour
     public static void SuccessMessage(string text)
     {
         Debug.Log("<color=green>" + text + "</color>");
+    }
+    public static void AddToMessage(string title, string text)
+    {
+        CurrentMessage += "<color=yellow>" + title + ": </color>" + text + "\n";
+    }
+    public static void TerminateMessage(string message)
+    {
+        Debug.LogError(CurrentMessage + "<color=red>NEXT STEP FAILED " + message + "</color>");
+        CurrentMessage = "";
+    }
+    public static void PublishMessage()
+    {
+        if(CurrentMessage == "") { return; }
+        Debug.Log(CurrentMessage);
+        CurrentMessage = "";
     }
 }
