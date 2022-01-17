@@ -136,25 +136,32 @@ public partial class Room: MonoBehaviour
 
         public Entrances(Vector2Int gridPosition, Vector2Int roomSize) //in gridspace, so a 40x40 is 2x2
         {
-            for(int x = 0; x < roomSize.x; x++) //Adding north and south entrances
+            DebugLog.AddToMessage("Substep", "Making entrances");
+            for(int x = 0; x < Mathf.Abs(roomSize.x); x++) //Adding north and south entrances
             {
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(x,0), new Vector2Int(0,1))); //North
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, 0));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                int x_ = x * (int)Mathf.Sign(roomSize.x);
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(x_,0), new Vector2Int(0,-1 * (int)Mathf.Sign(roomSize.y)))); //North
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x_ * 20, 0));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x_ * 20, 0));
 
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(x,-(roomSize.y - 1)), new Vector2Int(0,-1))); //South
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, roomSize.y * 20 - 1));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, roomSize.y * 20 - 1));
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(x_,roomSize.y - 1), new Vector2Int(0,1 * (int)Mathf.Sign(roomSize.y)))); //South
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x_ * 20, roomSize.y * 20 - 1));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x_ * 20, roomSize.y * 20 - 1));
             }
-            for(int y = 0; y < roomSize.y; y++) //Adding left and right entrances
+            for(int y = 0; y < Mathf.Abs(roomSize.y); y++) //Adding left and right entrances
             {
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(roomSize.x - 1,-y), new Vector2Int(1,0))); //Right
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 9 + y * 20));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 10 + y * 20));
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(0,-y), new Vector2Int(-1,0))); //Left
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
+                int y_ = y * (int)Mathf.Sign(roomSize.y);
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(roomSize.x - 1 * (int)Mathf.Sign(roomSize.x),y_), new Vector2Int(1  * (int)Mathf.Sign(roomSize.x),0))); //Right
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 9 + -y_ * 20));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 10 + -y_ * 20));
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(0,y_), new Vector2Int(-1  * (int)Mathf.Sign(roomSize.x),0))); //Left
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + -y_ * 20)); 
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + -y_ * 20));
             }
+           /* for(int i = 0; i < entrances.Count; i++)
+            {
+                DebugLog.AddToMessage("Entrance", entrances[i].gridPos + " and " + entrances[i].dir);
+            }*/
         }
         public void OpenAllEntrances()
         {
@@ -165,11 +172,11 @@ public partial class Room: MonoBehaviour
         }
         public Tuple<bool, Entrance> GetEntrance(Vector2Int gridPosition, Vector2Int direction)
         {
-            DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction);
+            //DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction + " from pos: " + gridPosition);
             //Debug.Log("Grid pos of this room: " + gridPosition + " looking for this direction: " + direction);
             for(int i = 0; i < entrances.Count; i++)
             {
-                DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
+                //DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
                 if(entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
                 {
                     return new Tuple<bool, Entrance>(true, entrances[i]);
@@ -1234,6 +1241,7 @@ public partial class Room: MonoBehaviour
     }
     public List<Entrances.Entrance> GetOpenUnspawnedEntrances()
     {
+        DebugLog.AddToMessage("Substep", "Getting open unspawned entrances");
         List<Entrances.Entrance> openEntrances = new List<Entrances.Entrance>{};
         foreach(Entrances.Entrance entrance in directions.entrances)
         {
