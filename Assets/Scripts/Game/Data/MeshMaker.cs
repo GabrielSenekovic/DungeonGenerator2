@@ -492,7 +492,8 @@ public class MeshMaker : MonoBehaviour
     {
         if(instructions.Count == 0)
         {
-            DebugLog.WarningMessage("There were no instructions sent!"); return;
+            DebugLog.WarningMessage("There were no instructions sent!"); 
+            return;
         }
         Debug.Log("Enters CreateWall");
         //ref List<Room.EntranceData> entrancesOfThisRoom, ref List<Room.EntranceData> entrancesOfRoomAtStart, ref List<Room.EntranceData> entrancesOfRoomAtEnd
@@ -1060,7 +1061,7 @@ public class MeshMaker : MonoBehaviour
                             {
                                 tiles[doorGridPosition].startVertices.Add(allVertices[allVertices.Count-m]);
                             }
-                            Debug.Log("Saving start positions at: " + doorGridPosition);
+                            //Debug.Log("Saving start positions at: " + doorGridPosition);
                         }
                         /*if(saveEnd)
                         {

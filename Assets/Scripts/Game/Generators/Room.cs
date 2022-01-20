@@ -66,6 +66,8 @@ public enum RoomPosition
     DeadEnd = 1
 }
 
+
+
 //Core code
 public partial class Room: MonoBehaviour
 {
@@ -137,31 +139,32 @@ public partial class Room: MonoBehaviour
         public Entrances(Vector2Int gridPosition, Vector2Int roomSize) //in gridspace, so a 40x40 is 2x2
         {
             DebugLog.AddToMessage("Substep", "Making entrances");
+            Vector2Int absSize = new Vector2Int(Mathf.Abs(roomSize.x),Mathf.Abs(roomSize.y)); //If I don't use the absolute size for the position, then their positions arent alligned to the grid and the wall creation won't be able to find them
+
             for(int x = 0; x < Mathf.Abs(roomSize.x); x++) //Adding north and south entrances
             {
-                int x_ = x * (int)Mathf.Sign(roomSize.x);
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(x_,0), new Vector2Int(0,-1 * (int)Mathf.Sign(roomSize.y)))); //North
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x_ * 20, 0));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x_ * 20, 0));
+                entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x),0), new Vector2Int(0,-1 * (int)Mathf.Sign(roomSize.y)))); //North
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, 0));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
 
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(x_,roomSize.y - 1), new Vector2Int(0,1 * (int)Mathf.Sign(roomSize.y)))); //South
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x_ * 20, roomSize.y * 20 - 1));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x_ * 20, roomSize.y * 20 - 1));
+                entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x), absSize.y - 1), new Vector2Int(0,1 * (int)Mathf.Sign(roomSize.y)))); //South
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
             }
             for(int y = 0; y < Mathf.Abs(roomSize.y); y++) //Adding left and right entrances
             {
-                int y_ = y * (int)Mathf.Sign(roomSize.y);
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(roomSize.x - 1 * (int)Mathf.Sign(roomSize.x),y_), new Vector2Int(1  * (int)Mathf.Sign(roomSize.x),0))); //Right
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 9 + -y_ * 20));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(roomSize.x * 20 - 1, 10 + -y_ * 20));
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(0,y_), new Vector2Int(-1  * (int)Mathf.Sign(roomSize.x),0))); //Left
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + -y_ * 20)); 
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + -y_ * 20));
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(absSize.x - 1 * (int)Mathf.Sign(roomSize.x),y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(1  * (int)Mathf.Sign(roomSize.x),0))); //Right
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(0,y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(-1  * (int)Mathf.Sign(roomSize.x),0))); //Left
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
+                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
             }
-           /* for(int i = 0; i < entrances.Count; i++)
+            for(int i = 0; i < entrances.Count; i++)
             {
                 DebugLog.AddToMessage("Entrance", entrances[i].gridPos + " and " + entrances[i].dir);
-            }*/
+            }
         }
         public void OpenAllEntrances()
         {
@@ -172,11 +175,11 @@ public partial class Room: MonoBehaviour
         }
         public Tuple<bool, Entrance> GetEntrance(Vector2Int gridPosition, Vector2Int direction)
         {
-            //DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction + " from pos: " + gridPosition);
+            DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction + " from pos: " + gridPosition);
             //Debug.Log("Grid pos of this room: " + gridPosition + " looking for this direction: " + direction);
             for(int i = 0; i < entrances.Count; i++)
             {
-                //DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
+                DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
                 if(entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
                 {
                     return new Tuple<bool, Entrance>(true, entrances[i]);
@@ -391,9 +394,8 @@ public partial class Room: MonoBehaviour
                 {
                     for(int j = 0; j < entrances.entrances[i].positions.Count; j++)
                     {
-                        int x = entrances.entrances[i].positions[j].x;
-                        int y = entrances.entrances[i].positions[j].y;
-                        //Debug.Log("X: " + x + " Y: " + y);
+                        int x = Mathf.Abs(entrances.entrances[i].positions[j].x);
+                        int y = Mathf.Abs(entrances.entrances[i].positions[j].y);
                         positions[x + size.x * y].door = true; //Turn the position into a door
                         EnsureEntranceReachability(entrances.entrances[i]);
                     }
@@ -541,7 +543,7 @@ public partial class Room: MonoBehaviour
         public Tuple<bool, Vector2Int, int> HasWallNeighbor(Vector2Int pos, int rotation)
         {
             //Debug.Log("Checking if position: " + pos + "Has any free neighbors");
-            //Debug.Log("Rotation: " + rotation);
+            Debug.Log("Rotation: " + rotation);
             Vector2Int direction = Vector2Int.zero;
             bool value = true;
             int rotationDir = 0;
@@ -635,15 +637,18 @@ public partial class Room: MonoBehaviour
                     //Go through each entrance, and make a wall to its left. There will only ever be as many walls as there are entrances kappa
                     //Find a wall that has a floor next to it
                     //Debug.Log("Extracting walls");
+                    Debug.Log("New entrance wall: " + i + " at position: " + entrances.entrances[i].positions[0]);
                     pos = new Vector2Int(-1,-1);
                     currentAngle = 0; //Current angle should only be 0 if the floor found points down.
 
                     ExtractWalls_GetStartPosition(ref pos, ref currentAngle, entrances.entrances[i]);
+                    Debug.Log("I got start position: " + pos);
                     OnExtractWalls(ref currentAngle, ref pos, ref data);
+                    Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
                 }
             }
            // else //If this is a closed room without doors
-            for (int x = 0; x < size.x; x++)
+           /* for (int x = 0; x < size.x; x++)
             {
                 for (int y = 0; y < size.y; y++)
                 {
@@ -658,7 +663,7 @@ public partial class Room: MonoBehaviour
                         OnExtractWalls(ref currentAngle, ref pos, ref data);
                     }
                 }
-            }
+            }*/
             
             return data;
         }
@@ -668,13 +673,13 @@ public partial class Room: MonoBehaviour
             Tuple<List<MeshMaker.WallData>, bool> wall = new Tuple<List<MeshMaker.WallData>, bool>(new List<MeshMaker.WallData>(), false);
 
             Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle); //Item2 is the direction to go to
-            //Debug.Log("Did I find wall neighbor? " + returnData.Item1);
+            Debug.Log("Did I find wall neighbor? " + returnData.Item1);
             //Debug.Log("<color=yellow>"+currentAngle+"</color>");
             //Debug.Log("<color=yellow>"+returnData.Item3+"</color>");
             currentAngle += 90 * returnData.Item3;
             currentAngle = (int)Math.Mod(currentAngle, 360);
             //Debug.Log("<color=yellow>"+currentAngle+"</color>");
-            positions[pos.x, -pos.y].read = true;
+            positions[pos.x, pos.y].read = true;
             Vector2Int startPosition = pos;
 
             while(returnData.Item1) //If there is a wall neighbor, proceed
@@ -773,10 +778,10 @@ public partial class Room: MonoBehaviour
                 currentAngle += 90 * returnData.Item3; //This code can only do inner corners atm, not outer corners
                 currentAngle = (int)Math.Mod(currentAngle, 360);
             }
-            // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
+           // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
             wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
-
             data.Add(wall);
+            //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
         }
         bool ExtractWalls_DoesWallWrap(List<MeshMaker.WallData> data)
         {
@@ -1050,7 +1055,9 @@ public partial class Room: MonoBehaviour
     public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
     {
         DebugLog.AddToMessage("Step", "Initializing with size: " + roomSize);
-        transform.position = new Vector2(location.x, location.y);
+        //Location here only refers to the gridposition where it connects to its origin room. If it has expanded, we want the transform.position to be the upper left corner
+        //That is to say, if size is positive (doesnt point down or right), then it should be pushed by its size
+        transform.position = new Vector2(Mathf.Sign(roomSize.x) == 1 ? location.x: location.x + roomSize.x + 20, Mathf.Sign(roomSize.y) == 1 ? location.y + roomSize.y - 20: location.y);
         section = section_in;
         OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
     }
@@ -1059,7 +1066,8 @@ public partial class Room: MonoBehaviour
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20);
         //Build wall meshes all around the start area in a 30 x 30 square
-        RoomTemplate template = new RoomTemplate(roomSize, new Grid<RoomTemplate.TileTemplate>(roomSize), indoors, surrounding);
+        Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
+        RoomTemplate template = new RoomTemplate(absSize, new Grid<RoomTemplate.TileTemplate>(absSize), indoors, surrounding);
         //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
@@ -1092,7 +1100,7 @@ public partial class Room: MonoBehaviour
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
-        //Debug.Log("Creating walls");
+        DebugLog.AddToMessage("Substep", "Creating walls");
         List<Tuple<List<MeshMaker.WallData>, bool>> data = template.ExtractWalls(directions);
        // Debug.Log("Data size: " + data.Count);
 

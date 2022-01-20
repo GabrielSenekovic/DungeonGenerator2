@@ -11,11 +11,11 @@ using System.Linq;
 
     public Grid(int x, int y)
     {
-        size = new Vector2Int(x,y);
+        size = new Vector2Int(Mathf.Abs(x),Mathf.Abs(y));
     }
     public Grid(Vector2Int size_in)
     {
-        size = size_in;
+        size = new Vector2Int(Mathf.Abs(size_in.x), Mathf.Abs(size_in.y));
     }
 
     public void Init()
@@ -37,22 +37,22 @@ using System.Linq;
     {
         get
         {
-            return items[x + size.x * y];
+            return items[Mathf.Abs(x) + size.x * Mathf.Abs(y)];
         }
         set
         {
-            items[x + size.x * y] = value;
+            items[Mathf.Abs(x) + size.x * Mathf.Abs(y)] = value;
         }
     }
     public T this[Vector2Int v]
     {
         get
         {
-            return items[v.x + size.x * v.y];
+            return items[Mathf.Abs(v.x) + size.x * Mathf.Abs(v.y)];
         }
         set
         {
-            items[v.x + size.x * v.y] = value;
+            items[Mathf.Abs(v.x) + size.x * Mathf.Abs(v.y)] = value;
         }
     }    
 
