@@ -575,58 +575,6 @@ public partial class LevelGenerator : MonoBehaviour
         }
         roomGrid.AddRange(choice);
         Debug.Log("Added " + choice.Count + " amount of rooms");
-        
-        /*int x = 1, y = 1;
-
-        while (x < roomSize.x || y < roomSize.y)
-        {
-            if (x < roomSize.x && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x, 0))) //If there is a free spot to the side, then try to expand to the side
-            {
-                List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
-                for (int i = 0; i < y; i++) //Go through all to the side. All of them have to be free
-                {
-                    if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(x, -i)))
-                    {
-                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(x, -i), room));
-                    }
-                    else
-                    {
-                        //Debug.Log("Clearing x list");
-                        temp.Clear();
-                        roomSize = new Vector2Int(x, roomSize.y);
-                    }
-                }
-                roomGrid.AddRange(temp);
-                x++;
-            }
-            else
-            {
-                roomSize = new Vector2Int(x, roomSize.y);
-            }
-            if (y < roomSize.y && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0, -y))) //If there is a free spot vertically, then try to expand vertically
-            {
-                List<Tuple<Vector2Int, Room>> temp = new List<Tuple<Vector2Int, Room>>();
-                for (int i = 0; i < x; i++)
-                {
-                    if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(i, -y)))
-                    {
-                        temp.Add(new Tuple<Vector2Int, Room>(origin + new Vector2Int(i, -y), room));
-                    }
-                    else
-                    {
-                        //Debug.Log("Clearing y list");
-                        temp.Clear();
-                        roomSize = new Vector2Int(roomSize.x, y);
-                    }
-                }
-                roomGrid.AddRange(temp);
-                y++;
-            }
-            else
-            {
-                roomSize = new Vector2Int(roomSize.x, y);
-            }
-        }*/
         DebugLog.AddToMessage("New Size", roomSize.ToString());
     }
 
@@ -771,10 +719,11 @@ public partial class LevelGenerator : MonoBehaviour
     {
         DebugLog.AddToMessage("Substep", "Getting all adjacent rooms");
         List<Tuple<Vector2Int, Vector2Int, Room>> temp = new List<Tuple<Vector2Int,Vector2Int, Room>>();
+        
         for(int x = 0; x < Mathf.Abs(room.size.x / 20); x++)
         { //!Looking for rooms vertically
             int _x = x * (int)Mathf.Sign(room.size.x);
-            Vector2Int direction = new Vector2Int(0, (int)Mathf.Sign(room.size.y));
+            Vector2Int direction = new Vector2Int(0, 1);
 
             Vector2Int checkPosition = new Vector2Int((int)room.transform.position.x /20 + _x, (int)room.transform.position.y/20 );
             Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom( checkPosition , direction);
@@ -786,8 +735,8 @@ public partial class LevelGenerator : MonoBehaviour
         }
         for(int y = 0; y < Mathf.Abs(room.size.y / 20); y++)
         { //!Looking for rooms horizontally
-            int _y = y * -(int)Mathf.Sign(room.size.y);
-            Vector2Int direction = new Vector2Int((int)-Mathf.Sign(room.size.x), 0);
+            int _y = y * (int)Mathf.Sign(room.size.y);
+            Vector2Int direction = new Vector2Int(-1, 0);
 
             Vector2Int checkPosition = new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 + _y);
             Debug.Log("Checking: " + checkPosition + " In Y first");

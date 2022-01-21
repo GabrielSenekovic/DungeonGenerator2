@@ -136,30 +136,112 @@ public partial class Room: MonoBehaviour
         }
         public List<Entrance> entrances = new List<Entrance>();
 
-        public Entrances(Vector2Int gridPosition, Vector2Int roomSize) //in gridspace, so a 40x40 is 2x2
+        public Entrances(Vector2Int gridPosition, Vector2Int roomSize, Vector2Int movedPosition) //in gridspace, so a 40x40 is 2x2
         {
             DebugLog.AddToMessage("Substep", "Making entrances");
             Vector2Int absSize = new Vector2Int(Mathf.Abs(roomSize.x),Mathf.Abs(roomSize.y)); //If I don't use the absolute size for the position, then their positions arent alligned to the grid and the wall creation won't be able to find them
+            //To the positions, add the same y you added to move up the entire room
+            //int y_add = movedPosition.y - gridPosition.y;
 
             for(int x = 0; x < Mathf.Abs(roomSize.x); x++) //Adding north and south entrances
             {
                 entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x),0), new Vector2Int(0,-1 * (int)Mathf.Sign(roomSize.y)))); //North
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, 0));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                if(Mathf.Sign(roomSize.y) == 1)
+                {
+                    if(Mathf.Sign(roomSize.x) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), absSize.y * 20 - 1));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), absSize.y * 20 - 1));
+                    }
+                }
+                else
+                {
+                    if(Mathf.Sign(roomSize.x) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20,  0));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1 - 9 + x * 20,  0));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1 - 10 + x * 20, 0));
+                    }
+                }
 
                 entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x), absSize.y - 1), new Vector2Int(0,1 * (int)Mathf.Sign(roomSize.y)))); //South
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
+                if(Mathf.Sign(roomSize.y) == -1)
+                {
+                    entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
+                    entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
+                }
+                else
+                {
+                    entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20,  0));
+                    entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                }
             }
             for(int y = 0; y < Mathf.Abs(roomSize.y); y++) //Adding left and right entrances
             {
                 entrances.Add(new Entrance(gridPosition + new Vector2Int(absSize.x - 1 * (int)Mathf.Sign(roomSize.x),y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(1  * (int)Mathf.Sign(roomSize.x),0))); //Right
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+                if(Mathf.Sign(roomSize.x) == 1)
+                {
+                    if(Mathf.Sign(roomSize.y) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, absSize.y * 20 - 1 - 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, absSize.y * 20 - 1 - 9 + y * 20));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
+                    }
+                }
+                else
+                {
+                    if(Mathf.Sign(roomSize.y) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 10 + y * 20)); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 9 + y * 20));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
+                    }
+                }
 
                 entrances.Add(new Entrance(gridPosition + new Vector2Int(0,y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(-1  * (int)Mathf.Sign(roomSize.x),0))); //Left
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
-                entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
+                if(Mathf.Sign(roomSize.x) == -1)
+                {
+                    if(Mathf.Sign(roomSize.y) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  absSize.y * 20 - 1 - 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  absSize.y * 20 - 1 - 9 + y * 20));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
+                    }
+                }
+                else
+                {
+                    if(Mathf.Sign(roomSize.y) == 1)
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 9 + y * 20)); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 10 + y * 20));
+                    }
+                    else
+                    {
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20)); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20));
+                    }
+                }
             }
             for(int i = 0; i < entrances.Count; i++)
             {
@@ -394,8 +476,9 @@ public partial class Room: MonoBehaviour
                 {
                     for(int j = 0; j < entrances.entrances[i].positions.Count; j++)
                     {
-                        int x = Mathf.Abs(entrances.entrances[i].positions[j].x);
-                        int y = Mathf.Abs(entrances.entrances[i].positions[j].y);
+                        int x = entrances.entrances[i].positions[j].x;
+                        int y = entrances.entrances[i].positions[j].y;
+                        Debug.Log("Adding entrances to room X:" + x + " Y: " + y);
                         positions[x + size.x * y].door = true; //Turn the position into a door
                         EnsureEntranceReachability(entrances.entrances[i]);
                     }
@@ -543,7 +626,7 @@ public partial class Room: MonoBehaviour
         public Tuple<bool, Vector2Int, int> HasWallNeighbor(Vector2Int pos, int rotation)
         {
             //Debug.Log("Checking if position: " + pos + "Has any free neighbors");
-            Debug.Log("Rotation: " + rotation);
+           // Debug.Log("Rotation: " + rotation);
             Vector2Int direction = Vector2Int.zero;
             bool value = true;
             int rotationDir = 0;
@@ -1039,7 +1122,7 @@ public partial class Room: MonoBehaviour
     {
         if(directions == null)
         {
-            directions = new Entrances(gridPosition, roomSize);
+            directions = new Entrances(gridPosition, roomSize, (transform.position / 20).ToV2Int());
         }
         directions.OpenAllEntrances();
     }
@@ -1064,7 +1147,7 @@ public partial class Room: MonoBehaviour
     void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding) 
     {
         size = roomSize;
-        directions = new Entrances(gridPosition, roomSize / 20);
+        directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
         //Build wall meshes all around the start area in a 30 x 30 square
         Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
         RoomTemplate template = new RoomTemplate(absSize, new Grid<RoomTemplate.TileTemplate>(absSize), indoors, surrounding);
@@ -1225,7 +1308,7 @@ public partial class Room: MonoBehaviour
             for(int y = 0; y < template.size.y; y++)
             {
                 RoomTemplate.TileTemplate temp = grid[x,y];
-                Color color = temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255): temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
+                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/ temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
                 templateTexture.SetPixel(x, y, color);
             }
         }
