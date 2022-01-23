@@ -736,6 +736,10 @@ public partial class LevelGenerator : MonoBehaviour
         for(int y = 0; y < Mathf.Abs(room.size.y / 20); y++)
         { //!Looking for rooms horizontally
             int _y = y * (int)Mathf.Sign(room.size.y);
+            if(Mathf.Sign(room.size.y) == 1)
+            {
+                _y -= (room.size.y/20);
+            }
             Vector2Int direction = new Vector2Int(-1, 0);
 
             Vector2Int checkPosition = new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 + _y);
