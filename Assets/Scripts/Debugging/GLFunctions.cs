@@ -20,6 +20,8 @@ public class GLFunctions : MonoBehaviour
 
         int z = -100;
 
+        origin = new Vector3(dimensions.x < 0 ? origin.x + 20 : origin.x, dimensions.y < 0 ? origin.y + 20 : origin.y);
+
         GL.Vertex3(origin.x + shrinkBox, origin.y + shrinkBox, z);
         Vector3 vertex = origin + new Vector3(dimensions.x - shrinkBox, shrinkBox, z);
         GL.Vertex3(vertex.x, vertex.y, vertex.z);

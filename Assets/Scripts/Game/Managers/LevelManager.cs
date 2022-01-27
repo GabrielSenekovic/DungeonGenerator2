@@ -36,7 +36,7 @@ public enum Mood
     List<AudioClip> m_melody = new List<AudioClip>();
     List<AudioClip> m_baseLine = new List<AudioClip>();
 
-    public Vector2Int m_amountOfRoomsCap = new Vector2Int(100, 150);
+    public Vector2Int m_amountOfRoomsCap = new Vector2Int(690,700);
     public Vector2Int amountOfSections = new Vector2Int(1,1);
 
     public Mood[] m_mood = new Mood[2];
@@ -53,7 +53,8 @@ public enum Mood
     public int ambushRoomProbability = 5;
     public int restingRoomProbability = 5;
 
-    public int openDoorProbability = 0;
+    public int openDoorProbability = 10;
+
     public Vector2 roomOpenness = Vector2.zero;
 
     public int foragingSpawnProbability;

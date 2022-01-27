@@ -208,8 +208,8 @@ public partial class Room: MonoBehaviour
                 {
                     if(Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, absSize.y * 20 - 1 - 10 + y * 20));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, absSize.y * 20 - 1 - 9 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (9 + y * 20)));
                     }
                     else
                     {
@@ -221,8 +221,8 @@ public partial class Room: MonoBehaviour
                 {
                     if(Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 9 + y * 20)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20))); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
                     }
                     else
                     {
@@ -236,8 +236,8 @@ public partial class Room: MonoBehaviour
                 {
                     if(Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  absSize.y * 20 - 1 - 10 + y * 20));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  absSize.y * 20 - 1 - 9 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  (absSize.y * 20 - 1) - (9 + y * 20)));
                     }
                     else
                     {
@@ -249,8 +249,8 @@ public partial class Room: MonoBehaviour
                 {
                     if(Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 9 + y * 20)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, absSize.y * 20 - 1 - 10 + y * 20));
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20))); 
+                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
                     }
                     else
                     {
@@ -277,7 +277,7 @@ public partial class Room: MonoBehaviour
             //Debug.Log("Grid pos of this room: " + gridPosition + " looking for this direction: " + direction);
             for(int i = 0; i < entrances.Count; i++)
             {
-                DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
+                //DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
                 if(entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
                 {
                     return new Tuple<bool, Entrance>(true, entrances[i]);
@@ -509,8 +509,9 @@ public partial class Room: MonoBehaviour
                     {
                         int x = entrances.entrances[i].positions[j].x;
                         int y = entrances.entrances[i].positions[j].y;
-                        Debug.Log("Adding entrances to room X:" + x + " Y: " + y);
+                        Debug.Log("Adding entrances to room X:" + x + " Y: " + y + " when the room has " + size);
                         positions[x + size.x * y].door = true; //Turn the position into a door
+                        Debug.Log("Success");
                         EnsureEntranceReachability(entrances.entrances[i]);
                     }
                 }
@@ -1140,6 +1141,7 @@ public partial class Room: MonoBehaviour
     public Entrances directions;
 
     public Vector2Int size;
+    public Vector2Int originalPosition; //Used for debugging
 
     public RoomData roomData = new RoomData();
 
@@ -1228,6 +1230,7 @@ public partial class Room: MonoBehaviour
     }
     void CreateFloor(RoomTemplate template, Material floorMaterial)
     {
+        DebugLog.AddToMessage("Substep", "Creating floor");
         GameObject floorObject = new GameObject("Floor");
         floorObject.transform.parent = gameObject.transform;
 
@@ -1238,6 +1241,7 @@ public partial class Room: MonoBehaviour
 
     void Furnish(Material mat)
     {
+        DebugLog.AddToMessage("Substep", "Furnishing");
         int amountOfVases = UnityEngine.Random.Range(3, 6);
         for(int i = 0; i < amountOfVases; i++)
         {
