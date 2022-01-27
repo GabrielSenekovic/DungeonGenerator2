@@ -513,14 +513,15 @@ public partial class LevelGenerator : MonoBehaviour
         List<List<RoomGridEntry>> potentialExpansions = new List<List<RoomGridEntry>>();
         List<Vector2Int> potentialSizes = new List<Vector2Int>();
 
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < 4; i++) //Go through every direction of expansion
         {
             potentialExpansions.Add(new List<RoomGridEntry>());
             potentialSizes.Add(roomSize * Math.directions[i]);
             int x = 1, y = 1;
             while (x < Mathf.Abs(potentialSizes[i].x) || y < Mathf.Abs(potentialSizes[i].y))
             {
-                if (x < Mathf.Abs(potentialSizes[i].x) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x * Math.directions[i].x, 0))) //If there is a free spot to the side, then try to expand to the side
+                if (x < Mathf.Abs(potentialSizes[i].x) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(x * Math.directions[i].x, 0))) 
+                //If there is a free spot to the side, then try to expand to the side
                 {
                     List<RoomGridEntry> temp = new List<RoomGridEntry>();
                     for (int j = 0; j < y; j++) //Go through all to the side. All of them have to be free
@@ -538,16 +539,20 @@ public partial class LevelGenerator : MonoBehaviour
                         }
                     }
                     potentialExpansions[i].AddRange(temp);
-                    x++;
+                    if(x < Mathf.Abs(potentialSizes[i].y))
+                    {
+                        y++;
+                    }
                 }
                 else
                 {
                     potentialSizes[i] = new Vector2Int(x * Math.directions[i].x, potentialSizes[i].y);
                 }
-                if (y < Mathf.Abs(potentialSizes[i].y) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0, y * Math.directions[i].y))) //If there is a free spot vertically, then try to expand vertically
+                if (y < Mathf.Abs(potentialSizes[i].y) && !CheckIfCoordinatesOccupied(origin + new Vector2Int(0, y * Math.directions[i].y))) 
+                //If there is a free spot vertically, then try to expand vertically
                 {
                     List<RoomGridEntry> temp = new List<RoomGridEntry>();
-                    for (int j = 0; j < x; j++)
+                    for (int j = 0; j < x; j++) //Check all the adjacent horizontal positions to see if its valid
                     {
                         if (!CheckIfCoordinatesOccupied(origin + new Vector2Int(j * Math.directions[i].x, y * Math.directions[i].y)))
                         {
@@ -561,7 +566,10 @@ public partial class LevelGenerator : MonoBehaviour
                         }
                     }
                     potentialExpansions[i].AddRange(temp);
-                    y++;
+                    if(y < Mathf.Abs(potentialSizes[i].y))
+                    {
+                        y++;
+                    }
                 }
                 else
                 {
@@ -580,7 +588,7 @@ public partial class LevelGenerator : MonoBehaviour
         }
         for(int i = 0; i < choice.Count; i++)
         {
-           // Debug.Log("Adding: " + choice[i].position);
+            //Debug.Log("Adding: " + choice[i].position);
         }
        // roomGrid.AddRange(choice);
        // Debug.Log("Added " + choice.Count + " amount of rooms");
@@ -596,7 +604,7 @@ public partial class LevelGenerator : MonoBehaviour
                 return true;
             } 
         }
-       // Debug.Log(roomPosition + " is not occupied");
+        Debug.Log(roomPosition + " is not occupied");
         return false;
     }
 
@@ -743,12 +751,12 @@ public partial class LevelGenerator : MonoBehaviour
             Vector2Int direction = new Vector2Int(0, 1);
 
             Vector2Int checkPosition = new Vector2Int((int)room.transform.position.x /20 + _x, (int)room.transform.position.y/20 );
-            Debug.Log("Checking: " + checkPosition + " In X first");
+//            Debug.Log("Checking: " + checkPosition + " In X first");
             Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom( checkPosition , direction);
             if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, checkPosition,temp2.Item2));DebugLog.AddToMessage("Just added on first X", checkPosition.ToString());}
 
             checkPosition = new Vector2Int((int)room.transform.position.x/20 + _x, (int)room.transform.position.y/20 - (room.size.y / 20 - 1 * (int)Mathf.Sign(room.size.y))*(int)Mathf.Sign(room.size.y));
-            Debug.Log("Checking: " + checkPosition + " In X second");
+         //   Debug.Log("Checking: " + checkPosition + " In X second");
             temp2 = FindAdjacentRoom(checkPosition, -direction);
             if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, checkPosition ,temp2.Item2));DebugLog.AddToMessage("Just added on second X", checkPosition.ToString());} 
         }
@@ -762,12 +770,12 @@ public partial class LevelGenerator : MonoBehaviour
             Vector2Int direction = new Vector2Int(-1, 0);
 
             Vector2Int checkPosition = new Vector2Int((int)room.transform.position.x/20, (int)room.transform.position.y/20 + _y);
-            Debug.Log("Checking: " + checkPosition + " In Y first");
+          //  Debug.Log("Checking: " + checkPosition + " In Y first");
             Tuple<Vector2Int,Room> temp2 = FindAdjacentRoom(checkPosition, direction);
             if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, checkPosition ,temp2.Item2));DebugLog.AddToMessage("Just added on first Y", checkPosition.ToString());}
 
             checkPosition = (new Vector2(room.transform.position.x/20 + (room.size.x/20 - 1 * (int)Mathf.Sign(room.size.x))* (int)Mathf.Sign(room.size.x), room.transform.position.y/20 + _y)).ToV2Int();
-            Debug.Log("Checking: " + checkPosition + " In Y second");
+          //  Debug.Log("Checking: " + checkPosition + " In Y second");
             temp2 = FindAdjacentRoom(checkPosition, -direction);
             if(temp2.Item2 != null){temp.Add(new Tuple<Vector2Int, Vector2Int, Room>(temp2.Item1, checkPosition ,temp2.Item2));DebugLog.AddToMessage("Just added on second Y", checkPosition.ToString());}
         }
