@@ -25,6 +25,8 @@ public class NPCController : MonoBehaviour
 
     Transform target;
 
+    public float gizmoWidth;
+
 
     private void Awake()
     {
@@ -125,6 +127,6 @@ public class NPCController : MonoBehaviour
             case NPCMovementState.ESCAPING: Gizmos.color = Color.yellow; break;
             case NPCMovementState.WANDERING: Gizmos.color = Color.blue; break;
         }
-        Gizmos.DrawSphere(transform.position, 1);
+        Gizmos.DrawSphere(transform.position, gizmoWidth);
     }
 }

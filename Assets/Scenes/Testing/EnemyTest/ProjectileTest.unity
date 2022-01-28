@@ -551,6 +551,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
       propertyPath: m_AngularDrag
       value: 0
       objectReference: {fileID: 0}
@@ -765,6 +770,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847969, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847970, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
       propertyPath: speed
@@ -837,6 +847,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
       propertyPath: m_AngularDrag
       value: 0
       objectReference: {fileID: 0}
@@ -898,7 +913,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1375785302}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fd2be6012ca249948b00fcb46ab4dbd0, type: 3}
   m_Name: 
@@ -912,7 +927,7 @@ MonoBehaviour:
     globalDirection: {x: -1, y: -1}
     projectileSpread: 1000
     orbitSpeed: -1
-  attack: {fileID: -3456963412344892665, guid: 37396692977ff0b46b9aaea9071af729, type: 3}
+  attack: {fileID: 1017492598223587076, guid: c6b20e2faf277654c8bb7df813aaab34, type: 3}
   waveFrequency_Limit: 50
   gradient:
     serializedVersion: 2
@@ -1058,6 +1073,11 @@ PrefabInstance:
     - target: {fileID: 1495904575826847971, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_UseGravity
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
@@ -1249,6 +1269,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
       propertyPath: m_AngularDrag
       value: 0
       objectReference: {fileID: 0}
@@ -1349,6 +1374,11 @@ PrefabInstance:
     - target: {fileID: 1495904575826847971, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_UseGravity
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
@@ -1503,6 +1533,11 @@ PrefabInstance:
       propertyPath: speed
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847970, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847971, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
       propertyPath: m_RootOrder
@@ -1570,6 +1605,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847972, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
       propertyPath: m_AngularDrag
       value: 0
       objectReference: {fileID: 0}
@@ -1578,10 +1618,30 @@ PrefabInstance:
       propertyPath: m_CollisionDetection
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847973, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1495904575826847974, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
         type: 3}
       propertyPath: m_Radius
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1495904575826847974, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2835553262553550771, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6639951053690399062, guid: f4b5ae4aaf79c8c4ba884e23234f78dd,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f4b5ae4aaf79c8c4ba884e23234f78dd, type: 3}

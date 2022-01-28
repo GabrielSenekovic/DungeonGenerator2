@@ -27,17 +27,17 @@ public class PlayerAttackModel : AttackModel
         currentAttack.OnFixedUpdate(GetComponent<MovementModel>().GetFacingDirection(),new Vector3(transform.position.x, transform.position.y, transform.position.z - castingHeight), GetComponent<Collider>());
     }
 
-    public void UpdateAttack() 
+    public void UpdateAttack() //This is called from Playercontroller
     {
-        if(currentAttack.state == AttackIdentifier.CastingState.DONE)
+        if(currentAttack.state == AttackIdentifier.CastingState.DONE) //Only attack if you are done with previous attack
         {
-            for(int i = 0; i < 4; i++)
+            for(int i = 0; i < 4; i++) //Go through all skillslots
             {
-                if(attacks[i].attack == null) { continue; }
-                if(Input.GetKeyDown(attacks[i].key))
+                if(attacks[i].attack == null) { continue; } //If this skillslot is empty, continue
+                if(Input.GetKeyDown(attacks[i].key)) //This is where it checks the button to cause the attack
                 {
-                    currentAttack = attacks[i].attack;
-                    currentAttack.Attack();
+                    currentAttack = attacks[i].attack; //Set current attack to the skill in this slot
+                    currentAttack.Attack(); //Activate it
                 }
             }
         }

@@ -49,9 +49,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd526ad0cf6213f4ca72a1cc5eacdedc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0.2
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
+  moveTimer: 0
+  moveTimerMax: 1
 --- !u!54 &1495904575826847972
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -82,6 +83,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   directionShiftTimer: 0
   directionShiftFrequency: 20
+  gizmoWidth: 0.3
 --- !u!135 &1495904575826847974
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -120,7 +122,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20a24e5671be704499d468442d297c3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rigid: 0
+  HUD:
+    trans: {fileID: 0}
+    icons: []
 --- !u!1 &2835553262553550771
 GameObject:
   m_ObjectHideFlags: 0

@@ -34,7 +34,7 @@ public class ProjectileAttackIdentifier : AttackIdentifier
 
     public override void OnFixedUpdate(Vector3 direction, Vector3 source, Collider collider)
     {
-        if(UpdateCasting())
+        if(UpdateCasting()) //If this attack is not done yet
         {
             waveFrequencyTimer++;
             Debug.Log("Index: " + waveIndex + "Data count: " + waveData.Count);

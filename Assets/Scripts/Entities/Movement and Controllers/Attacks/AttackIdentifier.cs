@@ -15,7 +15,7 @@ public class AttackIdentifier : MonoBehaviour
     float castTimer;
     [System.NonSerialized] public CastingState state;
 
-    public bool UpdateCasting() 
+    public bool UpdateCasting() //Called in either ProjectileAttackIdentifier or here in OnFixedUpdate()
     {        
         if(state == CastingState.COMMENCED)
         {

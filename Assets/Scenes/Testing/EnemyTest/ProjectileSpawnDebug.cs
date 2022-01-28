@@ -5,22 +5,7 @@ using UnityEngine.UIElements;
 
 public class ProjectileSpawnDebug : MonoBehaviour
 {
-    [System.Serializable]public struct WaveData
-    {
-        public Vector2 position;
-
-        public int amountOfProjectiles;
-        public float radius;
-        [Range(0.0f, 1.0f)]
-        public float curvature;
-        public float separation;
-
-        public Vector2 globalDirection;
-        public float projectileSpread;
-
-        public float orbitSpeed;
-    }
-    public List<WaveData> waveData;
+    public List<ProjectileAttackIdentifier.WaveData> waveData;
     int waveIndex = 0;
 
     public ProjectileAttackIdentifier attack;
@@ -34,7 +19,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        WaveData w = waveData[waveIndex];
+        ProjectileAttackIdentifier.WaveData w = waveData[waveIndex];
         Gizmos.color = Color.green;
         List < Vector2 > points = new List<Vector2>();
         float displacement = 0;
@@ -75,7 +60,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
         waveFrequencyTimer++;
         if (waveFrequencyTimer >= waveFrequency_Limit)
         {
-            WaveData w = waveData[waveIndex];
+            ProjectileAttackIdentifier.WaveData w = waveData[waveIndex];
             waveFrequencyTimer = 0;
             float displacement = 0;
             float angle = (180 + 90 / 2) * Mathf.Deg2Rad; //Sets it so the first point goes forward
@@ -114,7 +99,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
     }
     public void Attack(Vector2 direction, Vector2 displacement)
     {
-       // attack.Attack(direction, (Vector2)transform.position + displacement, GetComponent<Collider>());
+        attack.Attack(direction, (Vector2)transform.position + displacement, GetComponent<Collider>());
     }
 
     public void Attack(Vector2 direction, Vector2 displacement, Vector2 origin, float orbitSpeed)
