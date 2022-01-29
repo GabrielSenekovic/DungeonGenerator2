@@ -33,14 +33,14 @@ public enum Mood
 
 [System.Serializable]public class LevelData
 {
-    List<AudioClip> m_melody = new List<AudioClip>();
-    List<AudioClip> m_baseLine = new List<AudioClip>();
+    List<AudioClip> melody = new List<AudioClip>();
+    List<AudioClip> baseLine = new List<AudioClip>();
 
-    public Vector2Int m_amountOfRoomsCap = new Vector2Int(1450,1500);
+    public Vector2Int amountOfRoomsCap = new Vector2Int(450,500);
     public Vector2Int amountOfSections = new Vector2Int(1,1);
 
-    public Mood[] m_mood = new Mood[2];
-    public Biome m_biome;
+    public Mood[] mood = new Mood[2];
+    public Biome biome;
 
     public int temperatureLevel; //0 = tepid, 1 = warm, 2 = hot, -1 = cold, -2 freezing
     public uint waterLevel; //0 = no water, 1 = some few lakes, maybe a river, 2 = High chance for lakes, probably a river, 3 = Wetland, its like everything is a lake
@@ -71,7 +71,7 @@ public enum Mood
 
     public Mood GetMood(int i)
     {
-        return m_mood[i];
+        return mood[i];
     }
 
     public float GetFullRoomProbabilityPercentage()
@@ -136,9 +136,9 @@ public class LevelDataGenerator : MonoBehaviour
     }
     static void ChooseMood(LevelData data)
     {
-        data.m_mood[0] = (Mood)Random.Range(0, 9);
-        data.m_mood[1] = (Mood)Random.Range(0, 9);
-        foreach(Mood mood in data.m_mood)
+        data.mood[0] = (Mood)Random.Range(0, 9);
+        data.mood[1] = (Mood)Random.Range(0, 9);
+        foreach(Mood mood in data.mood)
         {
             switch(mood)
             {
@@ -177,8 +177,8 @@ public class LevelDataGenerator : MonoBehaviour
     } 
     static void ChooseBiome(LevelData data)
     {
-        data.m_biome = (Biome)Random.Range(0, 11);
-        switch(data.m_biome)
+        data.biome = (Biome)Random.Range(0, 11);
+        switch(data.biome)
         {
             case Biome.Alpine: 
                 data.roomOpenness = new Vector2(10, 20);
@@ -302,7 +302,7 @@ public class LevelManager : MonoBehaviour
         q_data = GameData.GetCurrentQuestData();
         generator = GetComponent<LevelGenerator>();
 
-        generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
+        generator.GenerateLevel(this, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
         generator.PutDownQuestObjects(this, q_data);
 
         currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
@@ -313,7 +313,7 @@ public class LevelManager : MonoBehaviour
     {
         try
         {
-            generator.GenerateLevel(this, RoomSize, l_data.m_amountOfRoomsCap, l_data.amountOfSections);
+            generator.GenerateLevel(this, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
             generator.PutDownQuestObjects(this, q_data);
         }
         catch

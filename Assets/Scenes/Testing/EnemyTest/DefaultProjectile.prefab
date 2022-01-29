@@ -47,18 +47,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 2
-  canMove: 1
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
+  moveTimer: 0
+  moveTimerMax: 1
   blastRadius: 4
   explosionPower: 20
   currentTarget: {fileID: 0}
   accelerationMode: 0
   homingMode: 0
+  targets: []
   gravitySpeed: 0
+  placedProjectile: 0
+  collideWithCaster: 0
   visuals: []
-  lifeLength: 40
+  lifeLength: 300
+  ID: 0
 --- !u!54 &1229294855823473878
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -96,7 +100,7 @@ TrailRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2444188360278842472}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

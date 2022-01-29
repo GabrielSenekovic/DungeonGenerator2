@@ -104,6 +104,7 @@ public class MovementModel : MonoBehaviour
         }
         else
         {
+            if(body == null){body = GetComponent<Rigidbody>();}
             body.velocity = velocity_in.normalized;
         }
     }

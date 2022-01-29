@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Math : MonoBehaviour
 {
-    public static Vector2Int[] directions = new Vector2Int[4]{
+    public static Vector2Int[] diagonals = new Vector2Int[4]{
             new Vector2Int( -1, 1 ),
             new Vector2Int( 1, 1 ),
             new Vector2Int( 1, -1 ),

@@ -10,11 +10,6 @@ public class ProjectileSpawnDebug : MonoBehaviour
 
     public ProjectileAttackIdentifier attack;
 
-    public int waveFrequency_Limit; //Frequency between the waves, not the Attack Frequency.
-    int waveFrequencyTimer = 0;
-
-    public Gradient gradient; //Looping through the wave loops through the gradient
-
     public int arrowLength;
 
     private void OnDrawGizmos()
@@ -55,9 +50,20 @@ public class ProjectileSpawnDebug : MonoBehaviour
         }
     }
 
+    private void Start() 
+    {
+        attack.waveData = waveData;
+        attack.Attack();
+    }
+
     private void FixedUpdate()
     {
-        waveFrequencyTimer++;
+        attack.OnFixedUpdate(Vector2.zero, transform.position, GetComponent<Collider>());
+        if(attack.state == AttackIdentifier.CastingState.DONE)
+        {
+            attack.Attack();
+        }
+        /*waveFrequencyTimer++;
         if (waveFrequencyTimer >= waveFrequency_Limit)
         {
             ProjectileAttackIdentifier.WaveData w = waveData[waveIndex];
@@ -80,7 +86,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
                 Vector2 spread = new Vector2(w.projectileSpread * (Mathf.Cos(c_Angle) - Mathf.Sin(c_Angle)),
                                              w.projectileSpread * (Mathf.Sin(c_Angle) + Mathf.Cos(c_Angle)));
 
-                if(w.orbitSpeed == 0)
+               /* if(w.orbitSpeed == 0)
                 {
                     Attack(w.globalDirection + spread, new Vector2(x, y));
                 }
@@ -90,7 +96,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
                 }
             }
             waveIndex++; waveIndex %= waveData.Count;
-        }
+        }*/
     }
 
     public void Attack(Vector2 direction)
@@ -99,7 +105,7 @@ public class ProjectileSpawnDebug : MonoBehaviour
     }
     public void Attack(Vector2 direction, Vector2 displacement)
     {
-        attack.Attack(direction, (Vector2)transform.position + displacement, GetComponent<Collider>());
+       // attack.Attack(direction, (Vector2)transform.position + displacement, GetComponent<Collider>());
     }
 
     public void Attack(Vector2 direction, Vector2 displacement, Vector2 origin, float orbitSpeed)

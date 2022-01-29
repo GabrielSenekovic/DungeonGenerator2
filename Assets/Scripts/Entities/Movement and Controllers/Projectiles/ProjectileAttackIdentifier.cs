@@ -62,14 +62,14 @@ public class ProjectileAttackIdentifier : AttackIdentifier
 
                     if (w.orbitSpeed == 0)
                     {
-                        OnAttack(((Vector3)w.globalDirection + direction).normalized + (Vector3)spread, source + new Vector3(x, y, 0), collider);
+                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), collider);
                     }
                     else
                     {
-                        OnAttack(((Vector3)w.globalDirection + direction).normalized + (Vector3)spread, source + new Vector3(x, y, 0), w.position, w.orbitSpeed, collider);
+                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), w.position, w.orbitSpeed, collider);
                     }
                 }
-                waveIndex++;
+                waveIndex++; waveIndex %= waveData.Count;
             }
         }
     }
@@ -102,6 +102,7 @@ public class ProjectileAttackIdentifier : AttackIdentifier
         float dot = Vector2.Dot(direction, Vector2.up);
         float angle = Mathf.Asin(direction.x) * Mathf.Rad2Deg;
         angle = dot > 0 ? -(angle + 180) : angle;
+        Debug.Log(angle);
         projectile.transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
     }
 }

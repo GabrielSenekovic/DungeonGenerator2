@@ -140,15 +140,15 @@ public class QuestSelect : MonoBehaviour
         detailText.text = "\nQuestgiver: " + nameDatabase.GetRandomName();
         detailText.text += "\nObjective: " + "\nDifficulty level: \nReward: \n";
         detailText.text += "\nInformation about the destination: \n";
-        detailText.text += "\nThis place is a: " + levels[index_in].m_biome + ". \n";
-        if(levels[index_in].m_mood[0] != levels[index_in].m_mood[1])
+        detailText.text += "\nThis place is a: " + levels[index_in].biome + ". \n";
+        if(levels[index_in].mood[0] != levels[index_in].mood[1])
         {
-            detailText.text += GetBiomeDescription(levels[index_in].m_mood[0], false) + " ";
-            detailText.text += GetBiomeDescription(levels[index_in].m_mood[1], false) + "\n";
+            detailText.text += GetBiomeDescription(levels[index_in].mood[0], false) + " ";
+            detailText.text += GetBiomeDescription(levels[index_in].mood[1], false) + "\n";
         }
         else
         {
-            detailText.text += GetBiomeDescription(levels[index_in].m_mood[0], true) + "\n";
+            detailText.text += GetBiomeDescription(levels[index_in].mood[0], true) + "\n";
         }
         detailText.text += "\nSeeds: \nData seed: " + seeds[index_in].dataSeed + "\n";
         detailText.text += "Construction seed: " + seeds[index_in].constructionSeed + "\n";
