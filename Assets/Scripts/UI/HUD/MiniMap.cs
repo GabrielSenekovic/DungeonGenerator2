@@ -19,10 +19,13 @@ public class MiniMap : MonoBehaviour
     }
     public void Update()
     {
-        Vector2 pos = (Vector2)CameraMovement.Instance.cameraRotationObject.transform.position - new Vector2(CameraMovement.Instance.cameraAnchor_horizontal.x, CameraMovement.Instance.cameraAnchor_vertical.y);
-        pos = pos / 20 * 100;
-        Vector2 topLeft = new Vector2((map.rectTransform.sizeDelta.x / 100 - 1) * 50, -(map.rectTransform.sizeDelta.y / 100 - 1) * 50);
-        map.transform.localPosition = topLeft - pos;
+        if(map.texture == SpriteMap)
+        {
+            Vector2 pos = (Vector2)CameraMovement.Instance.cameraRotationObject.transform.position - new Vector2(CameraMovement.Instance.cameraAnchor_horizontal.x, CameraMovement.Instance.cameraAnchor_vertical.y);
+            pos = pos / 20 * 100;
+            Vector2 topLeft = new Vector2((map.rectTransform.sizeDelta.x / 100 - 1) * 50, -(map.rectTransform.sizeDelta.y / 100 - 1) * 50);
+            map.transform.localPosition = topLeft - pos;
+        }
     }
     public void SwitchMap(Texture2D tex)
     {

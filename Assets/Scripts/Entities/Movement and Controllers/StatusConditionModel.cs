@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.VFX;
 
 public enum Condition
 {
+    Burning,
     Chilled,
     Frozen,
     Jolted,
@@ -14,7 +16,7 @@ public enum Condition
 }
 public class StatusConditionModel : MonoBehaviour
 {
-    public struct StatusCondition
+    [System.Serializable]public class StatusCondition
     {
         public Condition value;
         public float duration;
@@ -84,6 +86,8 @@ public class StatusConditionModel : MonoBehaviour
 
     EntityStatistics statistics;
 
+    public VisualEffect burning;
+
     public List<StatusCondition> conditions = new List<StatusCondition>();
     private void Start() 
     {
@@ -100,6 +104,10 @@ public class StatusConditionModel : MonoBehaviour
             {
                 HUD.RemoveCondition(conditions[i].value);
                 RemoveStatisticsChanges(conditions[i].value);
+                if(conditions[i].value == Condition.Burning)
+                {
+                    burning.gameObject.SetActive(false);
+                }
                 conditions.RemoveAt(i);
             }
         }
@@ -121,6 +129,11 @@ public class StatusConditionModel : MonoBehaviour
 
         switch(condition.value)
         {
+            case Condition.Burning:
+                statistics.damagesOverTime.Add(new EntityStatistics.DamageOverTime(DealDamage.Element.FIRE, condition.value, 50, 1));
+                statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 3.0f));
+                burning.gameObject.SetActive(true);
+            break;
             case Condition.Chilled: 
                 statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(DealDamage.Element.FIRE, condition.value, 0.5f));
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0.75f));
@@ -131,7 +144,7 @@ public class StatusConditionModel : MonoBehaviour
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
             break;
             case Condition.Jolted:
-                GetComponent<MovementModel>().moveTimerMax = UnityEngine.Random.Range(20, 40);
+                statistics.moveTimerMax = UnityEngine.Random.Range(20, 40);
             break;
             case Condition.Wet: 
                 statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(DealDamage.Element.FIRE, condition.value, 0.5f));
@@ -178,6 +191,10 @@ public class StatusConditionModel : MonoBehaviour
         {
             //Set on fire based on current flammability
             //If wet, flammability is lower
+            if(Random.Range(0, 3) > 0) //High likelihood of being frozen if being chilled. 2 in 3
+            {
+                AddCondition(new StatusCondition(Condition.Burning));
+            }
         }
     }
 }

@@ -32,10 +32,29 @@ public class EntityStatistics : MonoBehaviour
             source = source_in;
         }
     }
+    [System.Serializable]public class DamageOverTime
+    {
+        public DealDamage.Element element;
+        public float damage;
+        public int damageTimer;
+        public int damageTimerMax;
+        public Condition source;
+
+        public DamageOverTime(DealDamage.Element element_in, Condition source_in, int damageTimerMax_in, float damage_in)
+        {
+            element = element_in;
+            source = source_in;
+            damageTimerMax = damageTimerMax_in;
+            damage = damage_in;
+            damageTimer = 0;
+        }
+    }
     public List<ElementWeakness> elementWeaknesses = new List<ElementWeakness>();
     public List<DamageWeakness> damageWeaknesses = new List<DamageWeakness>();
+    public List<DamageOverTime> damagesOverTime = new List<DamageOverTime>();
 
     public float baseSpeed;
+    public int moveTimerMax;
     public struct SpeedModifier
     {
         public Condition source;
@@ -56,6 +75,21 @@ public class EntityStatistics : MonoBehaviour
         {
             return speedModifiers.Count > 0 ? baseSpeed * speedModifiers.Sum(s => s.value) : baseSpeed;
         }
+    }
+
+    public int GetDamageOverTime()
+    {
+        float damage = 0;
+        for(int i = 0; i < damagesOverTime.Count; i++)
+        {
+            damagesOverTime[i].damageTimer++;
+            if(damagesOverTime[i].damageTimer >= damagesOverTime[i].damageTimerMax)
+            {
+                damage += damagesOverTime[i].damage;
+                damagesOverTime[i].damageTimer = 0;
+            }
+        }
+        return Mathf.RoundToInt(damage);
     }
 
     public void AdjustDamage(ref DealDamage.Damage damage)
@@ -99,6 +133,17 @@ public class EntityStatistics : MonoBehaviour
             {
                 speedModifiers.RemoveAt(i); i--;
             }
+        }
+        for(int i = 0; i < damagesOverTime.Count; i++)
+        {
+            if(damagesOverTime[i].source == condition)
+            {
+                damagesOverTime.RemoveAt(i); i--;
+            }
+        }
+        if(condition == Condition.Jolted)
+        {
+            moveTimerMax = 1;
         }
     }
 }

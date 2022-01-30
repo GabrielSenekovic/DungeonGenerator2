@@ -20,7 +20,6 @@ public class MovementModel : MonoBehaviour
     EntityStatistics statistics;
 
     public int moveTimer = 0;
-    public int moveTimerMax = 1;
     void Awake()
     {
         movementDirection = Vector2.zero; facingDirection = new Vector2(0, -1);
@@ -48,20 +47,20 @@ public class MovementModel : MonoBehaviour
     }
     public void FixedUpdate()
     {
-        if(moveTimerMax > 1)
+        if(statistics.moveTimerMax > 1)
         {
             moveTimer++; 
-            if(moveTimer <= moveTimerMax)
+            if(moveTimer <= statistics.moveTimerMax)
             {
                 Move();
                 if(GetComponent<StatusConditionModel>().IfHasCondition(Condition.Jolted))
                 {
-                    moveTimerMax = UnityEngine.Random.Range(20, 40);
+                    statistics.moveTimerMax = UnityEngine.Random.Range(20, 40);
                 }
             }
-            else if(moveTimer >= moveTimerMax + 10)
+            else if(moveTimer >= statistics.moveTimerMax + 10)
             {
-                moveTimer%=(moveTimerMax + 10); //10 for the amount youll be frozen due to jolted
+                moveTimer%=(statistics.moveTimerMax + 10); //10 for the amount youll be frozen due to jolted
             }
         }
         else

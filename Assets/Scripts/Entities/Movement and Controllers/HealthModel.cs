@@ -8,9 +8,20 @@ public class HealthModel : MonoBehaviour
     public int maxHealth;
 
     public string deathSound;
-    private void Awake() 
+
+    EntityStatistics statistics;
+    private void Start() 
     {
         currentHealth = maxHealth;
+        statistics = GetComponent<EntityStatistics>();
+    }
+
+    private void FixedUpdate() 
+    {
+        if(statistics)
+        {
+            TakeDamage(statistics.GetDamageOverTime());
+        }
     }
     public void TakeDamage(int damage)
     {
@@ -30,9 +41,9 @@ public class HealthModel : MonoBehaviour
     }
     public void TakeDamage(DealDamage.Damage damage)
     {
-        if(GetComponent<EntityStatistics>())
+        if(statistics)
         {
-            GetComponent<EntityStatistics>().AdjustDamage(ref damage);
+            statistics.AdjustDamage(ref damage);
         }
         if(GetComponent<StatusConditionModel>())
         {
