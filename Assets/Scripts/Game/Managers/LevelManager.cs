@@ -36,7 +36,7 @@ public enum Mood
     List<AudioClip> melody = new List<AudioClip>();
     List<AudioClip> baseLine = new List<AudioClip>();
 
-    public Vector2Int amountOfRoomsCap = new Vector2Int(50,100);
+    public Vector2Int amountOfRoomsCap = new Vector2Int(450,500);
     public Vector2Int amountOfSections = new Vector2Int(1,1);
 
     public Mood[] mood = new Mood[2];
