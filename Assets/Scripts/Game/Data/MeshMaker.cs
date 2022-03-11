@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -78,6 +78,29 @@ public class MeshMaker : MonoBehaviour
         //Start off by creating just a cube chest
         //Like in Minecraft
         //Start from the back then forward. Save the points on the top where the lid will rotate around
+        List<int> newTriangles = new List<int>();
+        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector2> newUV = new List<Vector2>();
+        List<Vector3> positions = new List<Vector3>();
+        float height = 0;
+        CreateCylinder(ref positions, ref height, 1, 4, 0.6f);
+        CreateCylinder(ref positions, ref height, 1, 4, 0.4f);
+        //Make two different meshes and put them on two different child objects
+    }
+    public static void CreateCylinder(ref List<Vector3> positions, ref float currentHeight, int limit, int stepsAroundCenter, float heightIncrement)
+    {
+        float angle = 0; float angleIncrement = 360 / stepsAroundCenter;
+
+        for(int i = 0; i < limit; i++)
+        {
+            for(int j = 0; j < stepsAroundCenter; j++)
+            {
+                float radius = 1;
+                positions.Add(new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle* Mathf.Deg2Rad), -currentHeight));
+                angle += angleIncrement;
+            }
+            currentHeight += heightIncrement;
+        }
     }
     public static void CreateCylinder(ref List<Vector3> positions, ref float currentHeight, int limit, int stepsAroundCenter, float heightIncrement, AnimationCurve curve)
     {

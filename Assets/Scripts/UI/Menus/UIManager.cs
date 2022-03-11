@@ -40,6 +40,7 @@ public class UIManager : MonoBehaviour
 
     public CommandBox commandBox;
     public MiniMap miniMap;
+    public DialogBox dialogBox;
 
     [System.Serializable]public class UIColorManager
     {
@@ -114,14 +115,28 @@ public class UIManager : MonoBehaviour
 
     static public void ToggleHUD()
     {
-        UIManager.Instance.HUD.SetActive(!UIManager.Instance.HUD.activeSelf);
+        instance.HUD.SetActive(!instance.HUD.activeSelf);
         ColorAdjustments colorAdjustments;
-        UIManager.Instance.volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
-        colorAdjustments.colorFilter.value = UIManager.Instance.HUD.activeSelf ? Color.white : Instance.UIColor.openMenuColor;
+        instance.volume.profile.TryGet<ColorAdjustments>(out colorAdjustments);
+        colorAdjustments.colorFilter.value = instance.HUD.activeSelf ? Color.white : Instance.UIColor.openMenuColor;
         DepthOfField depthOfField;
-        UIManager.Instance.volume.profile.TryGet<DepthOfField>(out depthOfField);
-        depthOfField.focusDistance.value = UIManager.Instance.HUD.activeSelf ? 1.8f : 4.5f;
-        depthOfField.focalLength.value = UIManager.Instance.HUD.activeSelf ? 50 : 300;
+        instance.volume.profile.TryGet<DepthOfField>(out depthOfField);
+        depthOfField.focusDistance.value = instance.HUD.activeSelf ? 1.8f : 4.5f;
+        depthOfField.focalLength.value = instance.HUD.activeSelf ? 50 : 300;
+    }
+
+    static public void StartDialog(Manuscript.Dialog dialog)
+    {
+        ToggleHUD();
+        instance.dialogBox.gameObject.SetActive(true);
+        instance.dialogBox.InitiateDialog(dialog);
+        Time.timeScale = 0;
+    }
+    static public void EndDialog()
+    {
+        ToggleHUD();
+        instance.dialogBox.gameObject.SetActive(false);
+        Time.timeScale = 1;
     }
 
     public void AddMenu(CanvasGroup menu)

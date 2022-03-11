@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1495904575826847974}
   - component: {fileID: 1324613242915724483}
   - component: {fileID: 6639951053690399062}
+  - component: {fileID: 2385286348084414295}
   m_Layer: 0
   m_Name: DEBUG_NPC
   m_TagString: Untagged
@@ -52,7 +53,6 @@ MonoBehaviour:
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
   moveTimer: 0
-  moveTimerMax: 1
 --- !u!54 &1495904575826847972
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -125,6 +125,23 @@ MonoBehaviour:
   HUD:
     trans: {fileID: 0}
     icons: []
+  burning: {fileID: 0}
+  conditions: []
+--- !u!114 &2385286348084414295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1495904575826847969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe651d467c4f750478d43b50a15bb7ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagesOverTime: []
+  baseSpeed: 0
+  moveTimerMax: 0
 --- !u!1 &2835553262553550771
 GameObject:
   m_ObjectHideFlags: 0

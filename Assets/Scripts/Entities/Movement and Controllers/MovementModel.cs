@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO.IsolatedStorage;
 using UnityEngine;
 
+[RequireComponent(typeof(EntityStatistics))]
 public class MovementModel : MonoBehaviour
 {
     Vector3 movementDirection;

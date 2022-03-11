@@ -56,7 +56,7 @@ public class NPCController : MonoBehaviour
         else if(movementState == NPCMovementState.CHASING && target)
         {
             movementModel.SetMovementDirection((target.position - transform.position).normalized);
-            Attack();
+            //Attack();
         }
         else if(movementState == NPCMovementState.ESCAPING)
         {
