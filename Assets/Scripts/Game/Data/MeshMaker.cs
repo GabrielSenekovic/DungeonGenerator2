@@ -202,6 +202,101 @@ public class MeshMaker : MonoBehaviour
 
         return texture;
     }
+    public static List<Vector3Int> CreateIcosahedron(ref List<Vector3> vertices)
+    {
+        //http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html 
+        float s = Mathf.Sqrt((5.0f - Mathf.Sqrt(5.0f)) / 10.0f);
+        float t = Mathf.Sqrt((5.0f + Mathf.Sqrt(5.0f)) / 10.0f);
+
+        vertices.Add(new Vector3(-s,  t,  0));
+        vertices.Add(new Vector3( s,  t,  0));
+        vertices.Add(new Vector3(-s, -t,  0));
+        vertices.Add(new Vector3( s, -t,  0));
+
+        vertices.Add(new Vector3( 0, -s,  t));
+        vertices.Add(new Vector3( 0,  s,  t));
+        vertices.Add(new Vector3( 0, -s, -t));
+        vertices.Add(new Vector3( 0,  s, -t));
+
+        vertices.Add(new Vector3( t,  0, -s));
+        vertices.Add(new Vector3( t,  0,  s));
+        vertices.Add(new Vector3(-t,  0, -s));
+        vertices.Add(new Vector3(-t,  0,  s));
+
+        List<Vector3Int> faces = new List<Vector3Int>();
+
+        // 5 faces around point 0
+        faces.Add(new Vector3Int(0, 11, 5));
+        faces.Add(new Vector3Int(0, 5, 1));
+        faces.Add(new Vector3Int(0, 1, 7));
+        faces.Add(new Vector3Int(0, 7, 10));
+        faces.Add(new Vector3Int(0, 10, 11));
+
+        // 5 adjacent faces
+        faces.Add(new Vector3Int(1, 5, 9));
+        faces.Add(new Vector3Int(5, 11, 4));
+        faces.Add(new Vector3Int(11, 10, 2));
+        faces.Add(new Vector3Int(10, 7, 6));
+        faces.Add(new Vector3Int(7, 1, 8));
+
+        // 5 faces around point 3
+        faces.Add(new Vector3Int(3, 9, 4));
+        faces.Add(new Vector3Int(3, 4, 2));
+        faces.Add(new Vector3Int(3, 2, 6));
+        faces.Add(new Vector3Int(3, 6, 8));
+        faces.Add(new Vector3Int(3, 8, 9));
+
+        // 5 adjacent faces
+        faces.Add(new Vector3Int(4, 9, 5));
+        faces.Add(new Vector3Int(2, 4, 11));
+        faces.Add(new Vector3Int(6, 2, 10));
+        faces.Add(new Vector3Int(8, 6, 7));
+        faces.Add(new Vector3Int(9, 8, 1));
+
+        return faces;
+    }
+
+    public static void CreateIcosphere(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, int recursionLevel)
+    {
+        List<Vector3Int> faces = CreateIcosahedron(ref vertices);
+        for (int i = 0; i < recursionLevel; i++)
+        {
+            var faces2 = new List<Vector3Int>();
+            foreach (var tri in faces)
+            {
+                // replace triangle by 4 triangles
+                int a = getMiddlePoint(vertices[tri.x], vertices[tri.y], ref vertices);
+                int b = getMiddlePoint(vertices[tri.y], vertices[tri.z], ref vertices);
+                int c = getMiddlePoint(vertices[tri.z], vertices[tri.x], ref vertices);
+
+                faces2.Add(new Vector3Int(tri.x, a, c));
+                faces2.Add(new Vector3Int(tri.y, b, a));
+                faces2.Add(new Vector3Int(tri.z, c, b));
+                faces2.Add(new Vector3Int(a, b, c));
+            }
+            faces = faces2;
+        }
+        for(int i = 0; i < faces.Count; i++)
+        {
+            Debug.Log(faces[i]);
+            indices.Add(faces[i].x);
+            indices.Add(faces[i].y);
+            indices.Add(faces[i].z);
+        }
+    }
+    static int getMiddlePoint(Vector3 p1, Vector3 p2, ref List<Vector3> vertices) //this feels pepega, fix this later. Cant do it nowe because I cant stop biting my nails all of a sudden
+    {
+        Vector3 middle = new Vector3(
+            (p1.x + p2.x) / 2.0f, 
+            (p1.y + p2.y) / 2.0f, 
+            (p1.z + p2.z) / 2.0f);
+
+        // add vertex makes sure point is on unit sphere
+            float length = middle.magnitude;
+            vertices.Add(middle.normalized); 
+
+        return vertices.Count - 1;
+    }
 
     public static void CreatePerianth(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, float startPoint, float height, int whorls, int merosity, float UVStart, float openness, Vector2 offset, AnimationCurve curve, AnimationCurve flowerShape, bool spread)
     {
@@ -290,7 +385,23 @@ public class MeshMaker : MonoBehaviour
             } 
         }
     }
-    
+    public static Mesh CreateRock()
+    {
+        Mesh mesh = new Mesh();
+        List<int> newTriangles = new List<int>();
+        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector2> newUV = new List<Vector2>();
+
+        CreateIcosphere(ref newVertices, ref newTriangles, ref newUV, 1);
+
+        mesh.Clear ();
+        mesh.vertices = newVertices.ToArray();
+        mesh.triangles = newTriangles.ToArray();
+        mesh.uv = newUV.ToArray(); 
+        mesh.Optimize();
+        mesh.RecalculateNormals();
+        return mesh;
+    }
     public static void CreateTuft(Mesh mesh, int quadsPerGrass, int amountOfStraws, float grassWidth)
     {
         List<int> newTriangles = new List<int>();
