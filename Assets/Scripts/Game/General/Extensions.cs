@@ -25,6 +25,16 @@ public static class Extensions
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
     }
+    public static void Init(this Mesh mesh, List<Vector3> vertices, List<int> indices, List<Vector2> UVs)
+    {
+        mesh.Clear();
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = indices.ToArray();
+        mesh.uv = UVs.ToArray(); 
+        mesh.Optimize();
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+    }
     //!Texture2D
     public static void Finish(this Texture2D tex, Color[] col)
     {

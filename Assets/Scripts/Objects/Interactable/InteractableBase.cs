@@ -16,4 +16,9 @@ public class InteractableBase : MonoBehaviour
     {
         return isInteractable;
     }
+
+    public virtual void OnLeaveInteractable()
+    {
+        
+    }
 }

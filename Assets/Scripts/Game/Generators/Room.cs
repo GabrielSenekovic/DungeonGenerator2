@@ -1249,6 +1249,17 @@ public partial class Room: MonoBehaviour
             vase.transform.parent = gameObject.transform;
             vase.transform.localPosition = FindRandomPlacementPositionOfSize(vase, new Vector2Int(2,2));
         }
+
+        //GameObject rock = new GameObject("Rock");
+        //MeshRenderer rend = rock.AddComponent<MeshRenderer>();
+        //MeshFilter filt = rock.AddComponent<MeshFilter>();
+        //filt.mesh = MeshMaker.CreateRock();
+        //Material mat = Resources.Load<Material>("Materials/Stone");
+        //rend.material = mat;
+        //rock.AddComponent<SphereCollider>();
+
+        //GameObject chest = new GameObject("Chest");
+        //MeshMaker.CreateChest(chest, 0);
     }
 
     Vector3 FindRandomPlacementPositionOfSize(GameObject obj, Vector2Int size)

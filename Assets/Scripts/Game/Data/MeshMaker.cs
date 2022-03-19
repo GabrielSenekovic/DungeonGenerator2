@@ -72,22 +72,93 @@ public class MeshMaker : MonoBehaviour
     {
         //This requires the CreateStone() function
     }
-    public static void CreateChest(Mesh mesh, int length)
+    public static void CreateChest(GameObject chest, int length)
     {
         //Specify how long the chest is. Length determines how long it is from left to right, if the opening side is in front
         //Start off by creating just a cube chest
         //Like in Minecraft
         //Start from the back then forward. Save the points on the top where the lid will rotate around
-        List<int> newTriangles = new List<int>();
-        List<Vector3> newVertices = new List<Vector3>();
-        List<Vector2> newUV = new List<Vector2>();
-        List<Vector3> positions = new List<Vector3>();
-        float height = 0;
-        CreateCylinder(ref positions, ref height, 1, 4, 0.6f);
-        CreateCylinder(ref positions, ref height, 1, 4, 0.4f);
+        Material mat = Resources.Load<Material>("Materials/DebugChest");
+        float[] value = new float[2]{0.6f, 0.4f};
+        float radius = Mathf.Sqrt((Mathf.Pow(0.5f, 2) + Mathf.Pow(0.5f, 2)));
+        float totalHeight = 0;
+        for(int i = 0; i < 2; i++)
+        {
+            float currentHeight = 0;
+            GameObject temp = new GameObject();
+            temp.transform.localPosition = new Vector3(temp.transform.position.x, temp.transform.position.y, -totalHeight);
+
+            List<int> newTriangles = new List<int>();
+            List<Vector3> newVertices = new List<Vector3>();
+            List<Vector2> newUV = new List<Vector2>();
+            List<Vector3> positions = new List<Vector3>();
+            Mesh mesh = new Mesh();
+            int stepsAroundCenter = 4;
+            CreateCylinder(ref positions, ref currentHeight, 2, stepsAroundCenter, value[i], radius);
+            Debug.Log("Positions: " + positions.Count);
+
+            int[] indexValue = new int[]{3,1,0,3,2,1};
+            for(int j = 0; j < positions.Count -stepsAroundCenter; j++) //!dont use this later
+            {
+                Debug.Log("J: " + j);
+                newVertices.Add(positions[0 + j]);
+                newVertices.Add(positions[(1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)j/(float)stepsAroundCenter)]);
+                newVertices.Add(positions[(stepsAroundCenter + 1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)(j+stepsAroundCenter)/(float)stepsAroundCenter)]);
+                newVertices.Add(positions[stepsAroundCenter + j]);
+                Debug.Log("Vertices set");
+
+                for(int index = 0; index < indexValue.Length; index++)
+                {
+                    newTriangles.Add(indexValue[index] + j * 4);
+                }
+                Debug.Log("Indices set");
+            }
+            //? Set top and btm of cube
+            if(i == 0)
+            {
+                newVertices.Add(positions[3]);
+                newVertices.Add(positions[2]);
+                newVertices.Add(positions[1]);
+                newVertices.Add(positions[0]);
+                for(int index = 0; index < indexValue.Length; index++)
+                {
+                    newTriangles.Add(indexValue[index] + (newVertices.Count - stepsAroundCenter));
+                }
+            }
+            if(i == 1)
+            {
+                newVertices.Add(positions[positions.Count -stepsAroundCenter]);
+                newVertices.Add(positions[positions.Count -stepsAroundCenter + 1]);
+                newVertices.Add(positions[positions.Count -stepsAroundCenter + 2]);
+                newVertices.Add(positions[positions.Count -stepsAroundCenter + 3]);
+                for(int index = 0; index < indexValue.Length; index++)
+                {
+                    newTriangles.Add(indexValue[index] + (newVertices.Count - stepsAroundCenter));
+                }
+            }
+            for(int j = 0; j < 5; j++)
+            {
+                newUV.Add(new Vector2 (1,0));                      //1,0
+                newUV.Add(new Vector2 (0,0));                      //0,0
+                newUV.Add(new Vector2 (0,1)); //0,1
+                newUV.Add(new Vector2 (1,1)); //1,1
+            }
+
+            mesh.Init(newVertices, newTriangles, newUV);
+            temp.transform.parent = chest.transform;
+            MeshRenderer rend = temp.AddComponent<MeshRenderer>();
+            rend.material = mat;
+            MeshFilter filter = temp.AddComponent<MeshFilter>();
+            filter.mesh = mesh;
+            totalHeight += value[i]; //Separating totalheight and currentheight should stack the cubes instead of building the mesh that way. This way it should be easier to rotate them
+        }
+        chest.transform.rotation = Quaternion.Euler(0, 0, 45);
+        Chest chestScript = chest.AddComponent<Chest>();
+        chestScript.lid = chest.transform.GetChild(1);
+        chest.AddComponent<BoxCollider>();
         //Make two different meshes and put them on two different child objects
     }
-    public static void CreateCylinder(ref List<Vector3> positions, ref float currentHeight, int limit, int stepsAroundCenter, float heightIncrement)
+    public static void CreateCylinder(ref List<Vector3> positions, ref float currentHeight, int limit, int stepsAroundCenter, float heightIncrement, float radius)
     {
         float angle = 0; float angleIncrement = 360 / stepsAroundCenter;
 
@@ -95,7 +166,6 @@ public class MeshMaker : MonoBehaviour
         {
             for(int j = 0; j < stepsAroundCenter; j++)
             {
-                float radius = 1;
                 positions.Add(new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle* Mathf.Deg2Rad), -currentHeight));
                 angle += angleIncrement;
             }
@@ -161,7 +231,7 @@ public class MeshMaker : MonoBehaviour
 
         CreateCylinder(ref positions, ref currentHeight, (int)amountOfVerticesVertical, stepsAroundCenter, heightIncrement, null);
 
-        for(int j = 0; j < positions.Count -3; j++)
+        for(int j = 0; j < positions.Count -stepsAroundCenter; j++)
         {
             newVertices.Add(positions[0 + j]);
             newVertices.Add(positions[(1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)j/(float)stepsAroundCenter)]);
@@ -205,8 +275,10 @@ public class MeshMaker : MonoBehaviour
     public static List<Vector3Int> CreateIcosahedron(ref List<Vector3> vertices)
     {
         //http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html 
-        float s = Mathf.Sqrt((5.0f - Mathf.Sqrt(5.0f)) / 10.0f);
-        float t = Mathf.Sqrt((5.0f + Mathf.Sqrt(5.0f)) / 10.0f);
+        float s = Mathf.Sqrt((5.0f - Mathf.Sqrt(5.0f)) / 10.0f) /2.0f;
+        float t = Mathf.Sqrt((5.0f + Mathf.Sqrt(5.0f)) / 10.0f) /2.0f;
+        //float s = Mathf.Sqrt((5.0f - Mathf.Sqrt(5.0f)) / 10.0f) /2.0f; //!the /2 makes it a pentakis icosidodecahedron instead
+        //float t = Mathf.Sqrt((5.0f + Mathf.Sqrt(5.0f)) / 10.0f) /2.0f;
 
         vertices.Add(new Vector3(-s,  t,  0));
         vertices.Add(new Vector3( s,  t,  0));
@@ -283,6 +355,16 @@ public class MeshMaker : MonoBehaviour
             indices.Add(faces[i].y);
             indices.Add(faces[i].z);
         }
+        for(int i = 0; i < vertices.Count; i++)
+        {
+            vertices[i] = new Vector3(vertices[i].x, vertices[i].y, vertices[i].z - 0.5f);
+        }
+        for(int i = 0; i < vertices.Count / 3; i++)
+        {
+            UV.Add(new Vector2(1,0f));
+            UV.Add(new Vector2(0,0f));
+            UV.Add(new Vector2(0,1f));
+        }
     }
     static int getMiddlePoint(Vector3 p1, Vector3 p2, ref List<Vector3> vertices) //this feels pepega, fix this later. Cant do it nowe because I cant stop biting my nails all of a sudden
     {
@@ -293,7 +375,7 @@ public class MeshMaker : MonoBehaviour
 
         // add vertex makes sure point is on unit sphere
             float length = middle.magnitude;
-            vertices.Add(middle.normalized); 
+            vertices.Add(middle.normalized /2.0f); 
 
         return vertices.Count - 1;
     }
@@ -394,12 +476,15 @@ public class MeshMaker : MonoBehaviour
 
         CreateIcosphere(ref newVertices, ref newTriangles, ref newUV, 1);
 
-        mesh.Clear ();
-        mesh.vertices = newVertices.ToArray();
-        mesh.triangles = newTriangles.ToArray();
-        mesh.uv = newUV.ToArray(); 
-        mesh.Optimize();
-        mesh.RecalculateNormals();
+        //? flatten the first 40% of the icosphere
+        for(int i = 0; i < newVertices.Count; i++)
+        {
+            newVertices[i] = new Vector3(newVertices[i].x, 
+                                         newVertices[i].y, 
+                                         newVertices[i].z > -0.4f? 0 : newVertices[i].z + 0.4f);
+        }
+
+        mesh.Init(newVertices, newTriangles, newUV);
         return mesh;
     }
     public static void CreateTuft(Mesh mesh, int quadsPerGrass, int amountOfStraws, float grassWidth)
@@ -449,29 +534,6 @@ public class MeshMaker : MonoBehaviour
                     newTriangles.Add(indexValue[index] + temp);
                 }
             }
-           /* for(int k = (int)quadsPerGrass - 1; k >= 0; k--)
-            {
-                //Go down the straw
-                
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle),    -(height / quadsPerGrass * k)));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle),                        -(height / quadsPerGrass * k)));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle),                       -(height / quadsPerGrass * (k+1))));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle),   -(height / quadsPerGrass * (k+1)) ));
-
-                newUV.Add(new Vector2 (1, 1.0f / quadsPerGrass * k));     //1,0
-                newUV.Add(new Vector2 (0, 1.0f / quadsPerGrass * k));     //0,0
-                newUV.Add(new Vector2 (0, 1.0f / quadsPerGrass * (k+1))); //0,1
-                newUV.Add(new Vector2 (1, 1.0f / quadsPerGrass * (k+1))); //1,1
-                
-                int[] indexValue = new int[]{0,1,3,1,2,3};
-
-                int temp = newVertices.Count - 4;
-
-                for(int index = 0; index < indexValue.Length; index++)
-                {
-                    newTriangles.Add(indexValue[index] + temp);
-                }
-            }*/
             //Slowly increase radius
             radius += radius_increase;
             angle += angle_increase;

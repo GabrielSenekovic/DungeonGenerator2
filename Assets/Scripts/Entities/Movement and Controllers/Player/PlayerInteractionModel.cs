@@ -3,19 +3,19 @@ using System.Collections;
 
 public class PlayerInteractionModel : MonoBehaviour
 {
-    Collider2D m_Collider;
-    [SerializeField]InteractableBase m_Interactable;
+    Collider2D collider;
+    [SerializeField]InteractableBase interactable;
 
     public void Initialize(Collider2D collider)
     {
-        m_Collider = collider;
+        this.collider = collider;
     }
 
     public void OnInteract()
     {
-        if (m_Interactable != null)
+        if (interactable != null)
         {
-            m_Interactable.OnInteract();
+            interactable.OnInteract();
         }
     }
 
@@ -23,16 +23,17 @@ public class PlayerInteractionModel : MonoBehaviour
     {
         if (collision.collider.GetComponent<InteractableBase>() && collision.collider.GetComponent<InteractableBase>().GetIsInteractable() == true)
         {
-            m_Interactable = collision.collider.GetComponent<InteractableBase>();
+            interactable = collision.collider.GetComponent<InteractableBase>();
         }     
     }
     public void OnCollisionExit(Collision collision)
     {
         if (collision.collider.GetComponent<InteractableBase>())
         {
-            if (m_Interactable != null)
+            if (interactable != null)
             {
-                m_Interactable = null;
+                interactable.OnLeaveInteractable();
+                interactable = null;
             }
         }
     }

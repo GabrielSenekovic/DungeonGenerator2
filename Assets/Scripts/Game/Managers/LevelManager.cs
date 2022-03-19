@@ -308,11 +308,6 @@ public class LevelManager : MonoBehaviour
         currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
         CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
-
-        GameObject sphere = new GameObject();
-        sphere.AddComponent<MeshRenderer>();
-        MeshFilter filt = sphere.AddComponent<MeshFilter>();
-        filt.mesh = MeshMaker.CreateRock();
     }
     public void TryGenerateLevel()
     {
