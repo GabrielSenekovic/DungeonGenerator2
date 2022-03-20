@@ -35,7 +35,7 @@ public class MeshBatchRenderer : MonoBehaviour
     static EntityDatabase database;
     public static bool RenderRandomPositions;
 
-    private void Awake() 
+    public void Initialise() 
     {
         database = Resources.Load<EntityDatabase>("EntityDatabase");
         TextAsset reader = Resources.Load<TextAsset>("EntityDatabase");
@@ -138,11 +138,14 @@ public class MeshBatchRenderer : MonoBehaviour
             (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
         {
             float dist = (b.position - Camera.main.transform.position).magnitude;
-            Mesh mesh = database.GetMesh(b.name, dist);
+            bool temp = false;
+            EntityDatabase.DatabaseEntry entry = database.GetDatabaseEntry(b.name);
+            Mesh mesh = database.GetMesh(b.name, dist, ref temp);
+            Material mat = temp ? entry.billBoard : b.material;
             if(mesh != null)
             {
-                if (RenderRandomPositions) { Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList()); }
-                else { Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrixTile).ToList()); }
+                if (RenderRandomPositions) { Graphics.DrawMeshInstanced(mesh, 0, mat, b.batches.Select((a) => a.matrix).ToList()); }
+                else { Graphics.DrawMeshInstanced(mesh, 0, mat, b.batches.Select((a) => a.matrixTile).ToList()); }
             }
         }
     }
@@ -159,7 +162,8 @@ public class MeshBatchRenderer : MonoBehaviour
             (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
         {
             float dist = (b.position - Camera.main.transform.position).magnitude;
-            Mesh mesh = database.GetMesh(b.name, dist);
+            bool temp = false;
+            Mesh mesh = database.GetMesh(b.name, dist, ref temp);
             if(mesh != null)
             {
                 Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());

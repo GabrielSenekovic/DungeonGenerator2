@@ -4,6 +4,14 @@ using UnityEngine;
 
 public class NameDatabase : MonoBehaviour
 {
+    static NameDatabase instance;
+    public static NameDatabase Instance
+    {
+        get
+        {
+            return instance;
+        }
+    }
     public enum Gender
     {
         MASC,
@@ -22,6 +30,18 @@ public class NameDatabase : MonoBehaviour
 
     public List<NameData> names;
     public List<SurnameData> surnames;
+
+    private void Awake() 
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(this);
+        }
+    }
 
     public void Sort()
     {
@@ -54,8 +74,8 @@ public class NameDatabase : MonoBehaviour
             }
         }
     }
-    public string GetRandomName()
+    public static string GetRandomName()
     {
-        return names[Random.Range(0, names.Count)].name + " " + surnames[Random.Range(0, names.Count)].name;
+        return instance.names[Random.Range(0, instance.names.Count)].name + " " + instance.surnames[Random.Range(0, instance.names.Count)].name;
     }
 }

@@ -22,6 +22,9 @@ public class DialogBox : MonoBehaviour
     public CanvasGroup promptWindow;
     public Transform promptButtonTransform;
 
+    SpriteText dialogText;
+    SpriteText nameText;
+
     private void Awake() 
     {
         GridLayoutGroup gridLayout = promptButtonTransform.gameObject.AddComponent<GridLayoutGroup>();
@@ -32,6 +35,28 @@ public class DialogBox : MonoBehaviour
         gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
         gridLayout.childAlignment = TextAnchor.UpperLeft;
         gridLayout.constraint = GridLayoutGroup.Constraint.Flexible;
+
+        GameObject dialogTextObj = new GameObject("Dialog");
+        dialogTextObj.transform.parent = transform;
+        dialogTextObj.AddComponent<RectTransform>();
+        dialogTextObj.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
+        dialogTextObj.GetComponent<RectTransform>().localPosition = new Vector3(-270, 70, 0);
+        dialogText = dialogTextObj.AddComponent<SpriteText>();
+        dialogText.GetComponent<SpriteText>().Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
+        dialogText.GetComponent<SpriteText>().spaceSize = 8;
+        dialogText.GetComponent<SpriteText>().Write("");
+
+        GameObject nameTextObj = new GameObject("Name");
+        nameTextObj.transform.parent = transform;
+        nameTextObj.AddComponent<RectTransform>();
+        nameTextObj.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
+        nameTextObj.GetComponent<RectTransform>().localPosition = new Vector3(-290, 90, 0);
+        nameText = nameTextObj.AddComponent<SpriteText>();
+        nameText.GetComponent<SpriteText>().Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
+        nameText.GetComponent<SpriteText>().spaceSize = 8;
+        nameText.GetComponent<SpriteText>().Write("");
+
+        gameObject.SetActive(false);
     }
 
     public void InitiateDialog(Manuscript.Dialog dialog)
@@ -47,14 +72,6 @@ public class DialogBox : MonoBehaviour
     {
         lineIndex++;
         dialogDone = true;
-        if(line.myIdentity == Manuscript.Dialog.DialogNode.Line.CharacterIdentity.P1)
-        {
-            //GetComponent<Image>().sprite = sprites[0];
-        }
-        else
-        {
-            //GetComponent<Image>().sprite = sprites[1];
-        }
         StartCoroutine(PrintMessage(line.myLine));
     }
 
@@ -67,19 +84,12 @@ public class DialogBox : MonoBehaviour
         ContinueDialog();
     }
 
-    public async void ContinueDialog()
+    public void ContinueDialog()
     {
         if(messageDone)
         {
-            if(currentDialog.currentNode.lines[lineIndex].myIdentity == Manuscript.Dialog.DialogNode.Line.CharacterIdentity.P1)
-            {
-                //GetComponent<Image>().sprite = sprites[0];
-            }
-            else
-            {
-                //GetComponent<Image>().sprite = sprites[1];
-            }
-            GetComponentInChildren<Text>().text = "";
+            dialogText.Write("");
+            nameText.Write(currentDialog.currentNode.lines[lineIndex].myIdentity.name);
             StartCoroutine(PrintMessage(currentDialog.currentNode.lines[lineIndex].myLine));
             lineIndex++;
             lineNumber--;
@@ -137,14 +147,15 @@ public class DialogBox : MonoBehaviour
             if(breakPrint)
             {
                 breakPrint = false;
-                GetComponentInChildren<Text>().text = text;
+                dialogText.Write(text);
                 break;
             }
             if(c != ' ')
             {
                 yield return new WaitForSecondsRealtime(speechDelay);
             }
-            GetComponentInChildren<Text>().text += c;
+            dialogText.Write(c);
+           // GetComponentInChildren<Text>().text += c;
         }
         messageDone = true;
     }

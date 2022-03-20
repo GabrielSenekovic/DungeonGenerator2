@@ -232,7 +232,7 @@ public class QuestDataGenerator : MonoBehaviour
 {
     public class RecoveryObject
     {
-        public RecoveryObject(BaseData thing_in, State state_in)
+        public RecoveryObject(GameObject thing_in, State state_in)
         {
             thing = thing_in;
             state = state_in;
@@ -247,7 +247,7 @@ public class QuestDataGenerator : MonoBehaviour
         }
         //if it is a recoveryMission
         //CharacterData and ItemData inherit from Data
-        public BaseData thing = null;
+        public GameObject thing = null;
         public State state;
     }
     public RecoveryObject thingToRecover;
@@ -264,7 +264,11 @@ public class QuestDataGenerator : MonoBehaviour
         }
         temp.Add(RecoveryObject.State.Mythical_Exists);
         temp.Add(RecoveryObject.State.Mythical_Unreal);
-        thingToRecover = new RecoveryObject(new ItemData(ItemGenerator.GetInstance().GenerateItemSprite()), temp[UnityEngine.Random.Range(0, temp.Count)]);
+        
+        GameObject recoveryObj = new GameObject("RecoveryObject");
+        SpriteRenderer rend = recoveryObj.AddComponent<SpriteRenderer>();
+        rend.sprite = ItemGenerator.GetInstance().GenerateItemSprite();
+        thingToRecover = new RecoveryObject( recoveryObj, temp[UnityEngine.Random.Range(0, temp.Count)]);
     }
 
     public override string GetQuestDescription()

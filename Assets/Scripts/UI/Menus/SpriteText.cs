@@ -34,6 +34,11 @@ public class SpriteText : MonoBehaviour
         text = text_in;
         Write();
     }
+    public void Write(char char_in)
+    {
+        text += char_in;
+        Write();
+    }
 
     public void WriteAppend()
     {

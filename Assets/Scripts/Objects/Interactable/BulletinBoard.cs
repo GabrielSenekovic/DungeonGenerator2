@@ -23,6 +23,7 @@ public class BulletinBoard : InteractableBase
     {
         if(isInteractable)
         {
+            Debug.Log("Interacted with Bulletin Board");
             questScreen.GetComponent<QuestSelect>().Initialize(GenerateNewSeeds(), this);
             UIManager.OpenOrClose(questScreen);
             UIManager.ToggleHUD();

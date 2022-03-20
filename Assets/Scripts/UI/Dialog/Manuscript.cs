@@ -10,11 +10,16 @@ public class Manuscript
         {
             public struct Line
             {
-                public enum CharacterIdentity
+                public class CharacterIdentity
                 {
-                    P1 = 0,
-                    P2 = 1,
-                    ALCHEMIST = 2
+                    public string name;
+                    public Sprite mugshot;
+
+                    public CharacterIdentity(string name_in)
+                    {
+                        name = name_in;
+                        mugshot = null;
+                    }
                 }
 
                 public Line(string line, CharacterIdentity identity)

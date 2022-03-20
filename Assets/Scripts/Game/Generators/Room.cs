@@ -763,7 +763,7 @@ public partial class Room: MonoBehaviour
                 }
             }
            // else //If this is a closed room without doors
-           /* for (int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
                 for (int y = 0; y < size.y; y++)
                 {
@@ -778,7 +778,7 @@ public partial class Room: MonoBehaviour
                         OnExtractWalls(ref currentAngle, ref pos, ref data);
                     }
                 }
-            }*/
+            }
             
             return data;
         }

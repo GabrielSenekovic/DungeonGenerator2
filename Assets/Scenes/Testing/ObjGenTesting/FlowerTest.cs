@@ -15,12 +15,14 @@ public class FlowerTest : MonoBehaviour
         public string name; //What name to search for meshes
         public ObjectData data;
         public Material material;
+        public Material billBoard;
         public CreationData creationData;
 
-        public FlowerTestObject(string name_in, ObjectData data_in, CreationData creation_in, Material mat_in)
+        public FlowerTestObject(string name_in, ObjectData data_in, CreationData creation_in, Material mat_in, Material billBoard_in)
         {
             name = name_in; data = data_in; material = mat_in;
             creationData = creation_in;
+            billBoard = billBoard_in;
         }
     }
     [System.Serializable]public class CreationData
@@ -47,6 +49,8 @@ public class FlowerTest : MonoBehaviour
     public Slider openness;
     public Slider xOffset;
     public Slider yOffset;
+
+    public Mesh quad;
     void Start()
     {
         database = Resources.Load<EntityDatabase>("EntityDatabase");
@@ -60,9 +64,21 @@ public class FlowerTest : MonoBehaviour
 
         for(int i = 0; i < database.database.Count; i++)
         {
-            objects.Add(new FlowerTestObject(database.database[i].name, new ObjectData(new Vector3(i, 0, 0), new Vector3(100, 100, 100), Quaternion.identity, new Vector3(0,0,0)), GetCreationData(database.database[i].name), database.database[i].material));
+            objects.Add(new FlowerTestObject(database.database[i].name, new ObjectData(new Vector3(i, 0, 0), new Vector3(100, 100, 100), Quaternion.identity, new Vector3(0,0,0)), GetCreationData(database.database[i].name), database.database[i].material, database.database[i].billBoard));
         }
         UpdateUI();
+        quad = MeshMaker.GetBillBoard();
+        foreach(FlowerTestObject obj in objects)
+        {
+            GameObject temp = new GameObject(obj.name);
+            MeshFilter filter = temp.AddComponent<MeshFilter>();
+            MeshRenderer render = temp.AddComponent<MeshRenderer>();
+            filter.mesh = quad;
+            render.material = obj.billBoard;
+            temp.transform.position = obj.data.pos + new Vector3(0, 2, -1);
+            temp.transform.localScale = new Vector3(2,2,2);
+            //temp.transform.rotation = Quaternion.Euler(90, 0, 0);
+        }
     }
 
     FlowerCreationData GetCreationData(string name)
@@ -191,8 +207,9 @@ public class FlowerTest : MonoBehaviour
     }
     public void UpdateFlower()
     {
+        bool temp = false;
         FlowerCreationData data = objects[(int)Camera.main.transform.position.x].creationData as FlowerCreationData;
-        MeshMaker.CreateFlower(database.GetMesh(objects[(int)Camera.main.transform.position.x].name, 0), objects[(int)Camera.main.transform.position.x].material, 
+        MeshMaker.CreateFlower(database.GetMesh(objects[(int)Camera.main.transform.position.x].name, 0, ref temp), objects[(int)Camera.main.transform.position.x].material, 
         data.height, data.bulbHeight, data.whorls, data.merosity, openness.value, Vector2.zero, data.curve, data.petalShape, data.colors, data.spread);
     }
 
@@ -200,8 +217,10 @@ public class FlowerTest : MonoBehaviour
     {
         foreach(FlowerTestObject obj in objects)
         {
-            Mesh mesh = database.GetMesh(obj.name, 0);
+            bool temp = false;
+            Mesh mesh = database.GetMesh(obj.name, 0, ref temp);
             Graphics.DrawMesh(mesh, obj.data.pos, Quaternion.identity, obj.material, 0, Camera.main);
+            //Graphics.DrawMesh(quad, obj.data.pos + new Vector3(0, 2, 0), Quaternion.identity, obj.billBoard, 0, Camera.main);
         }
     }
 }

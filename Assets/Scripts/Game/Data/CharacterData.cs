@@ -2,7 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterData : BaseData
+public class CharacterData : MonoBehaviour
 {
-    [SerializeField]Body myBody;
+    public string givenName;
+
+    public string GetName()
+    {
+        if(givenName == "")
+        {
+            givenName = NameDatabase.GetRandomName();
+        }
+        return givenName;
+    }
 }

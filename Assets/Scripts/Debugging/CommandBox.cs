@@ -84,6 +84,14 @@ public class CommandBox : MonoBehaviour
                     break;
                 }
             break;
+            case "Spawn" :
+                if(partsOfCommand.Length == 1){return;}
+                switch(partsOfCommand[1])
+                {
+                    case "Entity": EntityGenerator.SpawnRandomEntity();
+                    break;
+                }
+            break;
             case "Toggle" :
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])
@@ -117,6 +125,8 @@ public class CommandBox : MonoBehaviour
                 {
                     case "ToggleRandom": //Toggles whether grass is on random positions or exactly in the middle of their tiles
                         MeshBatchRenderer.RenderRandomPositions = !MeshBatchRenderer.RenderRandomPositions;
+                    break;
+                    case "ToggleOff": //Toggles whether grass renders at all
                     break;
                 }
             break;

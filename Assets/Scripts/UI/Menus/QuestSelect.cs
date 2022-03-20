@@ -36,7 +36,6 @@ public class QuestSelect : MonoBehaviour
     [SerializeField]SpriteText detailText;
 
     [SerializeField]GraphemeDatabase graphemeDatabase; //Remove later
-    [SerializeField]NameDatabase nameDatabase; //Remove later
 
     BulletinBoard board = null;
 
@@ -135,9 +134,9 @@ public class QuestSelect : MonoBehaviour
         if(quests[index_in].missionType == QuestData.MissionType.Recovery)
         {
             RecoveryQuestData temp = quests[index_in] as RecoveryQuestData;
-            detailText.PlaceSprite((temp.thingToRecover.thing as ItemData).sprite);
+            detailText.PlaceSprite(temp.thingToRecover.thing.GetComponentInChildren<SpriteRenderer>().sprite);
         }
-        detailText.text = "\nQuestgiver: " + nameDatabase.GetRandomName();
+        detailText.text = "\nQuestgiver: " + NameDatabase.GetRandomName();
         detailText.text += "\nObjective: " + "\nDifficulty level: \nReward: \n";
         detailText.text += "\nInformation about the destination: \n";
         detailText.text += "\nThis place is a: " + levels[index_in].biome + ". \n";

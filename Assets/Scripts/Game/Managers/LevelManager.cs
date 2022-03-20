@@ -279,6 +279,7 @@ public class LevelManager : MonoBehaviour
     public bool buildMode;
 
     EntityManager entityManager;
+    public MeshBatchRenderer meshBatchRenderer;
 
     private void Awake() 
     {
@@ -302,6 +303,7 @@ public class LevelManager : MonoBehaviour
         q_data = GameData.GetCurrentQuestData();
         generator = GetComponent<LevelGenerator>();
 
+        meshBatchRenderer.Initialise();
         generator.GenerateLevel(this, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
         generator.PutDownQuestObjects(this, q_data);
 

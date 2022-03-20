@@ -25,6 +25,9 @@ public class EntityDatabase :ScriptableObject
 
         public int amountPerTile;
         public Material material;
+
+        public Material billBoard;
+        public Texture billBoard_Tex;
         public List<MeshLOD> mesh;
 
         public DatabaseEntry(string name_in, string type_in)
@@ -144,6 +147,8 @@ public class EntityDatabase :ScriptableObject
                     flowerEntry.AddMesh(tempFlower);
                     flowerEntry.material = flowerMaterial;
                     flowerEntry.amountPerTile = amount;
+                    flowerEntry.AddMesh(new DatabaseEntry.MeshLOD(MeshMaker.GetBillBoard(), Mathf.Infinity));
+                    flowerEntry.billBoard = GetBillBoard(flowerEntry.mesh[0].mesh, flowerEntry.material, ref flowerEntry.billBoard_Tex);
                     database.Add(flowerEntry);
                 }
                 break;
@@ -161,7 +166,7 @@ public class EntityDatabase :ScriptableObject
                                 float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); 
                                 renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance;
                                 MeshMaker.CreateTuft(tuftMesh, quads, straws, (float)width);
-                                //Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
+                                Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                                 DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, (float)renderDistance);
                                 tuftEntry.AddMesh(tempTuft);
                                 tuftMesh = new Mesh();
@@ -169,11 +174,13 @@ public class EntityDatabase :ScriptableObject
                             case "Quads:": int.TryParse(allData[i][j+1], out quads); break;
                             case "Straws:":int.TryParse(allData[i][j+1], out straws); break;
                             case "Width:": float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out width); 
-                                    //Debug.Log("Width: " + allData[i][j+1] + " and " + width);
+                                    Debug.Log("Width: " + allData[i][j+1] + " and " + width);
                             break;
                         }
                     }
                     tuftEntry.material = defaultMaterial;
+                    tuftEntry.AddMesh(new DatabaseEntry.MeshLOD(MeshMaker.GetBillBoard(), Mathf.Infinity));
+                    tuftEntry.billBoard = GetBillBoard(tuftEntry.mesh[0].mesh, tuftEntry.material, ref tuftEntry.billBoard_Tex);
                     tuftEntry.amountPerTile = amount;
                     database.Add(tuftEntry);
                 }
@@ -181,8 +188,23 @@ public class EntityDatabase :ScriptableObject
             }
         }
     }
+    public Material GetBillBoard(Mesh mesh, Material baseMaterial, ref Texture tex)
+    {
+        int dim = 128*2;
+        var renderTexture = RenderTexture.GetTemporary(dim, dim, 24);
+        var billboardTexture = new Texture2D(dim, dim, TextureFormat.RGBA32, false);
+        Graphics.SetRenderTarget(renderTexture);
+        baseMaterial.SetPass(0);
+        Graphics.DrawMeshNow(mesh, new Vector3(0,-1,0), Quaternion.Euler(90,0,0));
+        billboardTexture.ReadPixels(new Rect(0,0,dim,dim), 0,0);
+        billboardTexture.Apply();
+        tex = billboardTexture;
+        Material mat = new Material(Resources.Load<Material>("Materials/BillBoard"));
+        mat.SetTexture("_BaseMap", billboardTexture);
+        return mat;
+    }
 
-    public Mesh GetMesh(string value, float distance)
+    public Mesh GetMesh(string value, float distance, ref bool billBoard)
     {
         DatabaseEntry entry = GetDatabaseEntry(value); //Get the mesh collection of this name
         if(entry != null) //If it was found
@@ -191,6 +213,10 @@ public class EntityDatabase :ScriptableObject
             {
                 if(distance < entry.mesh[i].renderDistance) //If the given distance is smaller than the distance of the mesh
                 {
+                    if(i == entry.mesh.Count - 1)
+                    {
+                        billBoard = true;
+                    }
                     //Debug.Log("Distance: " + distance + " was smaller than: " + entry.mesh[i].renderDistance);
                     //Debug.Break();
                     return entry.mesh[i].mesh; //Return it

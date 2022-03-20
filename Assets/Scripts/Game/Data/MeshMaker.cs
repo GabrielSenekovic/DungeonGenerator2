@@ -68,6 +68,53 @@ public class MeshMaker : MonoBehaviour
             sidesWhereThereIsWall = sidesWhereThereIsWall_in;
         }
     }  
+    static public Mesh GetBillBoard()
+    {
+        Mesh mesh = new Mesh();
+        List<int> newTriangles = new List<int>();
+        List<Vector3> newVertices = new List<Vector3>();
+        List<Vector2> newUV = new List<Vector2>();
+
+        //newVertices.Add(new Vector3(0.5f,0.5f,0));
+        //newVertices.Add(new Vector3(-0.5f,0.5f,0));
+        //newVertices.Add(new Vector3(-0.5f,0.5f,0));
+        //newVertices.Add(new Vector3(0.5f,-0.5f,0));
+
+        newVertices.Add(new Vector3(0.5f,0,0.5f));
+        newVertices.Add(new Vector3(-0.5f,0,0.5f));
+        newVertices.Add(new Vector3(-0.5f,0,-0.5f));
+        newVertices.Add(new Vector3(0.5f,0,-0.5f));
+
+        newVertices.Add(new Vector3(0,0.5f,0.5f));
+        newVertices.Add(new Vector3(0,-0.5f,0.5f));
+        newVertices.Add(new Vector3(0,-0.5f,-0.5f));
+        newVertices.Add(new Vector3(0,0.5f,-0.5f));
+
+        for(int i = 0; i < 2; i++)
+        {
+            newTriangles.Add(3 + 4*i);
+            newTriangles.Add(1 + 4*i);
+            newTriangles.Add(0 + 4*i);
+            newTriangles.Add(3 + 4*i);
+            newTriangles.Add(2 + 4*i);
+            newTriangles.Add(1 + 4*i);
+
+            newUV.Add(new Vector2 (1,0));                      //1,0
+            newUV.Add(new Vector2 (0,0));                      //0,0
+            newUV.Add(new Vector2 (0,1)); //0,1
+            newUV.Add(new Vector2 (1,1)); 
+        }
+
+        mesh.Clear ();
+        mesh.vertices = newVertices.ToArray();
+        mesh.triangles = newTriangles.ToArray();
+        mesh.uv = newUV.ToArray(); 
+        mesh.Optimize();
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
     public static void CreateBush(Mesh mesh, int height)
     {
         //This requires the CreateStone() function
@@ -105,13 +152,11 @@ public class MeshMaker : MonoBehaviour
                 newVertices.Add(positions[(1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)j/(float)stepsAroundCenter)]);
                 newVertices.Add(positions[(stepsAroundCenter + 1 + j)%stepsAroundCenter + stepsAroundCenter * (int)((float)(j+stepsAroundCenter)/(float)stepsAroundCenter)]);
                 newVertices.Add(positions[stepsAroundCenter + j]);
-                Debug.Log("Vertices set");
 
                 for(int index = 0; index < indexValue.Length; index++)
                 {
                     newTriangles.Add(indexValue[index] + j * 4);
                 }
-                Debug.Log("Indices set");
             }
             //? Set top and btm of cube
             if(i == 0)
@@ -1582,4 +1627,5 @@ public class MeshMaker : MonoBehaviour
 
         return mesh;
     }
+    
 }
