@@ -50,6 +50,8 @@ public partial class LevelGenerator : MonoBehaviour
     public InteractableBase endOfLevel; //Debugging object for Recovery Quest
     [System.NonSerialized]public InteractableBase spawnedEndOfLevel; // spawned version
 
+    public Texture2D map;
+
     public void GenerateStartArea()
     {
         //Called when not in the level
@@ -95,7 +97,7 @@ public partial class LevelGenerator : MonoBehaviour
                                 (int)(amountOfSections.y)), RoomSize, level.l_data, ref templates);
 
        // Debug.Log("RoomGrid size " + roomGrid.Count);
-
+        GenerateMap(ref templates);
         GenerateSurroundings(ref templates);
         BuildRooms(ref templates);
 
@@ -109,7 +111,26 @@ public partial class LevelGenerator : MonoBehaviour
         System.TimeSpan duration = after.Subtract(before);
         Debug.Log("<color=blue>Time to generate: </color>" + duration.TotalMilliseconds + " milliseconds, which is: " + duration.TotalSeconds + " seconds");
     }
+    void GenerateMap(ref List<Room.RoomTemplate> templates)
+    {
+        int count = 0;
+        int width = 0; int height = 0; //Calculate the width and height of the entire map!
+        map = new Texture2D(width, height, TextureFormat.ARGB32, false);
 
+        for(int i = 0; i < sections.Count; i++)
+        {
+            for(int j = 0; j < sections[i].rooms.Count; j++)
+            {
+                DebugLog.AddToMessage("Getting map image", sections[i].rooms[j].name);
+                Room.RoomTemplate template = templates[count];
+                Texture2D tex = sections[i].rooms[j].CreateMaps(ref template);
+                count++;
+                DebugLog.PublishMessage();
+            }
+        }
+        map.Apply();
+        map.filterMode = FilterMode.Point;
+    }
     void GenerateSurroundings(ref List<Room.RoomTemplate> templates)
     {
         GameObject surroundings = new GameObject("Surroundings");

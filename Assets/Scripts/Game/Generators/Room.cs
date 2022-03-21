@@ -1187,7 +1187,12 @@ public partial class Room: MonoBehaviour
         //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
-
+    public Texture2D CreateMaps(ref RoomTemplate template)
+    {
+        mapTexture = template.CreateMap();
+        SaveTemplateTexture(template);
+        return mapTexture;
+    }
     public void CreateRoom(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in)
     {
         //This shouldn't actually get called until the doors have all been finalized, which is only when the whole dungeon is done
@@ -1210,9 +1215,7 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SavePlacementGrid(template);
-        SaveTemplateTexture(template);
         Furnish(floorMaterial);
-        mapTexture = template.CreateMap();
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
