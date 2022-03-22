@@ -34,5 +34,6 @@ public class BulletinBoard : InteractableBase
     {
         isInteractable = true;
         UIManager.OpenOrClose(questScreen);
+        UIManager.ToggleHUD();
     }
 }

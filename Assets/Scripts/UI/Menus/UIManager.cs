@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -39,8 +41,11 @@ public class UIManager : MonoBehaviour
     public Counter keys;
 
     public CommandBox commandBox;
+    public GameObject saveLocationNameBox;
     public MiniMap miniMap;
     public DialogBox dialogBox;
+
+    public SavedLocations savedLocations;
 
     [System.Serializable]public class UIColorManager
     {
@@ -58,7 +63,12 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        instance = this;
+        if(instance == null)
+        {instance = this;}
+        else
+        {
+            Destroy(this);
+        }
     }
 
     private void Start() 
@@ -74,13 +84,25 @@ public class UIManager : MonoBehaviour
     }
     public bool CloseCommandBox()
     {
-        if(commandBox.gameObject.activeSelf)
+        if(commandBox.gameObject.activeSelf && !saveLocationNameBox.gameObject.activeSelf)
         {
             commandBox.gameObject.SetActive(false);
             Time.timeScale = 1;
             return true;
         }
         return false;
+    }
+    public void OpenSaveLocationNameBox()
+    {
+        saveLocationNameBox.gameObject.SetActive(true);
+        Time.timeScale = 0;
+    }
+    public void CloseSaveLocationNameBox()
+    {
+        savedLocations.AddLocation(saveLocationNameBox.GetComponent<InputField>().text, null, GameData.Instance.levelConstructionSeed, GameData.Instance.levelDataSeed);
+        saveLocationNameBox.gameObject.SetActive(false);
+        Time.timeScale = 1;
+        SceneManager.LoadScene(0);
     }
 
     public static Currency GetCurrency()

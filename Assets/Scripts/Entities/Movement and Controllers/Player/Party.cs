@@ -16,8 +16,15 @@ public class Party : MonoBehaviour
 
     private void Awake() 
     {
-        instance = this;
-        keys = 0;
+        if(instance == null)
+        {
+            instance = this;
+            keys = 0;
+        }
+        else
+        {
+            Destroy(this);
+        }
     }
 
     public void ChangePartyLeader(int index)

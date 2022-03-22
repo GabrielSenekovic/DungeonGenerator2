@@ -39,6 +39,9 @@ public class NPCController : MonoBehaviour
         visionCollider.isTrigger = true;
         
         VisualsRotator.Add(GetComponentInChildren<MeshRenderer>());
+
+        MeshRenderer rend = GetComponentInChildren<MeshRenderer>();
+        rend.material = new Material(rend.material);
     }
     private void Start()
     {

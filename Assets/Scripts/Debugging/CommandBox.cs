@@ -58,6 +58,8 @@ public class CommandBox : MonoBehaviour
                     append = ". Command not found!";
                 }
             break;
+            case "Return" : UIManager.Instance.OpenSaveLocationNameBox();
+            break;
             case "Scene" : 
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])
