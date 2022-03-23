@@ -52,6 +52,12 @@ public partial class LevelGenerator : MonoBehaviour
 
     public Texture2D map;
 
+    public int leftestPoint = 0;
+    public int northestPoint = 0;
+    public int rightestPoint = 0;
+    public int southestPoint = 0;
+    public Vector2Int sizeOfMap = Vector2Int.zero;
+
     public void GenerateStartArea()
     {
         //Called when not in the level
@@ -97,6 +103,7 @@ public partial class LevelGenerator : MonoBehaviour
                                 (int)(amountOfSections.y)), RoomSize, level.l_data, ref templates);
 
        // Debug.Log("RoomGrid size " + roomGrid.Count);
+        FinishRooms(ref templates); //Touch up, adding entrances and stuff
         GenerateMap(ref templates);
         GenerateSurroundings(ref templates);
         BuildRooms(ref templates);
@@ -113,9 +120,11 @@ public partial class LevelGenerator : MonoBehaviour
     }
     void GenerateMap(ref List<Room.RoomTemplate> templates)
     {
+        sizeOfMap = new Vector2Int((rightestPoint+1) - leftestPoint, northestPoint - (southestPoint-1)) * new Vector2Int(20,20);
+        //Plus twenty because otherwise its just the upper left corner of that square. I want the lowermost point of it
         int count = 0;
-        int width = 0; int height = 0; //Calculate the width and height of the entire map!
-        map = new Texture2D(width, height, TextureFormat.ARGB32, false);
+        Debug.Log("Size of map:" + sizeOfMap);
+        map = new Texture2D(sizeOfMap.x, sizeOfMap.y, TextureFormat.ARGB32, false);
 
         for(int i = 0; i < sections.Count; i++)
         {
@@ -124,12 +133,25 @@ public partial class LevelGenerator : MonoBehaviour
                 DebugLog.AddToMessage("Getting map image", sections[i].rooms[j].name);
                 Room.RoomTemplate template = templates[count];
                 Texture2D tex = sections[i].rooms[j].CreateMaps(ref template);
+                int kStart = (int)sections[i].rooms[j].transform.localPosition.x + Mathf.Abs(leftestPoint * 20);
+                int lStart = (int)sections[i].rooms[j].transform.localPosition.y + Mathf.Abs((southestPoint - 1)*20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
+                //- Mathf.Abs(southestPoint * 20);
+                Debug.Log("Position: " + sections[i].rooms[j].transform.localPosition + " K Start: " + kStart + " L Start: " + lStart);
+                for(int k = 0; k < tex.width ; k++)
+                {
+                    for(int l = 0; l < tex.height ; l++)
+                    {
+                       // map.SetPixel(k + kStart,l + lStart, tex.GetPixel(k,l));
+                        map.SetPixel(k + kStart,lStart-l, tex.GetPixel(k,l));
+                    }
+                }
                 count++;
                 DebugLog.PublishMessage();
             }
         }
         map.Apply();
         map.filterMode = FilterMode.Point;
+        UIManager.Instance.currentMap = map;
     }
     void GenerateSurroundings(ref List<Room.RoomTemplate> templates)
     {
@@ -286,6 +308,22 @@ public partial class LevelGenerator : MonoBehaviour
                         roomGrid.Add(new RoomGridEntry(gridPositionWhereNewRoomConnects/20 + 
                             new Vector2Int(x * (int)Mathf.Sign(currentRoomSize.x), y * (int)Mathf.Sign(currentRoomSize.y)), sections[i].rooms[j]));
                         k++;
+                        if(roomGrid[roomGrid.Count -1].position.x <= leftestPoint)
+                        {
+                            leftestPoint = roomGrid[roomGrid.Count -1].position.x;
+                        }
+                        if(roomGrid[roomGrid.Count -1].position.y >= northestPoint)
+                        {
+                            northestPoint = roomGrid[roomGrid.Count -1].position.y;
+                        }
+                        if(roomGrid[roomGrid.Count -1].position.x >= rightestPoint)
+                        {
+                            rightestPoint = roomGrid[roomGrid.Count -1].position.x;
+                        }
+                        if(roomGrid[roomGrid.Count -1].position.y <= southestPoint)
+                        {
+                            southestPoint = roomGrid[roomGrid.Count -1].position.y;
+                        }
                     }
                 }
                 DebugLog.PublishMessage();
@@ -322,6 +360,21 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }
     }
+    void FinishRooms(ref List<Room.RoomTemplate> templates)
+    {
+        //Now that all entrances have been set, you can put the entrances down on each room template and adjust the templates to make sure there is always space to get to each door
+        //Then build the rooms
+        //This is where the templates list should end. It is not needed after this
+        int count = 0;
+        for(int i = 0; i < sections.Count; i++)
+        {
+            for(int j = 0; j < sections[i].rooms.Count; j++)
+            {
+                templates[count].AddEntrancesToRoom(sections[i].rooms[j].directions);
+                count++;
+            }
+        }
+    }
     void BuildRooms(ref List<Room.RoomTemplate> templates)
     {
         //Now that all entrances have been set, you can put the entrances down on each room template and adjust the templates to make sure there is always space to get to each door
@@ -333,7 +386,6 @@ public partial class LevelGenerator : MonoBehaviour
             for(int j = 0; j < sections[i].rooms.Count; j++)
             {
                 DebugLog.AddToMessage("Generating", sections[i].rooms[j].name);
-                templates[count].AddEntrancesToRoom(sections[i].rooms[j].directions);
                 Room.RoomTemplate template = templates[count];
                 sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
                 SaveWallVertices(ref templates, template, sections[i].rooms[j]);

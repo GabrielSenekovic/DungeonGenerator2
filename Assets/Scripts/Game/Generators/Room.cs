@@ -1215,7 +1215,7 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SavePlacementGrid(template);
-        Furnish(floorMaterial);
+        //Furnish(floorMaterial);
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {

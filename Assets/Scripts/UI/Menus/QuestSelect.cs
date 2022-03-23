@@ -73,6 +73,7 @@ public class QuestSelect : MonoBehaviour
         GameData.currentQuest = QuestDataGenerator.Initialize(seeds[index].questSeed);
         Debug.Log(index);
         DontDestroyOnLoad(DunGenes.Instance);
+        DunGenes.Instance.isStartArea = false;
         SceneManager.LoadSceneAsync("Level");
         OnClose();
         Time.timeScale = 1;

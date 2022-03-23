@@ -17,9 +17,12 @@ public class SavedLocations : MonoBehaviour
         }
     }
     public List<LocationData> locationData;
+    public SpriteText text;
 
     public void AddLocation(string name, Texture2D map, int levelConstructionSeed, int levelDataSeed)
     {
         locationData.Add(new LocationData(name, map, levelConstructionSeed, levelDataSeed));
+        text.Write(name);
+        text.PlaceSprite(Sprite.Create(map, new Rect(0, 0, map.width, map.height), new Vector2(0.5f, 0.5f), 16));
     }
 }

@@ -19,10 +19,6 @@ public class DunGenes : MonoBehaviour
 
     private void Awake() 
     {
-        if(isStartArea)
-        {
-            FindObjectOfType<LevelGenerator>().GenerateStartArea();
-        }
         if(instance == null)
         {
             instance = this;
@@ -30,7 +26,13 @@ public class DunGenes : MonoBehaviour
         }
         else
         {
+            Debug.Log("DESTROYING SELF");
             Destroy(gameObject);
+            isStartArea = false;
+        }
+        if(isStartArea)
+        {
+            FindObjectOfType<LevelGenerator>().GenerateStartArea();
         }
     }
 

@@ -59,12 +59,13 @@ public class UIManager : MonoBehaviour
             UI.HUD.GetComponentInChildren<HPBar>().background.color = newColor;
         }
     }
+    public Texture2D currentMap;
     public UIColorManager UIColor;
 
     void Awake()
     {
         if(instance == null)
-        {instance = this;}
+        {instance = this; Debug.Log("UIManager instance set to this");}
         else
         {
             Destroy(this);
@@ -99,7 +100,7 @@ public class UIManager : MonoBehaviour
     }
     public void CloseSaveLocationNameBox()
     {
-        savedLocations.AddLocation(saveLocationNameBox.GetComponent<InputField>().text, null, GameData.Instance.levelConstructionSeed, GameData.Instance.levelDataSeed);
+        savedLocations.AddLocation(saveLocationNameBox.GetComponent<InputField>().text, currentMap, GameData.Instance.levelConstructionSeed, GameData.Instance.levelDataSeed);
         saveLocationNameBox.gameObject.SetActive(false);
         Time.timeScale = 1;
         SceneManager.LoadScene(0);
@@ -107,6 +108,10 @@ public class UIManager : MonoBehaviour
 
     public static Currency GetCurrency()
     {
+        if(instance == null)
+        {
+            Debug.Log("Instance of UIManager was null");
+        }
         return instance.currency;
     }
     public void OpenOrClose(UIScreen screen)
