@@ -102,7 +102,7 @@ public class UIManager : MonoBehaviour
     }
     public void CloseSaveLocationNameBox()
     {
-        savedLocations.AddLocation(saveLocationNameBox.GetComponent<InputField>().text, currentMap, GameData.Instance.levelConstructionSeed, GameData.Instance.levelDataSeed);
+        savedLocations.AddLocation(saveLocationNameBox.GetComponent<InputField>().text, currentMap, DunGenes.Instance.gameData.levelConstructionSeed, DunGenes.Instance.gameData.levelDataSeed);
         saveLocationNameBox.gameObject.SetActive(false);
         Time.timeScale = 1;
         SceneManager.LoadScene(0);

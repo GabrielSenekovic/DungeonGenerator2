@@ -6,23 +6,6 @@ using System.Linq;
 
 public partial class LevelGenerator : MonoBehaviour
 {
-    [System.Serializable]public class Section
-    {
-        public List<Room> rooms = new List<Room>();
-    }
-    [SerializeField]List<Section> sections = new List<Section>();
-
-    [System.Serializable]public struct RoomGridEntry
-    {
-        public Vector2Int position;
-        public Room room;
-        public RoomGridEntry(Vector2Int position_in, Room room_in)
-        {
-            position = position_in; room = room_in;
-        }
-    }
-    [SerializeField]List<RoomGridEntry> roomGrid = new List<RoomGridEntry> { }; //Separate rooms into rooms and roomGrid. roomGrid is all positions on the grid that are occupied. This is so that I wont have to look through the list of rooms
-    
     [System.Serializable]public class debugroomposition
     {
         public Vector2Int pos;
@@ -45,8 +28,6 @@ public partial class LevelGenerator : MonoBehaviour
 
     public bool levelGenerated = false;
 
-    public Material debugMaterial;
-
     public InteractableBase endOfLevel; //Debugging object for Recovery Quest
     [System.NonSerialized]public InteractableBase spawnedEndOfLevel; // spawned version
 
@@ -63,10 +44,10 @@ public partial class LevelGenerator : MonoBehaviour
         //Called when not in the level
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
-        sections[0].rooms[0].Initialize(new Vector2Int(20,20), false, 0, ref templates, false);
-        templates[0].AddEntrancesToRoom(sections[0].rooms[0].directions);
+        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].Initialize(new Vector2Int(20,20), false, 0, ref templates, false);
+        templates[0].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].directions);
         Room.RoomTemplate template = templates[0];
-        sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
         //Surround this one room with floors
         GameObject surroundings = new GameObject("Surroundings");
         surroundings.transform.parent = this.gameObject.transform;
@@ -82,39 +63,41 @@ public partial class LevelGenerator : MonoBehaviour
                 surroundingObject.AddComponent<MeshRenderer>();
                 surroundingObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Ground");
                 surroundingObject.transform.localPosition = new Vector3(-10 - 20 + (x * 20), 10 + 20 - (y * 20), 0);
+                Room temp = surroundingObject.AddComponent<Room>();
+                surroundingPositions.Add(new Tuple<Vector2Int, Room>(new Vector2Int(x,y), temp));
             }
         }
     }
-    public List<Room.RoomTemplate> GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
+    public void GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
     {
-        roomGrid.Clear(); leftestPoint = 0; northestPoint = 0; southestPoint = 0; rightestPoint = 0;
-        sections.Clear();
-        UnityEngine.Random.InitState(GameData.Instance.levelConstructionSeed);
+        DunGenes.Instance.gameData.CurrentLevel.roomGrid.Clear(); leftestPoint = 0; northestPoint = 0; southestPoint = 0; rightestPoint = 0;
+        DunGenes.Instance.gameData.CurrentLevel.sections.Clear();
+        UnityEngine.Random.InitState(DunGenes.Instance.gameData.levelConstructionSeed);
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
 
-        sections.Add(new Section()); 
-        sections[0].rooms.Add(Instantiate(RoomPrefab, Vector3.zero, Quaternion.identity, transform));
-        roomGrid.Add(new RoomGridEntry(Vector2Int.zero, sections[0].rooms[0]));
-        sections[0].rooms[0].Initialize(RoomSize, true, 0, ref templates, false);
+        DunGenes.Instance.gameData.CurrentLevel.sections.Add(new LevelData.Section()); 
+        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms.Add(Instantiate(RoomPrefab, Vector3.zero, Quaternion.identity, transform));
+        DunGenes.Instance.gameData.CurrentLevel.roomGrid.Add(new LevelData.RoomGridEntry(Vector2Int.zero, DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0]));
+        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].Initialize(RoomSize, true, 0, ref templates, false);
 
-        SpawnRooms(UnityEngine.Random.Range((int)(amountOfRooms.x + sections[0].rooms.Count),
-                                (int)(amountOfRooms.y + sections[0].rooms.Count)), UnityEngine.Random.Range((int)(amountOfSections.x),
+        SpawnRooms(UnityEngine.Random.Range((int)(amountOfRooms.x + DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms.Count),
+                                (int)(amountOfRooms.y + DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms.Count)), UnityEngine.Random.Range((int)(amountOfSections.x),
                                 (int)(amountOfSections.y)), RoomSize, data, ref templates);
 
        // Debug.Log("RoomGrid size " + roomGrid.Count);
         FinishRooms(ref templates); //Touch up, adding entrances and stuff
         GenerateMap(ref templates);
-        return templates;
+        DunGenes.Instance.gameData.CurrentLevel.templates = templates;
     }
-    void GenerateLevel(LevelManager level, ref List<Room.RoomTemplate> templates)
+    public void GenerateLevel(LevelManager level, ref List<Room.RoomTemplate> templates)
     {
         System.DateTime before = System.DateTime.Now;
         GenerateSurroundings(ref templates);
         BuildRooms(ref templates);
 
-        level.firstRoom = sections[0].rooms[0];
-        level.lastRoom = sections[sections.Count-1].rooms[sections[sections.Count-1].rooms.Count - 1];
+        level.firstRoom = DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0];
+        level.lastRoom = DunGenes.Instance.gameData.CurrentLevel.sections[DunGenes.Instance.gameData.CurrentLevel.sections.Count-1].rooms[DunGenes.Instance.gameData.CurrentLevel.sections[DunGenes.Instance.gameData.CurrentLevel.sections.Count-1].rooms.Count - 1];
 
         //AdjustRoomTypes(level.l_data);
         //AdjustEntrances(RoomSize);
@@ -131,17 +114,17 @@ public partial class LevelGenerator : MonoBehaviour
         Debug.Log("Size of map:" + sizeOfMap);
         map = new Texture2D(sizeOfMap.x, sizeOfMap.y, TextureFormat.ARGB32, false);
 
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = 0; j < sections[i].rooms.Count; j++)
+            for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
             {
-                DebugLog.AddToMessage("Getting map image", sections[i].rooms[j].name);
+                DebugLog.AddToMessage("Getting map image", DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].name);
                 Room.RoomTemplate template = templates[count];
-                Texture2D tex = sections[i].rooms[j].CreateMaps(ref template);
-                int kStart = (int)sections[i].rooms[j].transform.localPosition.x + Mathf.Abs(leftestPoint * 20);
-                int lStart = (int)sections[i].rooms[j].transform.localPosition.y + Mathf.Abs((southestPoint - 1)*20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
+                Texture2D tex = DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].CreateMaps(ref template);
+                int kStart = (int)DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform.localPosition.x + Mathf.Abs(leftestPoint * 20);
+                int lStart = (int)DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform.localPosition.y + Mathf.Abs((southestPoint - 1)*20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
                 //- Mathf.Abs(southestPoint * 20);
-                Debug.Log("Position: " + sections[i].rooms[j].transform.localPosition + " K Start: " + kStart + " L Start: " + lStart);
+                Debug.Log("Position: " + DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform.localPosition + " K Start: " + kStart + " L Start: " + lStart);
                 for(int k = 0; k < tex.width ; k++)
                 {
                     for(int l = 0; l < tex.height ; l++)
@@ -160,24 +143,31 @@ public partial class LevelGenerator : MonoBehaviour
     }
     void GenerateSurroundings(ref List<Room.RoomTemplate> templates)
     {
+        for(int i = 0; i < surroundingPositions.Count; i++)
+        {
+            Destroy(surroundingPositions[i].Item2.gameObject);
+        }
+        surroundingPositions.Clear();
+
+        RoomPrefab = Resources.Load<Room>("Room");
         GameObject surroundings = new GameObject("Surroundings");
         surroundings.transform.parent = gameObject.transform;
         //Go through every single position saved and spawned, and check next to them. If theres nothing in that specific position, spawn a room there like usual, on a higher level
-        for(int i = 0; i < roomGrid.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count; i++)
         {
             for(int x = -1; x < 2; x++)
             {
                 for(int y = -1; y < 2; y++)
                 {
-                    if(!CheckIfCoordinatesOccupied(roomGrid[i].position + new Vector2Int(x,y)) && !surroundingPositions.Any(j => j.Item1 == roomGrid[i].position + new Vector2Int(x,y)))
+                    if(!CheckIfCoordinatesOccupied(DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].position + new Vector2Int(x,y)) && !surroundingPositions.Any(j => j.Item1 == DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].position + new Vector2Int(x,y)))
                     {
                         //Create room here
                         DebugLog.AddToMessage("Generating", "Surroundings #" + surroundings.transform.childCount);
                         Room temp = Instantiate(RoomPrefab, transform);
                         temp.gameObject.name = "Surrounding";
                         temp.transform.parent = surroundings.transform;
-                        temp.Initialize(roomGrid[i].position * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
-                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(roomGrid[i].position + new Vector2Int(x,y),temp));
+                        temp.Initialize(DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].position * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
+                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].position + new Vector2Int(x,y),temp));
                         DebugLog.PublishMessage();
                     }
                 }
@@ -261,10 +251,10 @@ public partial class LevelGenerator : MonoBehaviour
         {
             if(i != 0)
             {
-                sections.Add(new Section());
+                DunGenes.Instance.gameData.CurrentLevel.sections.Add(new LevelData.Section());
             }
             int k = 0;
-            for (int j = sections[i].rooms.Count; k < amountOfRooms; j++)
+            for (int j = DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; k < amountOfRooms; j++)
             {
                 DebugLog.AddToMessage("Room", j.ToString());
                 DebugLog.AddToMessage("Section", i.ToString());
@@ -282,52 +272,53 @@ public partial class LevelGenerator : MonoBehaviour
                     }
                     else if(i != 0) //And if not the first room of the first section
                     {
-                        originRoom = new Tuple<Room, List<Room.Entrances.Entrance>> (sections[i-1].rooms[sections[i-1].rooms.Count - 1], sections[i-1].rooms[sections[i-1].rooms.Count - 1].directions.entrances);
+                        originRoom = new Tuple<Room, List<Room.Entrances.Entrance>> (DunGenes.Instance.gameData.CurrentLevel.sections[i-1].rooms[DunGenes.Instance.gameData.CurrentLevel.sections[i-1].rooms.Count - 1], 
+                        DunGenes.Instance.gameData.CurrentLevel.sections[i-1].rooms[DunGenes.Instance.gameData.CurrentLevel.sections[i-1].rooms.Count - 1].directions.entrances);
                         OpenAvailableEntrances(originRoom.Item1);
                     }
                 }catch{DebugLog.TerminateMessage("Could no longer spawn new rooms");break;}
 
-                sections[i].rooms.Add(Instantiate(RoomPrefab, transform));
-                sections[i].rooms[j].name = "Room #" + (numberOfRooms+1); numberOfRooms++;
-                DebugLog.AddToMessage("Name", sections[i].rooms[j].name);
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Add(Instantiate(RoomPrefab, transform));
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].name = "Room #" + (numberOfRooms+1); numberOfRooms++;
+                DebugLog.AddToMessage("Name", DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].name);
 
                 bool indoors = false;
 
                 Vector2Int gridPositionWhereOriginRoomConnects = Vector2Int.zero;
-                Vector2Int gridPositionWhereNewRoomConnects = GetNewRoomCoordinates(sections[i].rooms[j], originRoom.Item1.transform.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereOriginRoomConnects);
-                sections[i].rooms[j].Initialize(gridPositionWhereNewRoomConnects, currentRoomSize * 20, indoors, i, ref templates, false);
-                sections[i].rooms[j].roomData.stepsAwayFromMainRoom = originRoom.Item1.roomData.stepsAwayFromMainRoom + 1;
-                sections[i].rooms[j].originalPosition = gridPositionWhereNewRoomConnects;
-                if(sections[i].rooms[j].roomData.stepsAwayFromMainRoom > furthestDistanceFromSpawn)
+                Vector2Int gridPositionWhereNewRoomConnects = GetNewRoomCoordinates(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j], originRoom.Item1.transform.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereOriginRoomConnects);
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].Initialize(gridPositionWhereNewRoomConnects, currentRoomSize * 20, indoors, i, ref templates, false);
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].roomData.stepsAwayFromMainRoom = originRoom.Item1.roomData.stepsAwayFromMainRoom + 1;
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].originalPosition = gridPositionWhereNewRoomConnects;
+                if(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].roomData.stepsAwayFromMainRoom > furthestDistanceFromSpawn)
                 {
-                    furthestDistanceFromSpawn = sections[i].rooms[j].roomData.stepsAwayFromMainRoom;
+                    furthestDistanceFromSpawn = DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].roomData.stepsAwayFromMainRoom;
                 }
                 bool locked = j == 0 && i > 0 ? true:false;
-                ActivateEntrances(originRoom.Item1, sections[i].rooms[j], gridPositionWhereOriginRoomConnects, gridPositionWhereNewRoomConnects, locked);
-                LinkRoom(sections[i].rooms[j], RoomSize);
-                OpenRandomEntrances(sections[i].rooms[j], data.openDoorProbability);
+                ActivateEntrances(originRoom.Item1, DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j], gridPositionWhereOriginRoomConnects, gridPositionWhereNewRoomConnects, locked);
+                LinkRoom(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j], RoomSize);
+                OpenRandomEntrances(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j], data.openDoorProbability);
                 for(int x = 0; x < Mathf.Abs(currentRoomSize.x); x++)
                 {
                     for(int y = 0; y < Mathf.Abs(currentRoomSize.y); y++)
                     {
-                        roomGrid.Add(new RoomGridEntry(gridPositionWhereNewRoomConnects/20 + 
-                            new Vector2Int(x * (int)Mathf.Sign(currentRoomSize.x), y * (int)Mathf.Sign(currentRoomSize.y)), sections[i].rooms[j]));
+                        DunGenes.Instance.gameData.CurrentLevel.roomGrid.Add(new LevelData.RoomGridEntry(gridPositionWhereNewRoomConnects/20 + 
+                            new Vector2Int(x * (int)Mathf.Sign(currentRoomSize.x), y * (int)Mathf.Sign(currentRoomSize.y)), DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j]));
                         k++;
-                        if(roomGrid[roomGrid.Count -1].position.x <= leftestPoint)
+                        if(DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.x <= leftestPoint)
                         {
-                            leftestPoint = roomGrid[roomGrid.Count -1].position.x;
+                            leftestPoint = DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.x;
                         }
-                        if(roomGrid[roomGrid.Count -1].position.y >= northestPoint)
+                        if(DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.y >= northestPoint)
                         {
-                            northestPoint = roomGrid[roomGrid.Count -1].position.y;
+                            northestPoint = DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.y;
                         }
-                        if(roomGrid[roomGrid.Count -1].position.x >= rightestPoint)
+                        if(DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.x >= rightestPoint)
                         {
-                            rightestPoint = roomGrid[roomGrid.Count -1].position.x;
+                            rightestPoint = DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.x;
                         }
-                        if(roomGrid[roomGrid.Count -1].position.y <= southestPoint)
+                        if(DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.y <= southestPoint)
                         {
-                            southestPoint = roomGrid[roomGrid.Count -1].position.y;
+                            southestPoint = DunGenes.Instance.gameData.CurrentLevel.roomGrid[DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count -1].position.y;
                         }
                     }
                 }
@@ -351,15 +342,15 @@ public partial class LevelGenerator : MonoBehaviour
     }
     void CloseAllEntrances()
     {
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = 0; j < sections[i].rooms.Count; j++)
+            for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
             {
-                for(int k = 0; k < sections[i].rooms[j].directions.entrances.Count; k++)
+                for(int k = 0; k < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions.entrances.Count; k++)
                 {
-                    if(sections[i].rooms[j].directions.entrances[k].open && !sections[i].rooms[j].directions.entrances[k].spawned)
+                    if(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions.entrances[k].open && !DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions.entrances[k].spawned)
                     {
-                        sections[i].rooms[j].directions.entrances[k].Deactivate();
+                        DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions.entrances[k].Deactivate();
                     }
                 }
             }
@@ -371,11 +362,11 @@ public partial class LevelGenerator : MonoBehaviour
         //Then build the rooms
         //This is where the templates list should end. It is not needed after this
         int count = 0;
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = 0; j < sections[i].rooms.Count; j++)
+            for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
             {
-                templates[count].AddEntrancesToRoom(sections[i].rooms[j].directions);
+                templates[count].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions);
                 count++;
             }
         }
@@ -386,14 +377,14 @@ public partial class LevelGenerator : MonoBehaviour
         //Then build the rooms
         //This is where the templates list should end. It is not needed after this
         int count = 0;
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = 0; j < sections[i].rooms.Count; j++)
+            for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
             {
-                DebugLog.AddToMessage("Generating", sections[i].rooms[j].name);
+                DebugLog.AddToMessage("Generating", DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].name);
                 Room.RoomTemplate template = templates[count];
-                sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
-                SaveWallVertices(ref templates, template, sections[i].rooms[j]);
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+                SaveWallVertices(ref templates, template, DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j]);
                 count++;
                 DebugLog.PublishMessage();
             }
@@ -415,12 +406,12 @@ public partial class LevelGenerator : MonoBehaviour
         for(int k = 0; k < roomList.Count; k++)
         {
             int n = 0;
-            for(int l = 0; l < sections.Count; l++)
+            for(int l = 0; l < DunGenes.Instance.gameData.CurrentLevel.sections.Count; l++)
             {
-                for(int m = 0; m < sections[l].rooms.Count; m++)
+                for(int m = 0; m < DunGenes.Instance.gameData.CurrentLevel.sections[l].rooms.Count; m++)
                 {
                     n++;
-                    if(roomList[k].Item1 == sections[l].rooms[m].transform.position.ToV2Int()/20) //found the index for templates
+                    if(roomList[k].Item1 == DunGenes.Instance.gameData.CurrentLevel.sections[l].rooms[m].transform.position.ToV2Int()/20) //found the index for templates
                     {
                         Debug.Log("Saving wall vertices from: " + roomList[k].Item2 + " to: " + roomList[k].Item1);
                         Room.RoomTemplate adjTemplate = templates[n-1];
@@ -437,14 +428,14 @@ public partial class LevelGenerator : MonoBehaviour
     }
     public void PlantFlora(ref List<Room.RoomTemplate> templates)
     {
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = 0; j < sections[i].rooms.Count; j++)
+            for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
             {
                 if(!templates[j].indoors)
                 {
                     GameObject lawn = new GameObject("Lawn");
-                    lawn.transform.parent = sections[i].rooms[j].transform;
+                    lawn.transform.parent = DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform;
 
                     Vegetation grass = lawn.AddComponent<Vegetation>();
                     grass.area = templates[j].size;
@@ -457,8 +448,8 @@ public partial class LevelGenerator : MonoBehaviour
 
                     lawn.transform.localPosition = new Vector3(-10, -10, -0.5f);
 
-                    grass.PlantFlora(sections[i].rooms[j]);
-                    sections[i].rooms[j].grass = grass;
+                    grass.PlantFlora(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j]);
+                    DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].grass = grass;
                 }
             }
         }
@@ -565,12 +556,12 @@ public partial class LevelGenerator : MonoBehaviour
     {
         DebugLog.AddToMessage("Step", "Attempting expansion");
 
-        List<List<RoomGridEntry>> potentialExpansions = new List<List<RoomGridEntry>>();
+        List<List<LevelData.RoomGridEntry>> potentialExpansions = new List<List<LevelData.RoomGridEntry>>();
         List<Vector2Int> potentialSizes = new List<Vector2Int>();
 
         for(int i = 0; i < 4; i++) //Go through every direction of expansion
         {
-            potentialExpansions.Add(new List<RoomGridEntry>());
+            potentialExpansions.Add(new List<LevelData.RoomGridEntry>());
             potentialSizes.Add(roomSize * Math.diagonals[i]);
             int x = 1, y = 1;
             while (x < Mathf.Abs(potentialSizes[i].x) || y < Mathf.Abs(potentialSizes[i].y))
@@ -579,7 +570,7 @@ public partial class LevelGenerator : MonoBehaviour
                 OnAttemptExpansion(room, ref y, ref x, i, origin, new Vector2Int(0,1), ref potentialSizes, ref potentialExpansions);
             }
         }
-        List<RoomGridEntry> choice = new List<RoomGridEntry>();
+        List<LevelData.RoomGridEntry> choice = new List<LevelData.RoomGridEntry>();
         roomSize = new Vector2Int(1,1);
         for (int i = 0; i < 4; i++) //Check which room is the biggest
         {
@@ -597,7 +588,7 @@ public partial class LevelGenerator : MonoBehaviour
        // Debug.Log("Added " + choice.Count + " amount of rooms");
         DebugLog.AddToMessage("New Size", roomSize.ToString());
     }
-    void OnAttemptExpansion(Room room, ref int currentSide, ref int otherSide, int direction, Vector2Int origin, Vector2Int coordinate, ref List<Vector2Int> potentialSizes, ref List<List<RoomGridEntry>> potentialExpansions)
+    void OnAttemptExpansion(Room room, ref int currentSide, ref int otherSide, int direction, Vector2Int origin, Vector2Int coordinate, ref List<Vector2Int> potentialSizes, ref List<List<LevelData.RoomGridEntry>> potentialExpansions)
     {
         //"currentSide" is either x or y and "otherSide" is the other
         //"coordinate" determines if it's going in the x axis or the y axis
@@ -606,14 +597,14 @@ public partial class LevelGenerator : MonoBehaviour
         !CheckIfCoordinatesOccupied(origin + new Vector2Int(currentSide * Math.diagonals[direction].x * coordinate.x, currentSide * Math.diagonals[direction].y * coordinate.y))) 
         //If there is a free spot to the side, then try to expand to the side
         {
-            List<RoomGridEntry> temp = new List<RoomGridEntry>();
+            List<LevelData.RoomGridEntry> temp = new List<LevelData.RoomGridEntry>();
             for (int j = 0; j < otherSide; j++) //Go through all to the side. All of them have to be free
             {
                 Vector2Int position = origin + new Vector2Int(currentSide * Math.diagonals[direction].x * coordinate.x + j * Math.diagonals[direction].x * coordinate.y, 
                                                               currentSide * Math.diagonals[direction].y * coordinate.y + j * Math.diagonals[direction].y * coordinate.x);
                 if (!CheckIfCoordinatesOccupied(position))
                 {
-                    temp.Add(new RoomGridEntry(position, room));
+                    temp.Add(new LevelData.RoomGridEntry(position, room));
                 }
                 else
                 {
@@ -639,7 +630,7 @@ public partial class LevelGenerator : MonoBehaviour
 
     bool CheckIfCoordinatesOccupied(Vector2Int roomPosition)
     {
-        foreach(RoomGridEntry room in roomGrid)
+        foreach(LevelData.RoomGridEntry room in DunGenes.Instance.gameData.CurrentLevel.roomGrid)
         {
             if(room.position == roomPosition)
             {
@@ -730,7 +721,7 @@ public partial class LevelGenerator : MonoBehaviour
 
         List<Tuple<Room, List<Room.Entrances.Entrance>>> roomsWithOpenDoors = new List<Tuple<Room, List<Room.Entrances.Entrance>>>{};
 
-        foreach(Section section in sections)
+        foreach(LevelData.Section section in DunGenes.Instance.gameData.CurrentLevel.sections)
         {
             foreach (Room room in section.rooms)
             {
@@ -751,7 +742,7 @@ public partial class LevelGenerator : MonoBehaviour
         //It should make sure that it doesnt have something spawned in each direction
         DebugLog.AddToMessage("Step", "Getting a random origin room of section: " + section);
         List<Tuple<Room, List<Room.Entrances.Entrance>>> roomsWithOpenDoors = new List<Tuple<Room, List<Room.Entrances.Entrance>>>{};
-        foreach (Room room in sections[section].rooms)
+        foreach (Room room in DunGenes.Instance.gameData.CurrentLevel.sections[section].rooms)
         {
             List<Room.Entrances.Entrance> openEntrances = room.GetOpenUnspawnedEntrances();
             if (openEntrances.Count > 0)
@@ -824,7 +815,7 @@ public partial class LevelGenerator : MonoBehaviour
         }
         return temp;
     }
-    public List<Tuple<Vector2Int, Vector2Int, Room>> GetAllAdjacentRooms(Room room, Section section)
+    public List<Tuple<Vector2Int, Vector2Int, Room>> GetAllAdjacentRooms(Room room, LevelData.Section section)
     {
         List<Tuple<Vector2Int, Vector2Int, Room>> temp = new List<Tuple<Vector2Int,Vector2Int, Room>>();
         for(int x = 0; x < room.size.x / 20; x++)
@@ -849,11 +840,11 @@ public partial class LevelGenerator : MonoBehaviour
         return new Tuple<Vector2Int, Room> (origin + direction, FindRoomOfPosition(origin + direction));
     }
 
-    public Tuple<Vector2Int, Room> FindAdjacentRoom(Vector2Int origin, Vector2Int direction, Section section)
+    public Tuple<Vector2Int, Room> FindAdjacentRoom(Vector2Int origin, Vector2Int direction, LevelData.Section section)
     {
         return new Tuple<Vector2Int, Room> (origin + direction, FindRoomOfPosition(origin + direction, section));
     }
-    Room FindRoomOfPosition(Vector2Int position, Section section)
+    Room FindRoomOfPosition(Vector2Int position, LevelData.Section section)
     {
         for(int i = 0; i < section.rooms.Count; i++)
         {
@@ -866,26 +857,26 @@ public partial class LevelGenerator : MonoBehaviour
     }
     public Room FindRoomOfPosition(Vector2Int position)
     {
-        for(int i = 0; i < roomGrid.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.roomGrid.Count; i++)
         {
-            if(roomGrid[i].position == position)
+            if(DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].position == position)
             {
-                return roomGrid[i].room;
+                return DunGenes.Instance.gameData.CurrentLevel.roomGrid[i].room;
             }
         }
         return null;
     }
     public void DestroyLevel()
     {
-        for(int i = 0; i < sections.Count; i++)
+        for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
-            for(int j = sections[i].rooms.Count -1; j >= 0; j--)
+            for(int j = DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count -1; j >= 0; j--)
             {
-                Destroy(sections[i].rooms[j].gameObject);
+                Destroy(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].gameObject);
             }
-            sections[i].rooms.Clear();
+            DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Clear();
         }
-        sections.Clear();
+        DunGenes.Instance.gameData.CurrentLevel.sections.Clear();
         numberOfRooms = 1;
     }
     public void ToggleRenderSections()
@@ -896,21 +887,21 @@ public partial class LevelGenerator : MonoBehaviour
     {
         if(!renderSections)
         {
-            for(int i = 0; i < sections.Count; i++)
+            for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
             {
-                float percentageThroughSections = (float)i / sections.Count;
+                float percentageThroughSections = (float)i / DunGenes.Instance.gameData.CurrentLevel.sections.Count;
                 Color sectionColor = Color.HSVToRGB(percentageThroughSections, 1, 1);
 
-                for(int j = 0; j < sections[i].rooms.Count; j++)
+                for(int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms.Count; j++)
                 {
-                    GLFunctions.DrawSquareFromCorner(sections[i].rooms[j].originalPosition.ToV3() - new Vector3(10, 10, 0), sections[i].rooms[j].size, transform, sectionColor);
+                    GLFunctions.DrawSquareFromCorner(DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].originalPosition.ToV3() - new Vector3(10, 10, 0), DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].size, transform, sectionColor);
                 }
             }
         }
     }
     private void OnDrawGizmos() 
     {
-        foreach(Section section in sections)
+        foreach(LevelData.Section section in DunGenes.Instance.gameData.CurrentLevel.sections)
         {
             foreach(Room room in section.rooms)
             {

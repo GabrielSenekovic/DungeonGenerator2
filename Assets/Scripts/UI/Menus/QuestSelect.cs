@@ -22,7 +22,7 @@ public class QuestSelect : MonoBehaviour
     }
     List<SeedBox> seeds = new List<SeedBox>(){};
 
-    List<LevelData> levels = new List<LevelData>(){};
+    public List<LevelData> levels = new List<LevelData>(){};
 
     List<QuestData> quests = new List<QuestData>(){};
 
@@ -52,6 +52,9 @@ public class QuestSelect : MonoBehaviour
             buttons[i].GetComponent<QuestButton>().select = this;
             buttons[i].GetComponent<QuestButton>().index = i;
             generator.GenerateTemplates(levels[levels.Count - 1], new Vector2Int(20,20), levels[levels.Count - 1].amountOfRoomsCap, levels[levels.Count - 1].amountOfSections);
+            levels[levels.Count - 1].templates = DunGenes.Instance.gameData.CurrentLevel.templates;
+            levels[levels.Count - 1].roomGrid = new List<LevelData.RoomGridEntry>(DunGenes.Instance.gameData.CurrentLevel.roomGrid);
+            levels[levels.Count - 1].sections = new List<LevelData.Section>(DunGenes.Instance.gameData.CurrentLevel.sections);
             levels[levels.Count - 1].map = generator.map;
             quests.Add(QuestDataGenerator.Initialize(seeds[i].questSeed));
         }
@@ -73,9 +76,8 @@ public class QuestSelect : MonoBehaviour
     public void OnLoadLevel()
     {
         Time.timeScale = 1;
-        GameData.SetSeed(seeds[index].constructionSeed, seeds[index].dataSeed, seeds[index].questSeed);
+        DunGenes.Instance.gameData.CurrentLevel = levels[index];
         GameData.currentQuest = QuestDataGenerator.Initialize(seeds[index].questSeed);
-        Debug.Log(index);
         DontDestroyOnLoad(DunGenes.Instance);
         DunGenes.Instance.isStartArea = false;
         SceneManager.LoadSceneAsync("Level");

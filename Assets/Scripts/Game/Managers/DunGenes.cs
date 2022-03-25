@@ -13,7 +13,7 @@ public class DunGenes : MonoBehaviour
             return instance;
         }
     }
-    public static GameData gameData;
+    public GameData gameData;
 
     public bool isStartArea; //Only for debug
 
@@ -22,7 +22,6 @@ public class DunGenes : MonoBehaviour
         if(instance == null)
         {
             instance = this;
-            gameData = new GameData();
         }
         else
         {
@@ -44,51 +43,49 @@ public class DunGenes : MonoBehaviour
         }*/
     }
 }
-public class GameData : MonoBehaviour
+[System.Serializable]public class GameData
 {
-    public static GameData Instance;
-    static PlayerController Player;
+    public PlayerController player;
 
-    static LevelData currentLevel;
+    public LevelData currentLevel;
     public static QuestData currentQuest;
 
     public int levelConstructionSeed; //Used by the room generator to generate the room
+    public LevelData CurrentLevel
+    {
+        get
+        {
+            return currentLevel;
+        }
+        set
+        {
+            currentLevel = value;
+        }
+    }
     public int levelDataSeed;
     public int questDataSeed;
 
     public GameData()
     {
-        Initialize();
-    }
-    public void Initialize()
-    {
-        if(Instance == null)
-        {
-            Instance = this;
-        }
-        else if(Instance != this)
-        {
-            Destroy(gameObject);
-        }
     }
 
-    public static void SetSeed(int constructionSeed, int levelDataSeed, int questDataSeed)
+    public void SetSeed(int levelConstructionSeed_in, int levelDataSeed_in, int questDataSeed_in)
     {
-        Debug.Log("The construction seed is: " + constructionSeed);
+        Debug.Log("The construction seed is: " + levelConstructionSeed_in);
         Debug.Log("The data seed is: " + levelDataSeed);
-        Instance.levelConstructionSeed = constructionSeed;
-        Instance.levelDataSeed = levelDataSeed;
-        Instance.questDataSeed = questDataSeed;
+        levelConstructionSeed = levelConstructionSeed_in;
+        levelDataSeed = levelDataSeed_in;
+        questDataSeed = questDataSeed_in;
     }
-    public static Vector2 GetPlayerPosition()
+    public Vector2 GetPlayerPosition()
     {
-        return Player.transform.position;
+        return player.transform.position;
     }
-    public static void SetPlayerPosition(Vector2 newPosition)
+    public void SetPlayerPosition(Vector2 newPosition)
     {
-        Player.transform.position = newPosition;
+        player.transform.position = newPosition;
     }
-    public static LevelData GetCurrentLevelData()
+    public LevelData GetCurrentLevelData()
     {
         if(currentLevel != null)
         {
@@ -96,10 +93,10 @@ public class GameData : MonoBehaviour
         }
         else
         {
-            return LevelDataGenerator.Initialize(Instance.levelDataSeed);
+            return LevelDataGenerator.Initialize(levelDataSeed);
         }
     }
-    public static QuestData GetCurrentQuestData()
+    public QuestData GetCurrentQuestData()
     {
         if(currentQuest != null)
         {
@@ -107,7 +104,7 @@ public class GameData : MonoBehaviour
         }
         else
         {
-            return QuestDataGenerator.Initialize(Instance.questDataSeed);
+            return QuestDataGenerator.Initialize(questDataSeed);
         }
     }
 }

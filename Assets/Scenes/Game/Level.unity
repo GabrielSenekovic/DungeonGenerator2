@@ -568,24 +568,6 @@ MonoBehaviour:
   lineNumber: 0
   promptWindow: {fileID: 1102648298}
   promptButtonTransform: {fileID: 1665878076}
---- !u!1 &1042021030 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6922992177035552929, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-    type: 3}
-  m_PrefabInstance: {fileID: 1347686890}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1042021031
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1042021030}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3ef7ab3fe93a9b4e8394a38babc3759, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1102648296
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,6 +901,21 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1358765867408456321, guid: bfe3b47843c9e2a4f99335c023db45a3,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1358765867408456321, guid: bfe3b47843c9e2a4f99335c023db45a3,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1358765867408456321, guid: bfe3b47843c9e2a4f99335c023db45a3,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3855650302858965291, guid: bfe3b47843c9e2a4f99335c023db45a3,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -1095,21 +1092,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6922992177035552928, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: wallMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: 3a4e5f473957a0b47a502fd3f49f4d43, type: 2}
-    - target: {fileID: 6922992177035552928, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: debugMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: 5aa0e230cde7d984b824d48addb8b356, type: 2}
-    - target: {fileID: 6922992177035552928, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: floorMaterial
-      value: 
-      objectReference: {fileID: 2100000, guid: 365142a8b5befe34d805387e535b3abe, type: 2}
     - target: {fileID: 6922992177035552929, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
         type: 3}
       propertyPath: m_Name
@@ -1177,33 +1159,10 @@ PrefabInstance:
       objectReference: {fileID: 563787825}
     - target: {fileID: 6922992177035552955, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
         type: 3}
-      propertyPath: currency
-      value: 
-      objectReference: {fileID: 4628733398976596139, guid: 2b7e27cb318af2f4191d1b0ea9b19a4b,
-        type: 3}
-    - target: {fileID: 6922992177035552955, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: l_data.dungeon
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6922992177035552955, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
       propertyPath: meshBatchRenderer
       value: 
       objectReference: {fileID: 1177815640}
-    - target: {fileID: 6922992177035552955, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: l_data.m_amountOfRoomsCap.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6922992177035552955, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0,
-        type: 3}
-      propertyPath: l_data.m_amountOfRoomsCap.y
-      value: 2
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6922992177035552933, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0, type: 3}
-    - {fileID: 6922992177035552932, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3c7fc75d7d43ac4fa95a1cbdbbc4ef0, type: 3}
 --- !u!1 &1665878075
 GameObject:

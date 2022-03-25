@@ -42,6 +42,8 @@ public enum Mood
     public Mood[] mood = new Mood[2];
     public Biome biome;
 
+    public List<Room.RoomTemplate> templates;
+
     public int temperatureLevel; //0 = tepid, 1 = warm, 2 = hot, -1 = cold, -2 freezing
     public uint waterLevel; //0 = no water, 1 = some few lakes, maybe a river, 2 = High chance for lakes, probably a river, 3 = Wetland, its like everything is a lake
     public uint magicLevel; //0 = normal, 1 = may find magical stones, some elementals, 2 = many elementals may spawn, many elemental ores may be found, 3 = magical mist so strong it enhances magic stats and decreases physical stats
@@ -64,6 +66,24 @@ public enum Mood
 
     public bool mushroom = false;
     public bool crystal = false;
+
+    [System.Serializable]public struct RoomGridEntry
+    {
+        public Vector2Int position;
+        public Room room;
+        public RoomGridEntry(Vector2Int position_in, Room room_in)
+        {
+            position = position_in; room = room_in;
+        }
+    }
+    [System.Serializable]public class Section
+    {
+        public List<Room> rooms = new List<Room>();
+    }
+    public List<Section> sections = new List<Section>();
+
+    public List<RoomGridEntry> roomGrid = new List<RoomGridEntry> { }; //Separate rooms into rooms and roomGrid. roomGrid is all positions on the grid that are occupied. This is so that I wont have to look through the list of rooms
+
 
     public Texture2D map;
 
@@ -103,7 +123,7 @@ public class LevelDataGenerator : MonoBehaviour
 {
     static public LevelData Initialize(int LevelDataSeed)
     {
-        GameData.Instance.levelDataSeed = LevelDataSeed;
+        DunGenes.Instance.gameData.levelDataSeed = LevelDataSeed;
         LevelData data = new LevelData();
         Random.InitState(LevelDataSeed);
         ChooseLocation(data);
@@ -260,8 +280,8 @@ public class LevelManager : MonoBehaviour
 {
     public Vector2Int RoomSize = new Vector2Int(20,20);
 
-    public LevelData l_data;
-    public QuestData q_data;
+    public LevelData levelData;
+    public QuestData questData;
 
     public Room firstRoom;
     public Room lastRoom;
@@ -285,11 +305,13 @@ public class LevelManager : MonoBehaviour
 
     private void Awake() 
     {
+        Debug.Log("Awake");
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
         //GameData.m_LevelDataSeed = Random.Range(0, int.MaxValue);
-        if(GameData.Instance != null)
+        if(DunGenes.Instance.gameData != null)
         {
-            GameData.SetPlayerPosition(new Vector2(GameData.GetPlayerPosition().x + RoomSize.x/2, GameData.GetPlayerPosition().y + RoomSize.y/2));
+            Party.instance.GetPartyLeader().transform.position = Vector2.zero;
+           // DunGenes.Instance.gameData.SetPlayerPosition(new Vector2(-RoomSize.x/2, -RoomSize.y/2));
         }
         renderGrassChunks = true;
         placementQuad = MeshMaker.GetQuad();
@@ -299,14 +321,16 @@ public class LevelManager : MonoBehaviour
     }
     private void Start() 
     {
+        Debug.Log("Start");
         party = Party.instance;
-        l_data = GameData.GetCurrentLevelData();
-        l_data.dungeon = true;
-        q_data = GameData.GetCurrentQuestData();
-        generator = GetComponent<LevelGenerator>();
+        levelData = DunGenes.Instance.gameData.GetCurrentLevelData();
+        levelData.dungeon = true;
+        questData = DunGenes.Instance.gameData.GetCurrentQuestData();
+        generator = FindObjectOfType<LevelGenerator>();
 
         meshBatchRenderer.Initialise();
-        generator.PutDownQuestObjects(this, q_data);
+        generator.GenerateLevel(this, ref levelData.templates);
+        generator.PutDownQuestObjects(this, questData);
 
         currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
         CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
@@ -316,19 +340,19 @@ public class LevelManager : MonoBehaviour
     {
         try
         {
-            generator.GenerateTemplates(l_data, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
-            generator.PutDownQuestObjects(this, q_data);
+            generator.GenerateTemplates(levelData, RoomSize, levelData.amountOfRoomsCap, levelData.amountOfSections);
+            generator.PutDownQuestObjects(this, questData);
         }
         catch
         {
-            DebugLog.ReportBrokenSeed(GameData.Instance.levelDataSeed, GameData.Instance.levelConstructionSeed, "Generation");
+            DebugLog.ReportBrokenSeed(DunGenes.Instance.gameData.levelDataSeed, DunGenes.Instance.gameData.levelConstructionSeed, "Generation");
             // Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
             Debug.Break();
         }
     }
     private void Update()
     {
-        if(!generator.levelGenerated){generator.BuildLevel(l_data, currentRoom);}
+        if(!generator.levelGenerated){generator.BuildLevel(levelData, currentRoom);}
         if(party == null){return;}
         if(UpdateQuest())
         {
@@ -345,6 +369,25 @@ public class LevelManager : MonoBehaviour
         {
             entityManager.CheckProjectileGrassCollision(currentRoom);
         }
+        CullRooms();
+    }
+
+    void CullRooms()
+    {
+        //Cull rooms to increase performance
+        /*Vector2 northPoint =  Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
+        Vector2 southPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
+        Vector2 leftPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
+        Vector2 rightPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
+
+        if((leftPoint.x > 0 && leftPoint.x < Camera.main.pixelWidth && leftPoint.y > 0 && leftPoint.y < Camera.main.pixelHeight) ||
+            (rightPoint.x > 0 && rightPoint.x < Camera.main.pixelWidth && rightPoint.y > 0 && rightPoint.y < Camera.main.pixelHeight) ||
+            (northPoint.y > 0 && northPoint.y < Camera.main.pixelHeight && northPoint.x > 0 && northPoint.x < Camera.main.pixelWidth) ||
+            (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
+        {
+            float dist = (b.position - Camera.main.transform.position).magnitude;
+            
+        }*/
     }
     private void LateUpdate()
     {
@@ -367,11 +410,11 @@ public class LevelManager : MonoBehaviour
     {
         try
         {
-            generator.BuildLevel(l_data, currentRoom);
+            generator.BuildLevel(levelData, currentRoom);
         }
         catch
         {
-            DebugLog.ReportBrokenSeed(GameData.Instance.levelDataSeed, GameData.Instance.levelConstructionSeed, "Building");
+            DebugLog.ReportBrokenSeed(DunGenes.Instance.gameData.levelDataSeed, DunGenes.Instance.gameData.levelConstructionSeed, "Building");
             Debug.Break();
         }
     }
@@ -410,12 +453,12 @@ public class LevelManager : MonoBehaviour
     }
     bool UpdateQuest()
     {
-        switch(q_data.missionType)
+        switch(questData.missionType)
         {
             case QuestData.MissionType.Recovery:
                 return generator.spawnedEndOfLevel.isInteractedWith;
             case QuestData.MissionType.Backup:
-                if(q_data.GetStatus())
+                if(questData.GetStatus())
                 {
                     return true;
                 }
@@ -426,7 +469,7 @@ public class LevelManager : MonoBehaviour
             case QuestData.MissionType.Hunt:
             case QuestData.MissionType.Inquiry:
             case QuestData.MissionType.Investigation:
-                return q_data.GetStatus();
+                return questData.GetStatus();
             default: return false;
         }
     }
