@@ -65,6 +65,8 @@ public enum Mood
     public bool mushroom = false;
     public bool crystal = false;
 
+    public Texture2D map;
+
     //List<Flora> m_flora = new List<Flora>{}
     //List<Enemy> m_enemies = new List<Enemy>{}
     //List<Entity> m_fauna = new List<Entity>{}
@@ -304,7 +306,6 @@ public class LevelManager : MonoBehaviour
         generator = GetComponent<LevelGenerator>();
 
         meshBatchRenderer.Initialise();
-        generator.GenerateLevel(this, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
         generator.PutDownQuestObjects(this, q_data);
 
         currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
@@ -315,7 +316,7 @@ public class LevelManager : MonoBehaviour
     {
         try
         {
-            generator.GenerateLevel(this, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
+            generator.GenerateTemplates(l_data, RoomSize, l_data.amountOfRoomsCap, l_data.amountOfSections);
             generator.PutDownQuestObjects(this, q_data);
         }
         catch

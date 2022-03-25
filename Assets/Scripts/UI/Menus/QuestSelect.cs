@@ -39,6 +39,8 @@ public class QuestSelect : MonoBehaviour
 
     BulletinBoard board = null;
 
+    public LevelGenerator generator;
+
     public void Initialize(Tuple<int[], int[], int[]> seeds_in, BulletinBoard board_in)
     {
         board = board_in;
@@ -49,6 +51,8 @@ public class QuestSelect : MonoBehaviour
             buttons.Add(Instantiate(buttonPrefab, buttonPrefab.transform.position, Quaternion.identity, buttonParent));
             buttons[i].GetComponent<QuestButton>().select = this;
             buttons[i].GetComponent<QuestButton>().index = i;
+            generator.GenerateTemplates(levels[levels.Count - 1], new Vector2Int(20,20), levels[levels.Count - 1].amountOfRoomsCap, levels[levels.Count - 1].amountOfSections);
+            levels[levels.Count - 1].map = generator.map;
             quests.Add(QuestDataGenerator.Initialize(seeds[i].questSeed));
         }
         detailText.Initialize(graphemeDatabase.fonts[0], true);
@@ -150,6 +154,7 @@ public class QuestSelect : MonoBehaviour
         {
             detailText.text += GetBiomeDescription(levels[index_in].mood[0], true) + "\n";
         }
+        detailText.PlaceSprite(Sprite.Create(levels[index_in].map, new Rect(0, 0, levels[index_in].map.width, levels[index_in].map.height), new Vector2(0.5f, 0.5f), 16));
         detailText.text += "\nSeeds: \nData seed: " + seeds[index_in].dataSeed + "\n";
         detailText.text += "Construction seed: " + seeds[index_in].constructionSeed + "\n";
         detailText.WriteAppend();
@@ -186,7 +191,7 @@ public class QuestSelect : MonoBehaviour
                 case Mood.Creepy: return "There are no doubts that this place is haunted. Scattered across these lands are little other than the remains of what once lived.";
                 case Mood.Dangerous: return "This location is notorious for the many traps that loiter around. Enter at your own risk.";
                 case Mood.Cursed: return "An incredible curse plagues these lands. Even if you survive there are no guarantees that you will ever be the same.";
-                case Mood.Decrepit: return "Ruins of ancient civilization scatter these lands.";
+                case Mood.Decrepit: return "Ruins of an ancient civilization scatter these lands.";
                 case Mood.Fabulous: return "Fabulous sights await whoever steps food on these lands.";
                 case Mood.Mysterious: return "A thick mist of magic envelops this place.";
                 case Mood.Plentiful: return "A place of many riches; many a traveler has come here to loot in the past looking to make themselves a new life.";

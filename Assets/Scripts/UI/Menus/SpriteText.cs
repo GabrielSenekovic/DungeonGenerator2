@@ -13,7 +13,7 @@ public class SpriteText : MonoBehaviour
     public int row = 0;
     int width = 0;
 
-    int extraHeight = 0; //from sprites that are put in the image
+    public int extraHeight = 0; //from sprites that are put in the image
 
     public Vector2 offset;
     public int spaceSize;
@@ -111,10 +111,9 @@ public class SpriteText : MonoBehaviour
         temp.transform.localScale = new Vector3(1,1,1);
         temp.GetComponent<RectTransform>().anchorMax = new Vector2(0,1);
         temp.GetComponent<RectTransform>().anchorMin = new Vector2(0,1);
-        //offset.x + 12 when the width is 32
-        // -21 when the height is 32 (???)
-        temp.transform.localPosition = new Vector2(offset.x + 12, -row * font.letters[0].sprite.texture.height + offset.y - row * rowSeparation - extraHeight - 21);
+        temp.transform.localPosition = new Vector2(offset.x + sprite.texture.width / 2 - 4, -row * font.letters[0].sprite.texture.height + offset.y - row * rowSeparation - extraHeight - (sprite.texture.height / 2) -5);
         extraHeight += sprite.texture.height + rowSeparation;
+        GetComponent<RectTransform>().sizeDelta = new Vector2(GetComponent<RectTransform>().sizeDelta.x, (row + 1) * font.letters[0].sprite.texture.height - offset.y * 2 + row * rowSeparation + extraHeight);
     }
     public bool IsNextWordTooLong(ref int i)
     {

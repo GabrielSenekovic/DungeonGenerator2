@@ -85,10 +85,10 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }
     }
-    public void GenerateLevel(LevelManager level, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
+    public List<Room.RoomTemplate> GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
     {
-        System.DateTime before = System.DateTime.Now;
-
+        roomGrid.Clear(); leftestPoint = 0; northestPoint = 0; southestPoint = 0; rightestPoint = 0;
+        sections.Clear();
         UnityEngine.Random.InitState(GameData.Instance.levelConstructionSeed);
 
         List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
@@ -100,11 +100,16 @@ public partial class LevelGenerator : MonoBehaviour
 
         SpawnRooms(UnityEngine.Random.Range((int)(amountOfRooms.x + sections[0].rooms.Count),
                                 (int)(amountOfRooms.y + sections[0].rooms.Count)), UnityEngine.Random.Range((int)(amountOfSections.x),
-                                (int)(amountOfSections.y)), RoomSize, level.l_data, ref templates);
+                                (int)(amountOfSections.y)), RoomSize, data, ref templates);
 
        // Debug.Log("RoomGrid size " + roomGrid.Count);
         FinishRooms(ref templates); //Touch up, adding entrances and stuff
         GenerateMap(ref templates);
+        return templates;
+    }
+    void GenerateLevel(LevelManager level, ref List<Room.RoomTemplate> templates)
+    {
+        System.DateTime before = System.DateTime.Now;
         GenerateSurroundings(ref templates);
         BuildRooms(ref templates);
 

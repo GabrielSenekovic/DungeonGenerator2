@@ -20,7 +20,14 @@ public class MenuTooltip : MonoBehaviour
 
     private void Start() 
     {
-        instance = this;
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(this);
+        }
         GetInstance().upperText.Initialize(graphemeDatabase.fonts[0], true);
         GetInstance().lowerText.Initialize(graphemeDatabase.fonts[0], true);
     }

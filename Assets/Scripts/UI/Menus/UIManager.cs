@@ -74,8 +74,10 @@ public class UIManager : MonoBehaviour
 
     private void Start() 
     {
+        Debug.Log("Initialising main menu");
         Instance.mainMenu.GetComponent<Menu>().Initialize(this, GetComponent<AudioSource>());
         if(Instance.mainMenu.canvas.alpha == 1){Instance.mainMenu.GetComponent<Menu>().SwitchMenu(0);}
+        savedLocations.text.Initialize(graphemeDatabase.fonts[0], true);
     }
 
     public void OpenCommandBox()
