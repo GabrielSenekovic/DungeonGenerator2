@@ -75,20 +75,23 @@ public class MeshMaker : MonoBehaviour
         List<Vector3> newVertices = new List<Vector3>();
         List<Vector2> newUV = new List<Vector2>();
 
+        float width = 2;
+        float height = 2;
+
         //newVertices.Add(new Vector3(0.5f,0.5f,0));
         //newVertices.Add(new Vector3(-0.5f,0.5f,0));
         //newVertices.Add(new Vector3(-0.5f,0.5f,0));
         //newVertices.Add(new Vector3(0.5f,-0.5f,0));
 
-        newVertices.Add(new Vector3(0.5f,0,0.5f));
-        newVertices.Add(new Vector3(-0.5f,0,0.5f));
-        newVertices.Add(new Vector3(-0.5f,0,-0.5f));
-        newVertices.Add(new Vector3(0.5f,0,-0.5f));
+        newVertices.Add(new Vector3( 0.5f * width,0,0));
+        newVertices.Add(new Vector3(-0.5f * width,0, 0));
+        newVertices.Add(new Vector3(-0.5f * width,0,-height));
+        newVertices.Add(new Vector3( 0.5f * width,0,-height));
 
-        newVertices.Add(new Vector3(0,0.5f,0.5f));
-        newVertices.Add(new Vector3(0,-0.5f,0.5f));
-        newVertices.Add(new Vector3(0,-0.5f,-0.5f));
-        newVertices.Add(new Vector3(0,0.5f,-0.5f));
+        newVertices.Add(new Vector3(0, 0.5f * width, 0));
+        newVertices.Add(new Vector3(0,-0.5f * width, 0));
+        newVertices.Add(new Vector3(0,-0.5f * width,-height));
+        newVertices.Add(new Vector3(0, 0.5f * width,-height));
 
         for(int i = 0; i < 2; i++)
         {

@@ -51,6 +51,7 @@ public class FlowerTest : MonoBehaviour
     public Slider yOffset;
 
     public Mesh quad;
+    public float billBoardDistance;
     void Start()
     {
         database = Resources.Load<EntityDatabase>("EntityDatabase");
@@ -68,7 +69,7 @@ public class FlowerTest : MonoBehaviour
         }
         UpdateUI();
         quad = MeshMaker.GetBillBoard();
-        foreach(FlowerTestObject obj in objects)
+       /* foreach(FlowerTestObject obj in objects)
         {
             GameObject temp = new GameObject(obj.name);
             MeshFilter filter = temp.AddComponent<MeshFilter>();
@@ -78,7 +79,7 @@ public class FlowerTest : MonoBehaviour
             temp.transform.position = obj.data.pos + new Vector3(0, 2, -1);
             temp.transform.localScale = new Vector3(2,2,2);
             //temp.transform.rotation = Quaternion.Euler(90, 0, 0);
-        }
+        }*/
     }
 
     FlowerCreationData GetCreationData(string name)
@@ -220,7 +221,7 @@ public class FlowerTest : MonoBehaviour
             bool temp = false;
             Mesh mesh = database.GetMesh(obj.name, 0, ref temp);
             Graphics.DrawMesh(mesh, obj.data.pos, Quaternion.identity, obj.material, 0, Camera.main);
-            //Graphics.DrawMesh(quad, obj.data.pos + new Vector3(0, 2, 0), Quaternion.identity, obj.billBoard, 0, Camera.main);
+            Graphics.DrawMesh(quad, obj.data.pos + new Vector3(0, billBoardDistance, 0), Quaternion.identity, obj.billBoard, 0, Camera.main);
         }
     }
 }

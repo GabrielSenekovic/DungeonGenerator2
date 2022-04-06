@@ -7,7 +7,8 @@ public class QuestDataGenerator : MonoBehaviour
     public static QuestData Initialize(int questSeed)
     {
         UnityEngine.Random.InitState(questSeed);
-        QuestData.MissionType type = (QuestData.MissionType)UnityEngine.Random.Range(0, 5);
+        QuestData.MissionType type = QuestData.MissionType.Recovery;
+        //(QuestData.MissionType)UnityEngine.Random.Range(0, 5);
         QuestData data = GetQuestType(type);
         data.Initialize(type);
         return data;

@@ -1150,6 +1150,15 @@ public partial class Room: MonoBehaviour
     public Texture2D mapTexture;
     public int section;
     public Vegetation grass;
+    public bool visible;
+    void OnBecameVisible() 
+    {
+        visible = true;
+    }
+    void OnBecameInvisible() 
+    {
+        visible = false;
+    }
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
     {
@@ -1240,6 +1249,17 @@ public partial class Room: MonoBehaviour
 
         MeshMaker.CreateSurface(template.ExtractFloor(), floorObject.transform, floorMaterial);
         floorObject.transform.localPosition = new Vector3(- 10, 10, 0);
+    }
+
+    private void Update() 
+    {
+        if(!visible || !grass){return;}
+        grass.UpdateVegetation();
+    }
+    private void FixedUpdate() 
+    {
+        if(!visible || !grass){return;}
+        grass.FixedUpdateVegetation();
     }
 
     void Furnish(Material mat)

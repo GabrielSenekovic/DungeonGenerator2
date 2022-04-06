@@ -79,15 +79,14 @@ public class Vegetation : MonoBehaviour
         MeshBatchRenderer.CreateBatches(this, room);
     }
 
-    void Update() 
+    public void UpdateVegetation() 
     {
         RenderBatches();
         UpdateFire();
     }
 
-    private void FixedUpdate() 
+    public void FixedUpdateVegetation() 
     {
-        //CheckCollision();
         SpreadFire();
         for(int i = 0; i < VFX.Count; i++)
         {
