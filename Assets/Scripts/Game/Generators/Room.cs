@@ -1224,7 +1224,7 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SavePlacementGrid(template);
-        //Furnish(floorMaterial);
+        Furnish(floorMaterial);
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
@@ -1265,21 +1265,21 @@ public partial class Room: MonoBehaviour
     void Furnish(Material mat)
     {
         DebugLog.AddToMessage("Substep", "Furnishing");
-        int amountOfVases = UnityEngine.Random.Range(3, 6);
+        /*int amountOfVases = UnityEngine.Random.Range(3, 6);
         for(int i = 0; i < amountOfVases; i++)
         {
             GameObject vase = MeshMaker.CreateVase(mat);
             vase.transform.parent = gameObject.transform;
             vase.transform.localPosition = FindRandomPlacementPositionOfSize(vase, new Vector2Int(2,2));
-        }
+        }*/
 
-        //GameObject rock = new GameObject("Rock");
-        //MeshRenderer rend = rock.AddComponent<MeshRenderer>();
-        //MeshFilter filt = rock.AddComponent<MeshFilter>();
-        //filt.mesh = MeshMaker.CreateRock();
-        //Material mat = Resources.Load<Material>("Materials/Stone");
-        //rend.material = mat;
-        //rock.AddComponent<SphereCollider>();
+        GameObject rock = new GameObject("Rock");
+        MeshRenderer rend = rock.AddComponent<MeshRenderer>();
+        MeshFilter filt = rock.AddComponent<MeshFilter>();
+        filt.mesh = MeshMaker.CreateRock();
+        Material matz = Resources.Load<Material>("Materials/Stone");
+        rend.material = matz;
+        rock.AddComponent<SphereCollider>();
 
         //GameObject chest = new GameObject("Chest");
         //MeshMaker.CreateChest(chest, 0);

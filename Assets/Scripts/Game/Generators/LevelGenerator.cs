@@ -201,9 +201,9 @@ public partial class LevelGenerator : MonoBehaviour
         switch(data.missionType)
         {
             case QuestData.MissionType.Recovery: 
-                spawnedEndOfLevel = Instantiate(endOfLevel, 
+                /*spawnedEndOfLevel = Instantiate(endOfLevel, 
                     new Vector2(level.lastRoom.transform.position.x + 10, level.lastRoom.transform.position.y + 10), 
-                    Quaternion.identity, level.lastRoom.transform);
+                    Quaternion.identity, level.lastRoom.transform);*/
                 break;
             case QuestData.MissionType.Inquiry:
                 InquiryQuestData temp = data as InquiryQuestData;

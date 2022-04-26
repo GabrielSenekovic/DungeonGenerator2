@@ -52,6 +52,7 @@ MonoBehaviour:
   directions:
     entrances: []
   size: {x: 0, y: 0}
+  originalPosition: {x: 0, y: 0}
   roomData:
     m_type: 0
     m_roomPosition: 0
@@ -64,6 +65,7 @@ MonoBehaviour:
   mapTexture: {fileID: 0}
   section: 0
   grass: {fileID: 0}
+  visible: 1
 --- !u!1001 &580324093850981416
 PrefabInstance:
   m_ObjectHideFlags: 0

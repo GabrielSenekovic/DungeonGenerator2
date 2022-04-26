@@ -327,6 +327,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85f3f3b5222edf3488949325731bb485, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &968343057 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4803579520354856077, guid: 4f219f7227578a24d8fa7b92179aba10,
+    type: 3}
+  m_PrefabInstance: {fileID: 6327213574204091348}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5df4490e833abd43b7e6bd5255074a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!21 &1355331235
 Material:
   serializedVersion: 6
@@ -999,6 +1011,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Room
+      objectReference: {fileID: 0}
+    - target: {fileID: 6327213576219652934, guid: 4f219f7227578a24d8fa7b92179aba10,
+        type: 3}
+      propertyPath: grass
+      value: 
+      objectReference: {fileID: 968343057}
+    - target: {fileID: 6327213576219652934, guid: 4f219f7227578a24d8fa7b92179aba10,
+        type: 3}
+      propertyPath: visible
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6327213576219652935, guid: 4f219f7227578a24d8fa7b92179aba10,
         type: 3}

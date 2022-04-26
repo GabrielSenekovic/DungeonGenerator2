@@ -456,7 +456,8 @@ public class LevelManager : MonoBehaviour
         switch(questData.missionType)
         {
             case QuestData.MissionType.Recovery:
-                return generator.spawnedEndOfLevel.isInteractedWith;
+                //return generator.spawnedEndOfLevel.isInteractedWith;
+                return false;
             case QuestData.MissionType.Backup:
                 if(questData.GetStatus())
                 {
