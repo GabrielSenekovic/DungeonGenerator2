@@ -46,6 +46,7 @@ public class UIManager : MonoBehaviour
     public DialogBox dialogBox;
 
     public SavedLocations savedLocations;
+    [SerializeField] Text FPS;
 
     [System.Serializable]public class UIColorManager
     {
@@ -78,6 +79,13 @@ public class UIManager : MonoBehaviour
         Instance.mainMenu.GetComponent<Menu>().Initialize(this, GetComponent<AudioSource>());
         if(Instance.mainMenu.canvas.alpha == 1){Instance.mainMenu.GetComponent<Menu>().SwitchMenu(0);}
         savedLocations.text.Initialize(graphemeDatabase.fonts[0], true);
+    }
+    private void Update()
+    {
+        if (Instance.FPS.gameObject.activeSelf)
+        {
+            Instance.FPS.text = "FPS: " + (1.0f / Time.deltaTime).ToString();
+        }
     }
 
     public void OpenCommandBox()
@@ -180,5 +188,9 @@ public class UIManager : MonoBehaviour
             OpenOrClose(openMenus[i]);
         }
         openMenus.Clear();
+    }
+    public void ToggleFPS()
+    {
+        Instance.FPS.gameObject.SetActive(!Instance.FPS.gameObject.activeSelf);
     }
 }

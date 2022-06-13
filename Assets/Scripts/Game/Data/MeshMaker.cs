@@ -379,15 +379,17 @@ public class MeshMaker : MonoBehaviour
     public static void CreateIcosphere(ref List<Vector3> vertices, ref List<int> indices, ref List<Vector2> UV, int recursionLevel)
     {
         List<Vector3Int> faces = CreateIcosahedron(ref vertices);
+        Dictionary<Int64, int> middlePointIndexCache = new Dictionary<long, int>();
+
         for (int i = 0; i < recursionLevel; i++)
         {
             var faces2 = new List<Vector3Int>();
             foreach (var tri in faces)
             {
                 // replace triangle by 4 triangles
-                int a = getMiddlePoint(vertices[tri.x], vertices[tri.y], ref vertices);
-                int b = getMiddlePoint(vertices[tri.y], vertices[tri.z], ref vertices);
-                int c = getMiddlePoint(vertices[tri.z], vertices[tri.x], ref vertices);
+                int a = CreateIcoSphere_GetMiddlePoint(tri.x, tri.y, ref vertices, ref middlePointIndexCache);
+                int b = CreateIcoSphere_GetMiddlePoint(tri.y, tri.z, ref vertices, ref middlePointIndexCache);
+                int c = CreateIcoSphere_GetMiddlePoint(tri.z, tri.x, ref vertices, ref middlePointIndexCache);
 
                 faces2.Add(new Vector3Int(tri.x, a, c));
                 faces2.Add(new Vector3Int(tri.y, b, a));
@@ -414,16 +416,34 @@ public class MeshMaker : MonoBehaviour
             UV.Add(new Vector2(0,1f));
         }
     }
-    static int getMiddlePoint(Vector3 p1, Vector3 p2, ref List<Vector3> vertices) //this feels pepega, fix this later. Cant do it nowe because I cant stop biting my nails all of a sudden
+    static int CreateIcoSphere_GetMiddlePoint(int p1, int p2, ref List<Vector3> vertices, ref Dictionary<Int64, int> middlePointIndexCache) //this feels pepega, fix this later
     {
+        bool firstIsSmaller = p1 < p2;
+        Int64 smallerIndex = firstIsSmaller ? p1 : p2;
+        Int64 greaterIndex = firstIsSmaller ? p2 : p1;
+        Int64 key = (smallerIndex << 32) + greaterIndex;
+
+        int ret;
+        if (middlePointIndexCache.TryGetValue(key, out ret))
+        {
+            return ret;
+        }
+        Vector3 point1 = vertices[p1];
+        Vector3 point2 = vertices[p2];
+
         Vector3 middle = new Vector3(
-            (p1.x + p2.x) / 2.0f, 
-            (p1.y + p2.y) / 2.0f, 
-            (p1.z + p2.z) / 2.0f);
+            (point1.x + point2.x) / 2.0f, 
+            (point1.y + point2.y) / 2.0f, 
+            (point1.z + point2.z) / 2.0f);
 
         // add vertex makes sure point is on unit sphere
-            float length = middle.magnitude;
-            vertices.Add(middle.normalized /2.0f); 
+        float length = middle.magnitude;
+        Vector3 vector = middle.normalized / 2.0f;
+
+        vertices.Add(middle.normalized /2.0f);
+
+        // store it, return index
+        middlePointIndexCache.Add(key, vertices.Count - 1);
 
         return vertices.Count - 1;
     }
@@ -527,9 +547,9 @@ public class MeshMaker : MonoBehaviour
         //? flatten the first 40% of the icosphere
         for(int i = 0; i < newVertices.Count; i++)
         {
-            newVertices[i] = new Vector3(newVertices[i].x, 
-                                         newVertices[i].y, 
-                                         newVertices[i].z > -0.4f? 0 : newVertices[i].z + 0.4f);
+            newVertices[i] = new Vector3(newVertices[i].x + UnityEngine.Random.Range(0,0.1f), 
+                                         newVertices[i].y + UnityEngine.Random.Range(0, 0.1f), 
+                                         newVertices[i].z > -0.4f? 0 : newVertices[i].z + 0.4f + UnityEngine.Random.Range(0, 0.1f));
         }
 
         mesh.Init(newVertices, newTriangles, newUV);

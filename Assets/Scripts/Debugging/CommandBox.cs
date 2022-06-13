@@ -98,6 +98,9 @@ public class CommandBox : MonoBehaviour
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])
                 {
+                    case "FPS": //Show FPS
+                        UIManager.Instance.ToggleFPS();
+                    break;
                     case "Grid": //Show placement grid
                         UnityEngine.Object[] objects = FindObjectsOfType<MeshRenderer>();
                         Texture texture = Resources.Load<Texture>("Art/Box_Cross");

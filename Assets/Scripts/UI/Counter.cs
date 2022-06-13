@@ -100,7 +100,7 @@ public class Counter : MonoBehaviour
             }
         digits[i].Add((totalValue / modifier) % 10);
     }
-    void Reset()
+    public void Reset()
     {
         for (int i = 0; i < digits.Count; i++)
         {

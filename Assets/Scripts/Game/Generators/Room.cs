@@ -3,45 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using UnityEngine.Rendering;
-using UnityEditor;
 using System.Linq;
-
-[CustomEditor(typeof(Room))]
-public class RoomEditor:Editor
-{
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-        Room room = (Room)target;
-        //GUI.DrawTexture(new Rect(0,0,room.templateDEBUG.width * 30, room.templateDEBUG.height * 30), room.templateDEBUG);
-        if(room.templateTexture)
-        {
-            RenderTexture("Template", room.templateTexture);
-        }
-        if(room.mapTexture)
-        {
-            RenderTexture("Map", room.mapTexture);
-        }
-        //GUILayout.Label(RenderTexture("Template", room.templateDEBUG));
-    }
-    void RenderTexture(string name, Texture2D texture)
-    {
-        GUILayout.BeginVertical();
-        var style = new GUIStyle(GUI.skin.label);
-        style.alignment = TextAnchor.UpperCenter;
-        style.fixedWidth = 400;
-        GUILayout.Label(name, style);
-
-        style.fixedWidth = texture.height > texture.width? ((float)texture.width / (float)texture.height) * 400 :400;
-        style.fixedHeight = texture.width > texture.height? ((float)texture.height / (float)texture.width) * 400 :400;
-
-        style.normal.background = texture;
-        GUILayout.Label(new Texture2D(0,0), style);
-        //var result = (Texture2D)EditorGUILayout.ObjectField(texture, typeof(Texture2D), false, GUILayout.Width(400), GUILayout.Height(400));
-        GUILayout.EndVertical();
-    }
-}
-
 [System.Serializable]public class RoomData
 {
     public RoomType m_type = RoomType.NormalRoom;
@@ -1150,15 +1112,8 @@ public partial class Room: MonoBehaviour
     public Texture2D mapTexture;
     public int section;
     public Vegetation grass;
-    public bool visible;
-    void OnBecameVisible() 
-    {
-        visible = true;
-    }
-    void OnBecameInvisible() 
-    {
-        visible = false;
-    }
+
+    public Vector2 centerPoint; //DEBUGGING
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
     {
@@ -1253,12 +1208,20 @@ public partial class Room: MonoBehaviour
 
     private void Update() 
     {
-        if(!visible || !grass){return;}
-        grass.UpdateVegetation();
+        if(!grass){return;}
+        Vector2 radius = new Vector2(Mathf.Abs(size.x) / 2, -Mathf.Abs(size.y) / 2);
+        centerPoint = transform.position - new Vector3(10,-10, 0) + (Vector3)radius; //10,10 to make the position the corner and then push it to the middle'
+        //These variables are for the frustum culling. But I havent gotten those to work yet
+
+        Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
+        if(renderers.Any(r => r.isVisible))
+        {
+            grass.UpdateVegetation();
+        }
     }
     private void FixedUpdate() 
     {
-        if(!visible || !grass){return;}
+        if(!grass){return;}
         grass.FixedUpdateVegetation();
     }
 
@@ -1491,5 +1454,11 @@ public partial class Room: MonoBehaviour
                 Graphics.DrawMesh(placementSpot, matrix, mat, 0, null, 0, block);
             }
         }
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.magenta;
+        Vector2 radius = new Vector2(Mathf.Abs(size.x) / 2, -Mathf.Abs(size.y) / 2);
+        Gizmos.DrawWireSphere(centerPoint, radius.magnitude);
     }
 }
