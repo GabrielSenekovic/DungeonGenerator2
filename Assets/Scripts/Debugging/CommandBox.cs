@@ -64,6 +64,8 @@ public class CommandBox : MonoBehaviour
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])
                 {
+                    case "Debug": SceneManager.LoadScene("DEBUG", LoadSceneMode.Single);
+                    break;
                     case "Flowers": SceneManager.LoadScene("FlowerTest", LoadSceneMode.Single);
                     break;
                     case "Level": SceneManager.LoadScene("Level", LoadSceneMode.Single);

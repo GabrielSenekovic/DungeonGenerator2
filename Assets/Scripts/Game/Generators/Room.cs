@@ -1362,13 +1362,13 @@ public partial class Room: MonoBehaviour
     {
         return directions;
     }
-    public List<Entrances.Entrance> GetOpenUnspawnedEntrances()
+    public List<Entrances.Entrance> GetEntrances(bool open, bool spawned)
     {
         DebugLog.AddToMessage("Substep", "Getting open unspawned entrances");
         List<Entrances.Entrance> openEntrances = new List<Entrances.Entrance>{};
         foreach(Entrances.Entrance entrance in directions.entrances)
         {
-            if (entrance.open && !entrance.spawned)
+            if (open == entrance.open && spawned == entrance.spawned) //open !spawned
             {
                 openEntrances.Add(entrance);
             }

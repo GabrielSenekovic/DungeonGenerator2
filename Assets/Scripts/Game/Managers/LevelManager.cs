@@ -123,7 +123,10 @@ public class LevelDataGenerator : MonoBehaviour
 {
     static public LevelData Initialize(int LevelDataSeed)
     {
-        DunGenes.Instance.gameData.levelDataSeed = LevelDataSeed;
+        if(DunGenes.Instance != null)
+        {
+            DunGenes.Instance.gameData.levelDataSeed = LevelDataSeed;
+        }
         LevelData data = new LevelData();
         Random.InitState(LevelDataSeed);
         ChooseLocation(data);
@@ -336,20 +339,7 @@ public class LevelManager : MonoBehaviour
         CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
-    public void TryGenerateLevel()
-    {
-        try
-        {
-            generator.GenerateTemplates(levelData, RoomSize, levelData.amountOfRoomsCap, levelData.amountOfSections);
-            generator.PutDownQuestObjects(this, questData);
-        }
-        catch
-        {
-            DebugLog.ReportBrokenSeed(DunGenes.Instance.gameData.levelDataSeed, DunGenes.Instance.gameData.levelConstructionSeed, "Generation");
-            // Debug.LogError("<color=red>Error: Found broken seed when generating!:</color> " + GameData.levelConstructionSeed + " and: " + GameData.levelDataSeed);
-            Debug.Break();
-        }
-    }
+
     private void Update()
     {
         if(!generator.levelGenerated){generator.BuildLevel(levelData, currentRoom);}
@@ -369,25 +359,6 @@ public class LevelManager : MonoBehaviour
         {
             entityManager.CheckProjectileGrassCollision(currentRoom);
         }
-        CullRooms();
-    }
-
-    void CullRooms()
-    {
-        //Cull rooms to increase performance
-        /*Vector2 northPoint =  Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
-        Vector2 southPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
-        Vector2 leftPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x - batchDistanceToEdge, b.position.y + batchDistanceToEdge) - b.position) + b.position);
-        Vector2 rightPoint = Camera.main.WorldToScreenPoint(Quaternion.Euler(0,0,-CameraMovement.rotationSideways) * (new Vector3(b.position.x + batchDistanceToEdge, b.position.y - batchDistanceToEdge) - b.position) + b.position);
-
-        if((leftPoint.x > 0 && leftPoint.x < Camera.main.pixelWidth && leftPoint.y > 0 && leftPoint.y < Camera.main.pixelHeight) ||
-            (rightPoint.x > 0 && rightPoint.x < Camera.main.pixelWidth && rightPoint.y > 0 && rightPoint.y < Camera.main.pixelHeight) ||
-            (northPoint.y > 0 && northPoint.y < Camera.main.pixelHeight && northPoint.x > 0 && northPoint.x < Camera.main.pixelWidth) ||
-            (southPoint.y > 0 && southPoint.y < Camera.main.pixelHeight && southPoint.x > 0 && southPoint.x < Camera.main.pixelWidth))
-        {
-            float dist = (b.position - Camera.main.transform.position).magnitude;
-            
-        }*/
     }
     private void LateUpdate()
     {
@@ -406,46 +377,34 @@ public class LevelManager : MonoBehaviour
         }
 
     }
-    void TryBuildLevel()
-    {
-        try
-        {
-            generator.BuildLevel(levelData, currentRoom);
-        }
-        catch
-        {
-            DebugLog.ReportBrokenSeed(DunGenes.Instance.gameData.levelDataSeed, DunGenes.Instance.gameData.levelConstructionSeed, "Building");
-            Debug.Break();
-        }
-    }
     bool CheckIfChangeRoom()
     {
         Vector2Int playerGridPos = (party.GetPartyLeader().transform.position / 20f).ToV2Int();
         if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + (Mathf.Abs(currentRoom.size.x) - 10))
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindRoomOfPosition(playerGridPos);
+            currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
         else if(party.GetPartyLeader().transform.position.x < currentRoom.transform.position.x - 10)
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindRoomOfPosition(playerGridPos);
+            currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
         else if (party.GetPartyLeader().transform.position.y > currentRoom.transform.position.y + 10)
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindRoomOfPosition(playerGridPos);
+            currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
         else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - (Mathf.Abs(currentRoom.size.y) - 10))
         {
             previousRoom = currentRoom;
-            currentRoom = generator.FindRoomOfPosition(playerGridPos);
+            currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
