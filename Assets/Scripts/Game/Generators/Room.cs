@@ -823,13 +823,14 @@ public partial class Room: MonoBehaviour
                 }
                 
 
-                if(currentAngle == 0)
+               if(currentAngle == 0)
                 {
                     //Debug.Log("adding 0 degree wall");
-                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, 
-                    new Vector3(-divisionModifier, 0, 0), 
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
+                    new Vector3(-divisionModifier, 0, 0),
                     -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                 }
+
                 if(currentAngle == 90)
                 {
                     //Debug.Log("adding 90 degree wall");

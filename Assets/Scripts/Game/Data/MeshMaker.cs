@@ -355,7 +355,6 @@ public partial class MeshMaker : MonoBehaviour
         }
         for(int i = 0; i < faces.Count; i++)
         {
-            Debug.Log(faces[i]);
             indices.Add(faces[i].x);
             indices.Add(faces[i].y);
             indices.Add(faces[i].z);
