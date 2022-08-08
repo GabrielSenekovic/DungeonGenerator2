@@ -84,9 +84,12 @@ public partial class MeshMaker : MonoBehaviour
         //Like in Minecraft
         //Start from the back then forward. Save the points on the top where the lid will rotate around
         Material mat = Resources.Load<Material>("Materials/DebugChest");
-        float[] value = new float[2]{0.6f, 0.4f};
+        int[] partHeights_pixels = new int[2]{10, 6};
+        float[] partHeights = new float[2]{1.0f/16 * partHeights_pixels[0], 1.0f/16 * partHeights_pixels[1]}; //So the bottom part is 10 pixels tall and the top is 6 pixels tall
         float radius = Mathf.Sqrt((Mathf.Pow(0.5f, 2) + Mathf.Pow(0.5f, 2)));
         float totalHeight = 0;
+        float horizontalPixel = 1.0f / (16 * 3);
+        float verticalPixel = 1.0f / (16 * 4);
         for(int i = 0; i < 2; i++)
         {
             float currentHeight = 0;
@@ -99,7 +102,7 @@ public partial class MeshMaker : MonoBehaviour
             List<Vector3> positions = new List<Vector3>();
             Mesh mesh = new Mesh();
             int stepsAroundCenter = 4;
-            CreateCylinder(ref positions, ref currentHeight, 2, stepsAroundCenter, value[i], radius);
+            CreateCylinder(ref positions, ref currentHeight, 2, stepsAroundCenter, partHeights[i], radius);
             Debug.Log("Positions: " + positions.Count);
 
             int[] indexValue = new int[]{3,1,0,3,2,1};
@@ -130,21 +133,72 @@ public partial class MeshMaker : MonoBehaviour
             }
             if(i == 1)
             {
-                newVertices.Add(positions[positions.Count -stepsAroundCenter]);
-                newVertices.Add(positions[positions.Count -stepsAroundCenter + 1]);
                 newVertices.Add(positions[positions.Count -stepsAroundCenter + 2]);
                 newVertices.Add(positions[positions.Count -stepsAroundCenter + 3]);
+                newVertices.Add(positions[positions.Count -stepsAroundCenter + 0]);
+                newVertices.Add(positions[positions.Count -stepsAroundCenter + 1]);
                 for(int index = 0; index < indexValue.Length; index++)
                 {
                     newTriangles.Add(indexValue[index] + (newVertices.Count - stepsAroundCenter));
                 }
             }
-            for(int j = 0; j < 5; j++)
+
+            if(i == 0) //Bottom part. Vertically should only reach up to where the lid starts. 
+                //The start height is the value in "partHeights", the float array in this functon
             {
-                newUV.Add(new Vector2 (1,0));                      //1,0
-                newUV.Add(new Vector2 (0,0));                      //0,0
-                newUV.Add(new Vector2 (0,1)); //0,1
-                newUV.Add(new Vector2 (1,1)); //1,1
+                //Backside
+                newUV.Add(new Vector2(horizontalPixel * 16, verticalPixel * 16 * 3 ));
+                newUV.Add(new Vector2(horizontalPixel * 16 * 2, verticalPixel * 16 * 3));
+                newUV.Add(new Vector2(horizontalPixel * 16 * 2, verticalPixel * 16 * 4 - verticalPixel * partHeights_pixels[1]));
+                newUV.Add(new Vector2(horizontalPixel * 16, verticalPixel * 16 * 4 - verticalPixel * partHeights_pixels[1]));
+                //Left side
+                newUV.Add(new Vector2(0, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - (1.0f / 4) - verticalPixel * partHeights_pixels[1]));
+                newUV.Add(new Vector2(0, 1.0f - (1.0f / 4) - verticalPixel * partHeights_pixels[1]));
+                //Front
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - 1.0f / 4 * 2 - verticalPixel * partHeights_pixels[1]));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - 1.0f / 4 * 2 - verticalPixel * partHeights_pixels[1]));
+                //Right side
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1, 1.0f - (1.0f / 4) - verticalPixel * partHeights_pixels[1]));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - (1.0f / 4) - verticalPixel * partHeights_pixels[1]));
+                //Bottom side
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - (1.0f / 4)));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - (1.0f / 4)));
+            }
+            else //lid
+            {
+                //Backside
+                newUV.Add(new Vector2(horizontalPixel * 16, verticalPixel * 16 * 3 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(horizontalPixel * 16 * 2, verticalPixel * 16 * 3 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(horizontalPixel * 16 * 2, verticalPixel * 16 * 4));
+                newUV.Add(new Vector2(horizontalPixel * 16, verticalPixel * 16 * 4));
+                //Left side
+                newUV.Add(new Vector2(0, 1.0f / 4 * 2 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4 * 2 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - (1.0f / 4)));
+                newUV.Add(new Vector2(0, 1.0f - (1.0f / 4)));
+                //Front
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - 1.0f / 4 * 2));
+                //Right side
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4 * 2 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1, 1.0f / 4 * 2 + verticalPixel * partHeights_pixels[0]));
+                newUV.Add(new Vector2(1, 1.0f - (1.0f / 4)));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - (1.0f / 4)));
+                //Top side
+                newUV.Add(new Vector2(1.0f / 3, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f / 4 * 2));
+                newUV.Add(new Vector2(1.0f / 3 * 2, 1.0f - (1.0f / 4)));
+                newUV.Add(new Vector2(1.0f / 3, 1.0f - (1.0f / 4)));
             }
 
             mesh.Init(newVertices, newTriangles, newUV);
@@ -153,7 +207,7 @@ public partial class MeshMaker : MonoBehaviour
             rend.material = mat;
             MeshFilter filter = temp.AddComponent<MeshFilter>();
             filter.mesh = mesh;
-            totalHeight += value[i]; //Separating totalheight and currentheight should stack the cubes instead of building the mesh that way. This way it should be easier to rotate them
+            totalHeight += partHeights[i]; //Separating totalheight and currentheight should stack the cubes instead of building the mesh that way. This way it should be easier to rotate them
         }
         chest.transform.rotation = Quaternion.Euler(0, 0, 45);
         Chest chestScript = chest.AddComponent<Chest>();
