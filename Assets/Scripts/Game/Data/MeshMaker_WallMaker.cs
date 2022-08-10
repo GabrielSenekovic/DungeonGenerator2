@@ -58,7 +58,12 @@ public partial class MeshMaker: MonoBehaviour
             DebugLog.WarningMessage("There were no instructions sent!");
             return;
         }
-        Debug.Log("Enters CreateWall");
+       // Debug.Log("Enters CreateWall");
+       /* if(!DunGenes.Instance.isStartArea && DunGenes.Instance.wallCount > 10)
+        {
+            return;
+        }*/
+        DunGenes.Instance.wallCount++;
         //ref List<Room.EntranceData> entrancesOfThisRoom, ref List<Room.EntranceData> entrancesOfRoomAtStart, ref List<Room.EntranceData> entrancesOfRoomAtEnd
         float jaggedness = 0.04f;
         Vector2 divisions = new Vector2(instructions[0].divisions.x + 1, instructions[0].divisions.y + 1);
@@ -252,7 +257,7 @@ public partial class MeshMaker: MonoBehaviour
                             //If on the last wall
                             //Then connect to the first wall
                             debug_info += "L";
-                            Debug.Log("L");
+                           // Debug.Log("L");
                             //Connect tiles upwards to tiles downwards
                             allVertices.Add(allVertices[((3 + vertices_per_quad) + skip_up + skip_left) + jump_wall + tileIndex * vertices_per_tile + columnIndex * vertices_per_column]);
                             if (divisions.x > 1)
@@ -272,7 +277,7 @@ public partial class MeshMaker: MonoBehaviour
                             //If on the last wall
                             //Then connect to the first wall
                             debug_info += "K";
-                            Debug.Log("K");
+                            //Debug.Log("K");
                             allVertices.Add(allVertices[1]);
                             if (divisions.x > 1)
                             {
@@ -290,7 +295,7 @@ public partial class MeshMaker: MonoBehaviour
                         else if (v_x * divisions.x > columnIndex * divisions.x && tileIndex > 0) //F
                         {
                             debug_info += "F";
-                            Debug.Log("F");
+                            //Debug.Log("F");
                             //Connect tiles upwards to tiles downwards
                             if (tiles[doorGridPosition].endVertices.Count < instructions[wallIndex].height * divisions.y * 4 || vertexIndex % (divisions.x) < divisions.x - 1)
                             {
@@ -332,7 +337,7 @@ public partial class MeshMaker: MonoBehaviour
                                 int jump_column = columnIndex > 0 ? (columnIndex - 1) * vertices_per_column : 0;
                                 int jump_value = columnIndex > 0 ? jump_wall : (jump_wall - vertices_per_column);
 
-                                debug_info += "H"; Debug.Log("H"); //Connect the first quad of each row of right columns to the last quad of each row of left columns
+                                debug_info += "H";// Debug.Log("H"); //Connect the first quad of each row of right columns to the last quad of each row of left columns
 
                                 allVertices.Add(allVertices[((3 + vertices_per_quad) + skip_up + skip_left) + jump_wall + tileIndex * vertices_per_tile + columnIndex * vertices_per_column]);
                                 allVertices.Add(allVertices[(3 + skip_up + vertices_per_quad * ((int)divisions.x - 1)) + jump_value + tileIndex * vertices_per_tile + jump_column]);
@@ -344,7 +349,7 @@ public partial class MeshMaker: MonoBehaviour
                             }
                             else if(tileIndex > 0 || (v_z * divisions.y > 0 && v_x * divisions.x == columnIndex * divisions.x))
                             {
-                                debug_info += "C"; Debug.Log("C");
+                                debug_info += "C"; //Debug.Log("C");
                                 //1 & 2
                                 if (tiles[upperFloorGridPosition].startVertices.Count < instructions[wallIndex].height * divisions.y * 4)
                                 {
@@ -379,7 +384,7 @@ public partial class MeshMaker: MonoBehaviour
                         else if (v_z * divisions.y > 0 && v_x * divisions.x > columnIndex * divisions.x) //D
                         {
                             debug_info += "D";
-                            Debug.Log("D");
+                            //Debug.Log("D");
                             //Connect quad diagonally up to the left to surrounding quads
                             if (tiles[doorGridPosition].endVertices.Count < instructions[wallIndex].height * divisions.y * 4 || vertexIndex % (divisions.x) < divisions.x - 1)
                             {
@@ -392,7 +397,7 @@ public partial class MeshMaker: MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log("Entered here with D!");
+                                //Debug.Log("Entered here with D!");
                                 allVertices.Add(tiles[doorGridPosition].endVertices[1 + 4 * (int)(tileIndex * divisions.y + vertexIndex / divisions.x)]);
                                 allVertices.Add(allVertices[(3 + skip_up + skip_left) + jump_wall + tileIndex * vertices_per_tile + columnIndex * vertices_per_column]);
                                 allVertices.Add(allVertices[(((4 * (int)divisions.x) + vertices_per_quad - 1) + skip_up + skip_left) + jump_wall + tileIndex * vertices_per_tile + columnIndex * vertices_per_column]);
@@ -408,7 +413,7 @@ public partial class MeshMaker: MonoBehaviour
                         else if (v_x * divisions.x > columnIndex * divisions.x) //B
                         {
                             debug_info += "B";
-                            Debug.Log("B");
+                            //Debug.Log("B");
                             //Connect quad to the left to quad to the right
                             if (tiles[doorGridPosition].endVertices.Count < instructions[wallIndex].height * divisions.y * 4 || vertexIndex % (divisions.x) < divisions.x - 1)
                             {

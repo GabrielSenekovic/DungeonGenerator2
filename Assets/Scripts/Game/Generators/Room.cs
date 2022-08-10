@@ -714,14 +714,14 @@ public partial class Room: MonoBehaviour
                     //Go through each entrance, and make a wall to its left. There will only ever be as many walls as there are entrances kappa
                     //Find a wall that has a floor next to it
                     //Debug.Log("Extracting walls");
-                    Debug.Log("New entrance wall: " + i + " at position: " + entrances.entrances[i].positions[0]);
+                   // Debug.Log("New entrance wall: " + i + " at position: " + entrances.entrances[i].positions[0]);
                     pos = new Vector2Int(-1,-1);
                     currentAngle = 0; //Current angle should only be 0 if the floor found points down.
 
                     ExtractWalls_GetStartPosition(ref pos, ref currentAngle, entrances.entrances[i]);
-                    Debug.Log("I got start position: " + pos);
+                   // Debug.Log("I got start position: " + pos);
                     OnExtractWalls(ref currentAngle, ref pos, ref data);
-                    Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
+                  //  Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
                 }
             }
            // else //If this is a closed room without doors
@@ -750,7 +750,7 @@ public partial class Room: MonoBehaviour
             Tuple<List<MeshMaker.WallData>, bool> wall = new Tuple<List<MeshMaker.WallData>, bool>(new List<MeshMaker.WallData>(), false);
 
             Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle); //Item2 is the direction to go to
-            Debug.Log("Did I find wall neighbor? " + returnData.Item1);
+            //Debug.Log("Did I find wall neighbor? " + returnData.Item1);
             //Debug.Log("<color=yellow>"+currentAngle+"</color>");
             //Debug.Log("<color=yellow>"+returnData.Item3+"</color>");
             currentAngle += 90 * returnData.Item3;
@@ -1179,7 +1179,7 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SavePlacementGrid(template);
-        Furnish(floorMaterial);
+        //Furnish(floorMaterial);
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {

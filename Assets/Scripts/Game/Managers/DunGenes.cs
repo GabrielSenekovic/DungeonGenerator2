@@ -16,6 +16,7 @@ public class DunGenes : MonoBehaviour
     public GameData gameData;
 
     public bool isStartArea; //Only for debug
+    public int wallCount = 0;
 
     private void Awake() 
     {
