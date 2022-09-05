@@ -8,7 +8,7 @@ public static class Extensions
     //!List
     public static T GetRandom<T>(this IList<T> list)
     {
-        return list[Random.Range(0, list.Count)];
+        return list[list.GetRandomIndex()];
     }
     public static int GetRandomIndex<T>(this IList<T> list)
     {

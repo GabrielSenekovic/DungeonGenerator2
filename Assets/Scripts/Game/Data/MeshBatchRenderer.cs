@@ -49,12 +49,13 @@ public class MeshBatchRenderer : MonoBehaviour
     public static void CreateBatches(Vegetation vegetation, Room room)
     {
         vegetation.tiles = new Grid<Vegetation.GrassTile>(room.size); vegetation.tiles.Init();
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip"), 0.1f);
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Poppy"), 0.1f);
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass"), 1000);
+        OnCreateBatches(vegetation, room, database.GetRandomVarietyOfDatabaseEntry("Tulip"), 0.1f);
+        OnCreateBatches(vegetation, room, database.GetRandomVarietyOfDatabaseEntry("Poppy"), 0.1f);
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass", ""), 1000);
     }
     public static void OnCreateBatches(Vegetation vegetation, Room room, EntityDatabase.DatabaseEntry databaseEntry, float density)
     {
+        Debug.Log("Variety of plant: " + databaseEntry.variety);
         int batchIndexNum = 0;
         List<ObjectData> currentBatch = new List<ObjectData>();
         int chunkDivision = 10;
@@ -82,13 +83,13 @@ public class MeshBatchRenderer : MonoBehaviour
                         if(room.RequestPosition(position, new Vector2Int(1,1)))
                         {
                             position = new Vector3(position.x + (int)vegetation.transform.position.x, -position.y + (int)vegetation.transform.position.y + 19, position.z);
-                            currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.identity, new Vector3(x + 0.5f + (int)vegetation.transform.position.x, -(y - 0.5f) + (int)vegetation.transform.position.y + 19, -elevation))); 
+                            currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.Euler(0, 0, Random.Range(0, 360)), new Vector3(x + 0.5f + (int)vegetation.transform.position.x, -(y - 0.5f) + (int)vegetation.transform.position.y + 19, -elevation))); 
                             batchIndexNum++;
                             succeededGrasses++;
                             if(batchIndexNum >= 1000)
                             {
                                 //If you are currently adding grass to the tile, but you ran out of space in the batch, save the batch and continue adding grass
-                                vegetation.batches.Add(new Vegetation.MeshBatch(chunkCenter, currentBatch, databaseEntry.name, databaseEntry.material));
+                                vegetation.batches.Add(new Vegetation.MeshBatch(chunkCenter, currentBatch, databaseEntry.name, databaseEntry.variety, databaseEntry.material));
                                 vegetation.tiles[x,y].batchIndices.Add(new Vector3Int(vegetation.batches.Count - 1, currentBatch.Count - 1 - succeededGrasses, succeededGrasses + 1)); 
                                 //! The x value is the batch list, and the y value is the start index in that batch list and the z value is how many steps forward
                                 currentBatch = BuildNewBatch();
@@ -115,7 +116,7 @@ public class MeshBatchRenderer : MonoBehaviour
             }
             if(batchIndexNum > 0 && batchIndexNum < 1000)
             {
-                vegetation.batches.Add(new Vegetation.MeshBatch(chunkCenter, currentBatch, databaseEntry.name, databaseEntry.material)); //Add last batch
+                vegetation.batches.Add(new Vegetation.MeshBatch(chunkCenter, currentBatch, databaseEntry.name,databaseEntry.variety, databaseEntry.material)); //Add last batch
                 currentBatch = BuildNewBatch();
                 batchIndexNum = 0;
             }
@@ -131,8 +132,8 @@ public class MeshBatchRenderer : MonoBehaviour
         {
             float dist = (b.position - Camera.main.transform.position).magnitude;
             bool temp = false;
-            EntityDatabase.DatabaseEntry entry = database.GetDatabaseEntry(b.name);
-            Mesh mesh = database.GetMesh(b.name, dist, ref temp);
+            EntityDatabase.DatabaseEntry entry = database.GetDatabaseEntry(b.name, b.variety);
+            Mesh mesh = database.GetMesh(b.name, b.variety, dist, ref temp);
             Material mat = temp ? entry.billBoard : b.material;
             if(mesh != null)
             {
@@ -147,7 +148,7 @@ public class MeshBatchRenderer : MonoBehaviour
         {
             float dist = (b.position - Camera.main.transform.position).magnitude;
             bool temp = false;
-            Mesh mesh = database.GetMesh(b.name, dist, ref temp);
+            Mesh mesh = database.GetMesh(b.name, b.variety, dist, ref temp);
             if(mesh != null)
             {
                 Graphics.DrawMeshInstanced(mesh, 0, b.material, b.batches.Select((a) => a.matrix).ToList());

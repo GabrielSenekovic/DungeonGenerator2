@@ -18,8 +18,8 @@ public class DayNightCycle : MonoBehaviour
 
         if(Application.isPlaying)
         {
-           // TimeOfDay += Time.deltaTime * 0.01f;
-           TimeOfDay = 17;
+            //TimeOfDay += Time.deltaTime * 0.01f;
+           TimeOfDay = 12;
             TimeOfDay %= 24;
             UpdateLighting(TimeOfDay / 24f);
         }

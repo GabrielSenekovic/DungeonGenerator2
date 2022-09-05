@@ -210,8 +210,8 @@ public class FlowerTest : MonoBehaviour
     {
         bool temp = false;
         FlowerCreationData data = objects[(int)Camera.main.transform.position.x].creationData as FlowerCreationData;
-        MeshMaker.CreateFlower(database.GetMesh(objects[(int)Camera.main.transform.position.x].name, 0, ref temp), objects[(int)Camera.main.transform.position.x].material, 
-        data.height, data.bulbHeight, data.whorls, data.merosity, openness.value, Vector2.zero, data.curve, data.petalShape, data.colors, data.spread);
+        //MeshMaker.CreateFlower(database.GetMesh(objects[(int)Camera.main.transform.position.x].name, objects[(int)Camera.main.transform.position.x].variety, 0, ref temp), objects[(int)Camera.main.transform.position.x].material, 
+        //data.height, data.bulbHeight, data.whorls, data.merosity, openness.value, Vector2.zero, data.curve, data.petalShape, data.colors, data.spread);
     }
 
     private void LateUpdate() 
@@ -219,9 +219,9 @@ public class FlowerTest : MonoBehaviour
         foreach(FlowerTestObject obj in objects)
         {
             bool temp = false;
-            Mesh mesh = database.GetMesh(obj.name, 0, ref temp);
-            Graphics.DrawMesh(mesh, obj.data.pos, Quaternion.identity, obj.material, 0, Camera.main);
-            Graphics.DrawMesh(quad, obj.data.pos + new Vector3(0, billBoardDistance, 0), Quaternion.identity, obj.billBoard, 0, Camera.main);
+            //Mesh mesh = database.GetMesh(obj.name, 0, ref temp);
+            //Graphics.DrawMesh(mesh, obj.data.pos, Quaternion.identity, obj.material, 0, Camera.main);
+            //Graphics.DrawMesh(quad, obj.data.pos + new Vector3(0, billBoardDistance, 0), Quaternion.identity, obj.billBoard, 0, Camera.main);
         }
     }
 }

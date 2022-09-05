@@ -584,9 +584,11 @@ public partial class MeshMaker : MonoBehaviour
 
         for(int i = 0; i < amountOfStraws; i++)
         {
-            float secondAngle = 2 * Mathf.Asin((grassWidth/2) / (radius / Mathf.Sin(Mathf.Deg2Rad * 90))); //Law of Sines of half of the isosceles triangle to figure out the inner angle
+            float secondAngle = 1.5f * Mathf.Asin((grassWidth/2) / (radius / Mathf.Sin(Mathf.Deg2Rad * 90))); //Law of Sines of half of the isosceles triangle to figure out the inner angle
 
             float height = 1.0f - curve.Evaluate(1.0f / amountOfStraws * i) - UnityEngine.Random.Range(-0.5f, 0.5f);
+
+            float horizontalityForThisStraw = 0.25f * UnityEngine.Random.Range(0, 5);
 
             for(int k = 0; k < quadsPerGrass; k++)
             {
@@ -597,10 +599,10 @@ public partial class MeshMaker : MonoBehaviour
                 newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle),   -(height / quadsPerGrass * (k+1))));
                 newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle),                       -(height / quadsPerGrass * (k+1))));
 
-                newUV.Add(new Vector2 (1, 1.0f / quadsPerGrass * k));     //1,0
-                newUV.Add(new Vector2 (0, 1.0f / quadsPerGrass * k));     //0,0
-                newUV.Add(new Vector2 (0, 1.0f / quadsPerGrass * (k+1))); //0,1
-                newUV.Add(new Vector2 (1, 1.0f / quadsPerGrass * (k+1))); //1,1
+                newUV.Add(new Vector2 (horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * k));     //1,0
+                newUV.Add(new Vector2 (horizontalityForThisStraw, 1.0f / quadsPerGrass * k));     //0,0
+                newUV.Add(new Vector2 (horizontalityForThisStraw, 1.0f / quadsPerGrass * (k+1))); //0,1
+                newUV.Add(new Vector2 (horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * (k+1))); //1,1
 
                 int[] indexValue = new int[]{0,1,3,1,2,3};
 

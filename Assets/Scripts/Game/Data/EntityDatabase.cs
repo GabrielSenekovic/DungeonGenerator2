@@ -20,8 +20,9 @@ public class EntityDatabase :ScriptableObject
                 renderDistance = renderDistance_in;
             }
         }
-        public string name;
-        public string type;
+        public string name = "";
+        public string variety = "";
+        public string type = "";
 
         public int amountPerTile;
         public Material material;
@@ -71,18 +72,23 @@ public class EntityDatabase :ScriptableObject
             {
                 case "Flower":
                 {
-                    DatabaseEntry flowerEntry = new DatabaseEntry(allData[i][1], "Flower");
-                    Mesh flowerMesh = new Mesh();
-                    Material flowerMaterial = new Material(defaultMaterial);
-                    flowerMaterial.SetFloat("_Gravity", 0);
-                    flowerMaterial.SetColor("_Color", Color.white);
-                    float height = 0; float bulbHeight = 0; int whorls = 0; int merosity = 0; AnimationCurve curve = null; List<Color> colors = new List<Color>(); float renderDistance = 0; int amount = 0;
-                    float openness = 0; AnimationCurve flowerShape = null; bool spread = false;
+                    List<DatabaseEntry> flowerEntries = new List<DatabaseEntry>();
+                    List<List<Color>> colorsPerVariety = new List<List<Color>>();
+                    float height = 0; float bulbHeight = 0; int whorls = 0; int merosity = 0; AnimationCurve curve = null; float renderDistance = 0;
+                    float openness = 0; AnimationCurve flowerShape = null; bool spread = false; int amount = 0;
+                    int variety = 0;
                     for(int j = 3; j < allData[i].Count; j++)
                     {
+                        Debug.Log("j:" + j);
                         switch(allData[i][j])
                         {
-                            case "Amount:": int.TryParse(allData[i][j+1], out amount); break;
+                            case "Amount:":
+                                    int.TryParse(allData[i][j+1], out amount); break;
+                            case "Variety:":
+                                    flowerEntries.Add(new DatabaseEntry(allData[i][1], "Flower"));
+                                    flowerEntries[variety].variety = allData[i][j + 1]; variety++;
+                                    Debug.Log("Variety: " + flowerEntries[variety-1].variety);
+                                    break;
                             case "Height:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out height); break;
                             case "Bulb:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out bulbHeight); break;
                             case "Whorls:": int.TryParse(allData[i][j+1], out whorls); break;
@@ -122,6 +128,7 @@ public class EntityDatabase :ScriptableObject
                             break;
                             case "Colors:": 
                                 {
+                                    colorsPerVariety.Add(new List<Color>());
                                     int k = 1;
                                     while(j+k < allData[i].Count && !allData[i][j+k].Any(x => char.IsLetter(x)))
                                     {
@@ -129,7 +136,7 @@ public class EntityDatabase :ScriptableObject
                                         int.TryParse(allData[i][j+k].Replace("(", "").Replace(")", "").Replace(",", ""), out r);
                                         int.TryParse(allData[i][j+k+1].Replace("(", "").Replace(")", "").Replace(",", ""), out g);
                                         int.TryParse(allData[i][j+k+2].Replace("(", "").Replace(")", "").Replace(",", ""), out b);
-                                        colors.Add(new Color32((byte)r,(byte)g,(byte)b,255));
+                                        colorsPerVariety[variety-1].Add(new Color32((byte)r,(byte)g,(byte)b,255));
                                         k+= 3;
                                     }
                                 }
@@ -141,15 +148,28 @@ public class EntityDatabase :ScriptableObject
                     {
                         Debug.Log("Curve is null");
                     }
-                    Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, flowerShape, colors, spread);
-                    flowerMaterial.SetTexture("_MainTex", flowerTexture);
-                    DatabaseEntry.MeshLOD tempFlower = new DatabaseEntry.MeshLOD(flowerMesh, renderDistance);
-                    flowerEntry.AddMesh(tempFlower);
-                    flowerEntry.material = flowerMaterial;
-                    flowerEntry.amountPerTile = amount;
-                    flowerEntry.AddMesh(new DatabaseEntry.MeshLOD(MeshMaker.GetBillBoard(), Mathf.Infinity));
-                    flowerEntry.billBoard = GetBillBoard(flowerEntry.mesh[0].mesh, flowerEntry.material, ref flowerEntry.billBoard_Tex);
-                    database.Add(flowerEntry);
+                    for(int j = 0; j < variety; j++)
+                    {
+                        Debug.Log("Variety: " + variety + " j: " + j);
+                        Material flowerMaterial = new Material(defaultMaterial);
+                        flowerMaterial.SetFloat("_Gravity", 0);
+                        flowerMaterial.SetColor("_Color", Color.white);
+
+                        Mesh flowerMesh = new Mesh();
+
+                        Texture2D flowerTexture = MeshMaker.CreateFlower(flowerMesh, flowerMaterial, height, bulbHeight, whorls, merosity, openness, Vector2.zero, curve, flowerShape, colorsPerVariety[j], spread);
+                        
+                        flowerMaterial.SetTexture("_MainTex", flowerTexture);
+                        flowerEntries[j].material = flowerMaterial;
+
+                        DatabaseEntry.MeshLOD tempFlower = new DatabaseEntry.MeshLOD(flowerMesh, renderDistance);
+                        flowerEntries[j].amountPerTile = amount;
+                        flowerEntries[j].AddMesh(tempFlower);
+                        flowerEntries[j].AddMesh(new DatabaseEntry.MeshLOD(MeshMaker.GetBillBoard(), Mathf.Infinity));
+                        flowerEntries[j].billBoard = GetBillBoard(flowerEntries[j].mesh[0].mesh, flowerEntries[j].material, ref flowerEntries[j].billBoard_Tex);
+                        database.Add(flowerEntries[j]);
+                    }
+                    
                 }
                 break;
                 case "Tuft":
@@ -204,9 +224,9 @@ public class EntityDatabase :ScriptableObject
         return mat;
     }
 
-    public Mesh GetMesh(string value, float distance, ref bool billBoard)
+    public Mesh GetMesh(string value, string variety, float distance, ref bool billBoard)
     {
-        DatabaseEntry entry = GetDatabaseEntry(value); //Get the mesh collection of this name
+        DatabaseEntry entry = GetDatabaseEntry(value, variety); //Get the mesh collection of this name
         if(entry != null) //If it was found
         {
             for(int i = 0; i < entry.mesh.Count; i++) //Go through all of them
@@ -226,15 +246,27 @@ public class EntityDatabase :ScriptableObject
         return null;
     }
 
-    public DatabaseEntry GetDatabaseEntry(string value)
+    public DatabaseEntry GetDatabaseEntry(string value, string variety)
     {
         for(int i = 0; i < database.Count; i++)
         {
-            if(database[i].name == value)
+            if(database[i].name == value && database[i].variety == variety)
             {
                 return database[i];
             }
         }
         return null;
+    }
+    public DatabaseEntry GetRandomVarietyOfDatabaseEntry(string value)
+    {
+        List<DatabaseEntry> entries = new List<DatabaseEntry>();
+        for (int i = 0; i < database.Count; i++)
+        {
+            if (database[i].name == value)
+            {
+                entries.Add(database[i]);
+            }
+        }
+        return entries.GetRandom();
     }
 }

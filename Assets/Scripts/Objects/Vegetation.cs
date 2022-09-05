@@ -19,14 +19,16 @@ public class Vegetation : MonoBehaviour
     {
         public Vector3 position; //Used for LOD
         public string name; //What name to search for meshes
+        public string variety;
         public List<ObjectData> batches;
         public Material material;
 
-        public MeshBatch(Vector3 position_in, List<ObjectData> batches_in, string name_in, Material material_in)
+        public MeshBatch(Vector3 position_in, List<ObjectData> batches_in, string name_in, string variety_in, Material material_in)
         {
             position = position_in;
             batches = batches_in;
             name = name_in;
+            variety = variety_in;
             material = material_in;
         }
     }
@@ -34,14 +36,16 @@ public class Vegetation : MonoBehaviour
     {
         public Vector3 position;
         public string name;
+        public string variety;
         public Material material;
         public VFXData vFX;
         public List<ObjectData> batches;
-        public BurningMeshBatch(Vector3 position_in, List<ObjectData> batches_in, Material material_in, VFXData vFX_in, string name_in)
+        public BurningMeshBatch(Vector3 position_in, List<ObjectData> batches_in, Material material_in, VFXData vFX_in, string name_in, string variety_in)
         {
             position = position_in;
             batches = batches_in;
             name = name_in;
+            variety = variety_in;
         }
     }
     public List<MeshBatch> batches = new List<MeshBatch>();
@@ -237,7 +241,7 @@ public class Vegetation : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), "grass", batches[indices[k].x].material));
+            DEBUGbatches.Add(new MeshBatch(batches[indices[k].x].position, new List<ObjectData>(), "grass","", batches[indices[k].x].material));
             DEBUGbatches[DEBUGbatches.Count - 1].material.SetColor("_Color", Color.red);
             DEBUGbatches[DEBUGbatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
@@ -279,7 +283,7 @@ public class Vegetation : MonoBehaviour
 
         for(int k = 0; k < indices.Count; k++)
         {
-            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(batches[indices[k].x].material), new VFXData(), batches[indices[k].x].name));
+            burningBatches.Add(new BurningMeshBatch(Vector3.zero, new List<ObjectData>(), new Material(batches[indices[k].x].material), new VFXData(), batches[indices[k].x].name, batches[indices[k].x].variety));
             burningBatches[burningBatches.Count - 1].batches.AddRange(batches[indices[k].x].batches.GetRange(indices[k].y, indices[k].z)); //Add the batch you just hit to the list of burning batches
             
             batches[indices[k].x].batches.RemoveRange(indices[k].y,indices[k].z); 
