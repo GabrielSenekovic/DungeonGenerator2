@@ -41,7 +41,7 @@ public class CommandBox : MonoBehaviour
                 }
             break;
             case "Buildmode" :
-                GameObject.FindObjectOfType<LevelManager>().ToggleBuildMode();
+                FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.BUILD);
             break;
             case "FillInventory" :
                 Party.instance.inventory.FillInventoryWithRandomItems();
@@ -103,7 +103,7 @@ public class CommandBox : MonoBehaviour
                     case "FPS": //Show FPS
                         UIManager.Instance.ToggleFPS();
                     break;
-                    case "Grid": //Show placement grid
+                    case "Grid": //Show tile grid
                         UnityEngine.Object[] objects = FindObjectsOfType<MeshRenderer>();
                         Texture texture = Resources.Load<Texture>("Art/Box_Cross");
                         for (int i = 0; i < objects.Length; i++)
@@ -116,6 +116,12 @@ public class CommandBox : MonoBehaviour
                     break;
                     case "Keys": //Show arrows from keys to the door it is meant to open
                     break;
+                    case "PlacementGrid":
+                        FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.BUILD);
+                    break;
+                    case "PositionGrid":
+                        FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.POSITION);
+                        break;
                     case "Sections": 
                         FindObjectOfType<LevelGenerator>().ToggleRenderSections();
                     //Show different colors for different sections of the dungeon

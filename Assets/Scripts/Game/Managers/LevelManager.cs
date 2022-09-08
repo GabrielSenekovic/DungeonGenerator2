@@ -301,7 +301,14 @@ public class LevelManager : MonoBehaviour
     public Mesh placementQuad;
     public Material placementMat;
 
-    public bool buildMode;
+    public PlacementRenderMode placementRenderMode;
+
+    public enum PlacementRenderMode
+    {
+        NONE,
+        BUILD,
+        POSITION
+    }
 
     EntityManager entityManager;
     public MeshBatchRenderer meshBatchRenderer;
@@ -319,7 +326,7 @@ public class LevelManager : MonoBehaviour
         renderGrassChunks = true;
         placementQuad = MeshMaker.GetQuad();
         placementMat = Resources.Load<Material>("Materials/Placement");
-        buildMode = false;
+        placementRenderMode = PlacementRenderMode.NONE;
         entityManager = GetComponent<EntityManager>();
     }
     private void Start() 
@@ -433,10 +440,9 @@ public class LevelManager : MonoBehaviour
             default: return false;
         }
     }
-    public void ToggleBuildMode()
+    public void SetPlacementRenderMode(PlacementRenderMode mode)
     {
-        buildMode = !buildMode;
-        //Do stuff with the camera later to make it easier to see the room?
+        placementRenderMode = mode;
     }
 
     private void OnRenderObject() 
@@ -445,9 +451,9 @@ public class LevelManager : MonoBehaviour
         {
             currentRoom.grass.RenderGrassChunkCenters(transform);
         }
-        if(buildMode)
+        if(placementRenderMode != PlacementRenderMode.NONE)
         {
-            currentRoom.RenderPlacementGrid(placementQuad, placementMat);
+            currentRoom.RenderPlacementGrid(placementQuad, placementMat, placementRenderMode);
         }
     }
 }

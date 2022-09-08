@@ -31,12 +31,12 @@ public enum RoomPosition
 
 
 //Core code
-public partial class Room: MonoBehaviour
+public partial class Room : MonoBehaviour
 {
-    [System.Serializable]public class Entrances
+    [System.Serializable] public class Entrances
     {
         //This class holds and handles all entrances to a room
-        [System.Serializable]public class Entrance
+        [System.Serializable] public class Entrance
         {
             public enum EntranceType
             {
@@ -60,7 +60,7 @@ public partial class Room: MonoBehaviour
             public Entrance(Vector2Int gridPos_in, Vector2Int dir_in)
             {
                 gridPos = gridPos_in; dir = dir_in;
-                index = new Vector2(9,10); //This is the default
+                index = new Vector2(9, 10); //This is the default
                 open = false;
                 spawned = false;
                 positions = new List<Vector2Int>();
@@ -101,123 +101,123 @@ public partial class Room: MonoBehaviour
         public Entrances(Vector2Int gridPosition, Vector2Int roomSize, Vector2Int movedPosition) //in gridspace, so a 40x40 is 2x2
         {
             DebugLog.AddToMessage("Substep", "Making entrances");
-            Vector2Int absSize = new Vector2Int(Mathf.Abs(roomSize.x),Mathf.Abs(roomSize.y)); //If I don't use the absolute size for the position, then their positions arent alligned to the grid and the wall creation won't be able to find them
+            Vector2Int absSize = new Vector2Int(Mathf.Abs(roomSize.x), Mathf.Abs(roomSize.y)); //If I don't use the absolute size for the position, then their positions arent alligned to the grid and the wall creation won't be able to find them
             //To the positions, add the same y you added to move up the entire room
             //int y_add = movedPosition.y - gridPosition.y;
 
-            for(int x = 0; x < Mathf.Abs(roomSize.x); x++) //Adding north and south entrances
+            for (int x = 0; x < Mathf.Abs(roomSize.x); x++) //Adding north and south entrances
             {
-                entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x),0), new Vector2Int(0,-1 * (int)Mathf.Sign(roomSize.y)))); 
-                if(Mathf.Sign(roomSize.y) == 1) //South
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(x * (int)Mathf.Sign(roomSize.x), 0), new Vector2Int(0, -1 * (int)Mathf.Sign(roomSize.y))));
+                if (Mathf.Sign(roomSize.y) == 1) //South
                 {
-                    if(Mathf.Sign(roomSize.x) == 1)
+                    if (Mathf.Sign(roomSize.x) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), absSize.y * 20 - 1));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), absSize.y * 20 - 1));
                     }
                 }
                 else //North
                 {
-                    if(Mathf.Sign(roomSize.x) == 1)
+                    if (Mathf.Sign(roomSize.x) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20,  0)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(9 + x * 20, 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(10 + x * 20, 0));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20),  0));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), 0));
                     }
                 }
 
-                entrances.Add(new Entrance(gridPosition + new Vector2Int( x * (int)Mathf.Sign(roomSize.x), (absSize.y - 1) * (int)Mathf.Sign(roomSize.y)), new Vector2Int(0,1 * (int)Mathf.Sign(roomSize.y)))); 
-                if(Mathf.Sign(roomSize.y) == -1) //South
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(x * (int)Mathf.Sign(roomSize.x), (absSize.y - 1) * (int)Mathf.Sign(roomSize.y)), new Vector2Int(0, 1 * (int)Mathf.Sign(roomSize.y))));
+                if (Mathf.Sign(roomSize.y) == -1) //South
                 {
-                    if(Mathf.Sign(roomSize.x) == 1)
+                    if (Mathf.Sign(roomSize.x) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(10 + x * 20, absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(9 + x * 20, absSize.y * 20 - 1));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), absSize.y * 20 - 1));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), absSize.y * 20 - 1));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), absSize.y * 20 - 1));
                     }
                 }
                 else //North
                 {
-                    if(Mathf.Sign(roomSize.x)==1)
+                    if (Mathf.Sign(roomSize.x) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(9 + x * 20,  0));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(10 + x * 20, 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(9 + x * 20, 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(10 + x * 20, 0));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20),  0));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (10 + x * 20), 0));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int((absSize.x * 20 - 1) - (9 + x * 20), 0));
                     }
                 }
             }
-            for(int y = 0; y < Mathf.Abs(roomSize.y); y++) //Adding left and right entrances
+            for (int y = 0; y < Mathf.Abs(roomSize.y); y++) //Adding left and right entrances
             {
-                entrances.Add(new Entrance(gridPosition + new Vector2Int((absSize.x - 1) * (int)Mathf.Sign(roomSize.x),y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(1  * (int)Mathf.Sign(roomSize.x),0)));
-                if(Mathf.Sign(roomSize.x) == 1) //Right
+                entrances.Add(new Entrance(gridPosition + new Vector2Int((absSize.x - 1) * (int)Mathf.Sign(roomSize.x), y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(1 * (int)Mathf.Sign(roomSize.x), 0)));
+                if (Mathf.Sign(roomSize.x) == 1) //Right
                 {
-                    if(Mathf.Sign(roomSize.y) == 1)
+                    if (Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (10 + y * 20)));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (9 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (9 + y * 20)));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
                     }
                 }
                 else //Left
                 {
-                    if(Mathf.Sign(roomSize.y) == 1)
+                    if (Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20))); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, 10 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, 9 + y * 20));
                     }
                 }
 
-                entrances.Add(new Entrance(gridPosition + new Vector2Int(0,y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(-1  * (int)Mathf.Sign(roomSize.x),0))); //Left
-                if(Mathf.Sign(roomSize.x) == -1) //Right
+                entrances.Add(new Entrance(gridPosition + new Vector2Int(0, y * (int)Mathf.Sign(roomSize.y)), new Vector2Int(-1 * (int)Mathf.Sign(roomSize.x), 0))); //Left
+                if (Mathf.Sign(roomSize.x) == -1) //Right
                 {
-                    if(Mathf.Sign(roomSize.y) == 1)
+                    if (Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  (absSize.y * 20 - 1) - (10 + y * 20)));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1,  (absSize.y * 20 - 1) - (9 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, (absSize.y * 20 - 1) - (9 + y * 20)));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 9 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(absSize.x * 20 - 1, 10 + y * 20));
                     }
                 }
                 else //Left
                 {
-                    if(Mathf.Sign(roomSize.y) == 1)
+                    if (Mathf.Sign(roomSize.y) == 1)
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20))); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (9 + y * 20)));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, (absSize.y * 20 - 1) - (10 + y * 20)));
                     }
                     else
                     {
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 10 + y * 20)); 
-                        entrances[entrances.Count-1].positions.Add(new Vector2Int(0, 9 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, 10 + y * 20));
+                        entrances[entrances.Count - 1].positions.Add(new Vector2Int(0, 9 + y * 20));
                     }
                 }
             }
@@ -228,7 +228,7 @@ public partial class Room: MonoBehaviour
         }
         public void OpenAllEntrances()
         {
-            for(int i = 0; i < entrances.Count; i++)
+            for (int i = 0; i < entrances.Count; i++)
             {
                 entrances[i].SetOpen(true);
             }
@@ -237,10 +237,10 @@ public partial class Room: MonoBehaviour
         {
             DebugLog.AddToMessage("Substep", "Getting entrance in direction: " + direction + " from pos: " + gridPosition);
             //Debug.Log("Grid pos of this room: " + gridPosition + " looking for this direction: " + direction);
-            for(int i = 0; i < entrances.Count; i++)
+            for (int i = 0; i < entrances.Count; i++)
             {
                 //DebugLog.AddToMessage("Entrance", "Position: " + entrances[i].gridPos + " Direction: " + entrances[i].dir);
-                if(entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
+                if (entrances[i].gridPos == gridPosition && entrances[i].dir == direction)
                 {
                     return new Tuple<bool, Entrance>(true, entrances[i]);
                 }
@@ -250,24 +250,24 @@ public partial class Room: MonoBehaviour
         public void SetEntranceVertices(ref RoomTemplate template, RoomTemplate originTemplate, Entrance entrance, Entrance originEntrance, Vector3 originRoomPosition, Vector3 destinationRoomPosition) //The template of this room and the template from the other room
         {
             Debug.Log("Setting entrance vertices");
-            if(originEntrance.positions.Count == 0)
+            if (originEntrance.positions.Count == 0)
             {
                 DebugLog.TerminateMessage("Origin entrance was empty of positions when setting entrance vertices!");
                 return;
             }
-            if(entrance.positions.Count == 0)
+            if (entrance.positions.Count == 0)
             {
                 DebugLog.TerminateMessage("Entrance was empty of positions when setting entrance vertices!");
                 return;
             }
             //template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[1]).endVertices, entrance.positions[0], originRoomPosition, destinationRoomPosition, true); //Origin end to destination start
-       
-            Debug.Log("Setting origin start to destination end at position: " + entrance.positions[0] + 
+
+            Debug.Log("Setting origin start to destination end at position: " + entrance.positions[0] +
             " with a total of: ?? vertices at " + originEntrance.positions[1]);
             template.SetEntranceTileVertices(originTemplate.GetEntranceTile(originEntrance.positions[1]).startVertices, entrance.positions[0], originRoomPosition, destinationRoomPosition, false); //Origin start to destination end
-            Debug.Log("Set origin start to destination end at position: " + entrance.positions[0] + 
+            Debug.Log("Set origin start to destination end at position: " + entrance.positions[0] +
             " with a total of: " + originTemplate.GetEntranceTile(originEntrance.positions[1]).startVertices.Count + " vertices at " + originEntrance.positions[1]);
-            }
+        }
     }
     public class EntranceData
     {
@@ -276,7 +276,7 @@ public partial class Room: MonoBehaviour
     }
     public List<EntranceData> entrances = new List<EntranceData>(); //Save vertices for every single door
 
-    [System.Serializable]public struct RoomDebug 
+    [System.Serializable] public struct RoomDebug
     {
         public Color floorColor;
         public Color wallColor;
@@ -322,7 +322,7 @@ public partial class Room: MonoBehaviour
                 divisions = divisions_in;
                 wall = false;
                 door = false;
-                sidesWhereThereIsWall = new List<TileSides>(){new TileSides(Vector2Int.up),new TileSides(Vector2Int.down),new TileSides(Vector2Int.left),new TileSides(Vector2Int.right)};
+                sidesWhereThereIsWall = new List<TileSides>() { new TileSides(Vector2Int.up), new TileSides(Vector2Int.down), new TileSides(Vector2Int.left), new TileSides(Vector2Int.right) };
             }
             public void SetElevation(int newElevation)
             {
@@ -345,21 +345,21 @@ public partial class Room: MonoBehaviour
         {
             //In here it will be determined if the room is a circle, if it is a corridor, etc
             Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
-            Vector2 wallThickness = new Vector2(UnityEngine.Random.Range(size.x/2 - 4, size.x/2), UnityEngine.Random.Range(size.y/2 - 4, size.y/2));
+            Vector2 wallThickness = new Vector2(UnityEngine.Random.Range(size.x / 2 - 4, size.x / 2), UnityEngine.Random.Range(size.y / 2 - 4, size.y / 2));
 
-            for(int y = 0; y < size.y; y++)
+            for (int y = 0; y < size.y; y++)
             {
-                for(int x = 0; x < size.x; x++)
+                for (int x = 0; x < size.x; x++)
                 {
-                    Vector2Int divisions = new Vector2Int(1,1); //1,1
-                    if(!indoors){divisions = new Vector2Int(3,3);}
+                    Vector2Int divisions = new Vector2Int(1, 1); //1,1
+                    if (!indoors) { divisions = new Vector2Int(3, 3); }
                     int elevation = surrounding ? 4 : 0;
                     positions.Add(new RoomTemplate.TileTemplate(elevation, divisions));
 
-                    if(!surrounding)
+                    if (!surrounding)
                     {
-                        CreateRoomTemplate_Square(new Vector2(2,2), x, y, 4); //?Basic thickness. Can't be thinner than 2
-                        if(!indoors){CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y);}
+                        CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 4); //?Basic thickness. Can't be thinner than 2
+                        if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
                         //CreateRoomTemplate_Cross(wallThickness, x, y);
                     }
                 }
@@ -369,71 +369,71 @@ public partial class Room: MonoBehaviour
         void SmoothenOut()
         {
             //Push up
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
                     int amountOfWallNeighbors = 0;
-                    int elevation = positions[x,y].elevation;
-                    for(int i = -1; i < 2; i++)
+                    int elevation = positions[x, y].elevation;
+                    for (int i = -1; i < 2; i++)
                     {
-                        for(int j = -1; j < 2; j++)
+                        for (int j = -1; j < 2; j++)
                         {
-                            if(i == 0 && j == 0){continue;}
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            if (i == 0 && j == 0) { continue; }
+                            if (IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
                             {
-                                if(positions[x + i , y + -j].elevation != positions[x,y].elevation) //If the position is a wall
+                                if (positions[x + i, y + -j].elevation != positions[x, y].elevation) //If the position is a wall
                                 {
-                                    if(positions[x + i , y + -j].elevation > positions[x,y].elevation)
+                                    if (positions[x + i, y + -j].elevation > positions[x, y].elevation)
                                     {
-                                        elevation = positions[x + i , y + -j].elevation;
+                                        elevation = positions[x + i, y + -j].elevation;
                                     }
                                     amountOfWallNeighbors++; //Then count up
                                 }
                             }
                         }
                     }
-                    if(amountOfWallNeighbors > 5)
+                    if (amountOfWallNeighbors > 5)
                     {
-                        positions[x,y].elevation = elevation;
+                        positions[x, y].elevation = elevation;
                     }
                 }
             }
             //Push down
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
                     int amountOfWallNeighbors = 0;
-                    int elevation = positions[x,y].elevation;
-                    for(int i = -1; i < 2; i++)
+                    int elevation = positions[x, y].elevation;
+                    for (int i = -1; i < 2; i++)
                     {
-                        for(int j = -1; j < 2; j++)
+                        for (int j = -1; j < 2; j++)
                         {
-                            if(i == 0 && j == 0){continue;}
-                            if(IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
+                            if (i == 0 && j == 0) { continue; }
+                            if (IsPositionWithinBounds(new Vector2Int(x + i, -y + j)))
                             {
-                                if(positions[x + i , y + -j].elevation != positions[x,y].elevation) //If the position is a wall
+                                if (positions[x + i, y + -j].elevation != positions[x, y].elevation) //If the position is a wall
                                 {
-                                    if(positions[x + i , y + -j].elevation < positions[x,y].elevation)
+                                    if (positions[x + i, y + -j].elevation < positions[x, y].elevation)
                                     {
-                                        elevation = positions[x + i , y + -j].elevation;
+                                        elevation = positions[x + i, y + -j].elevation;
                                     }
                                     amountOfWallNeighbors++; //Then count up
                                 }
                             }
                         }
                     }
-                    if(amountOfWallNeighbors > 5)
+                    if (amountOfWallNeighbors > 5)
                     {
-                        positions[x,y].elevation = elevation;
+                        positions[x, y].elevation = elevation;
                     }
                 }
             }
         }
         void CreateRoomTemplate_Circle(Vector2 center, Vector2 wallThickness, int x, int y)
         {
-            float distanceToCenter = new Vector2(x+0.5f - center.x, y+0.5f - center.y).magnitude;
+            float distanceToCenter = new Vector2(x + 0.5f - center.x, y + 0.5f - center.y).magnitude;
             if (distanceToCenter > wallThickness.x && distanceToCenter > wallThickness.y)
             {
                 //if the higher limit is 0, then the code just generates a circle, period
@@ -446,7 +446,7 @@ public partial class Room: MonoBehaviour
         }
         void CreateRoomTemplate_Square(Vector2 wallThickness, int x, int y, int elevation)
         {
-            if(x < wallThickness.x || x > size.x - wallThickness.x - 1||
+            if (x < wallThickness.x || x > size.x - wallThickness.x - 1 ||
                y < wallThickness.y || y > size.y - wallThickness.y - 1)
             {
                 positions[x + (int)size.x * y].elevation = elevation;
@@ -454,8 +454,8 @@ public partial class Room: MonoBehaviour
         }
         void CreateRoomTemplate_Cross(Vector2 wallThickness, int x, int y, int elevation)
         {
-            if((x < wallThickness.x || x > size.x - wallThickness.x -1)&&
-               (y < wallThickness.y || y > size.y - wallThickness.y -1))
+            if ((x < wallThickness.x || x > size.x - wallThickness.x - 1) &&
+               (y < wallThickness.y || y > size.y - wallThickness.y - 1))
             {
                 positions[x + (int)size.x * y].elevation = elevation;
             }
@@ -463,11 +463,11 @@ public partial class Room: MonoBehaviour
 
         public void AddEntrancesToRoom(Entrances entrances)
         {
-            for(int i = 0; i < entrances.entrances.Count; i++)
+            for (int i = 0; i < entrances.entrances.Count; i++)
             {
-                if(entrances.entrances[i].spawned && entrances.entrances[i].open)
+                if (entrances.entrances[i].spawned && entrances.entrances[i].open)
                 {
-                    for(int j = 0; j < entrances.entrances[i].positions.Count; j++)
+                    for (int j = 0; j < entrances.entrances[i].positions.Count; j++)
                     {
                         int x = entrances.entrances[i].positions[j].x;
                         int y = entrances.entrances[i].positions[j].y;
@@ -485,19 +485,19 @@ public partial class Room: MonoBehaviour
         void IdentifyWalls()
         {
             //! this function goes through all positions to identify which positions are where walls are supposed to be
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
-                    int[] constraints = positions.GetValidConstraints(x,y);
-                    for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+                    int[] constraints = positions.GetValidConstraints(x, y);
+                    for (int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                     {
-                        for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                        for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                         {
                             //If this position has one adjacent position that is a lower elevation from itself, then it is a wall
-                            if(positions[x_w, y_w].elevation < positions[x,y].elevation)
+                            if (positions[x_w, y_w].elevation < positions[x, y].elevation)
                             {
-                                positions[x,y].wall = true;
+                                positions[x, y].wall = true;
                             }
                         }
                     }
@@ -508,94 +508,94 @@ public partial class Room: MonoBehaviour
         {
             //! this function gets rid of positions that cant be made into walls
             //! find all positions that have one height and is a wall but no surrounding positions of a different height and eliminate them
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
-                    if(positions[x,y].wall)
+                    if (positions[x, y].wall)
                     {
-                        OnUnscatterWalls(x,y);
+                        OnUnscatterWalls(x, y);
                     }
                 }
             }
         }
         void OnUnscatterWalls(int x, int y)
         {
-            int[] constraints = positions.GetValidConstraints(x,y);
-            int lowestAdjacentElevation = positions[x,y].elevation;
-            for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+            int[] constraints = positions.GetValidConstraints(x, y);
+            int lowestAdjacentElevation = positions[x, y].elevation;
+            for (int x_w = constraints[0]; x_w < constraints[2]; x_w++)
             {
-                for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                 {
-                    if(positions[x_w, y_w].elevation < lowestAdjacentElevation){lowestAdjacentElevation = positions[x_w, y_w].elevation;}
+                    if (positions[x_w, y_w].elevation < lowestAdjacentElevation) { lowestAdjacentElevation = positions[x_w, y_w].elevation; }
 
-                    if(positions[x_w, y_w].elevation == positions[x,y].elevation &&
+                    if (positions[x_w, y_w].elevation == positions[x, y].elevation &&
                        !positions[x_w, y_w].wall) //if there is one adjacent position has the same elevation and isn't a wall, then this is indeed a wall
-                        {
-                            return; //This is indeed a wall, keep
-                        }
+                    {
+                        return; //This is indeed a wall, keep
+                    }
                 }
             }
-            positions[x,y].wall = false;
-            positions[x,y].elevation = lowestAdjacentElevation;
+            positions[x, y].wall = false;
+            positions[x, y].elevation = lowestAdjacentElevation;
             //No this is a fluke, delete
         }
 
         void BloatWallCrossings()
         {
             bool bloat = true;
-            while(bloat)
+            while (bloat)
             {
                 bloat = false;
-                for(int x = 0; x < size.x; x++)
+                for (int x = 0; x < size.x; x++)
                 {
-                    for(int y = 0; y < size.y; y++)
+                    for (int y = 0; y < size.y; y++)
                     {
-                        if(positions[x,y].wall)
+                        if (positions[x, y].wall)
                         {
                             //Debug.Log("Origin: " + x + " " + y);
-                            int[] constraints = positions.GetValidConstraints(x,y);
+                            int[] constraints = positions.GetValidConstraints(x, y);
                             int adjWalls = 0;
-                            for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+                            for (int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                             {
-                                for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                                for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                                 {
                                     //Count walls
-                                    if((x_w == x+1 && y_w == y+1) || (x_w == x+1 && y_w == y-1) ||(x_w == x-1 && y_w == y+1) || (x_w == x-1 && y_w == y-1)){continue;}
-                                    if(positions[x_w, y_w].wall && positions[x_w, y_w].elevation == positions[x,y].elevation)
+                                    if ((x_w == x + 1 && y_w == y + 1) || (x_w == x + 1 && y_w == y - 1) || (x_w == x - 1 && y_w == y + 1) || (x_w == x - 1 && y_w == y - 1)) { continue; }
+                                    if (positions[x_w, y_w].wall && positions[x_w, y_w].elevation == positions[x, y].elevation)
                                     {
-                                       // Debug.Log("Adding: " + x_w + " " + y_w);
+                                        // Debug.Log("Adding: " + x_w + " " + y_w);
                                         adjWalls++;
                                     }
                                 }
                             }
-                            if(adjWalls > 3)
+                            if (adjWalls > 3)
                             {
                                 bloat = true;
-                               // Debug.Log("BLOATING IDENTIFIED");
+                                // Debug.Log("BLOATING IDENTIFIED");
                                 //! then this is a wall crossing. Those must be bloated
-                                constraints = positions.GetValidConstraints(x,y,2);
-                                for(int x_w = constraints[0]; x_w < constraints[2]; x_w++)
+                                constraints = positions.GetValidConstraints(x, y, 2);
+                                for (int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                                 {
-                                    for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                                    for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                                     {
                                         //Count walls
                                         positions[x_w, y_w].wall = false;
-                                        positions[x_w, y_w].elevation = positions[x,y].elevation;
+                                        positions[x_w, y_w].elevation = positions[x, y].elevation;
                                     }
                                 }
-                                for(int x_w = constraints[0]; x_w < constraints[2]; x_w++) //Go around the original position
+                                for (int x_w = constraints[0]; x_w < constraints[2]; x_w++) //Go around the original position
                                 {
-                                    for(int y_w = constraints[1]; y_w < constraints[3]; y_w++)
+                                    for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                                     {
                                         int[] constraintsTwo = positions.GetValidConstraints(x_w, y_w);
-                                        for(int x_ww = constraintsTwo[0]; x_ww < constraintsTwo[2]; x_ww++) //Go around each adjacent position
+                                        for (int x_ww = constraintsTwo[0]; x_ww < constraintsTwo[2]; x_ww++) //Go around each adjacent position
                                         {
-                                            for(int y_ww = constraintsTwo[1]; y_ww < constraintsTwo[3]; y_ww++)
+                                            for (int y_ww = constraintsTwo[1]; y_ww < constraintsTwo[3]; y_ww++)
                                             {
-                                                if(positions[x_ww, y_ww].elevation < positions[x_w,y_w].elevation)
+                                                if (positions[x_ww, y_ww].elevation < positions[x_w, y_w].elevation)
                                                 {
-                                                    positions[x_w,y_w].wall = true;
+                                                    positions[x_w, y_w].wall = true;
                                                 }
                                             }
                                         }
@@ -610,28 +610,28 @@ public partial class Room: MonoBehaviour
 
         public bool IsPositionWithinBounds(Vector2Int pos)
         {
-            if(pos.x >= 0 && pos.x < size.x && pos.y <= 0 && pos.y > -size.y )
+            if (pos.x >= 0 && pos.x < size.x && pos.y <= 0 && pos.y > -size.y)
             {
                 return true;
             }
-           // Debug.Log(pos + " <color=red>is not within bounds</color>");
+            // Debug.Log(pos + " <color=red>is not within bounds</color>");
             return false;
         }
         public Tuple<bool, Vector2Int, int> HasWallNeighbor(Vector2Int pos, int rotation)
         {
             //Debug.Log("Checking if position: " + pos + "Has any free neighbors");
-           // Debug.Log("Rotation: " + rotation);
+            // Debug.Log("Rotation: " + rotation);
             Vector2Int direction = Vector2Int.zero;
             bool value = true;
             int rotationDir = 0;
-            if(rotation == 270)
+            if (rotation == 270)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && !positions[pos.x + 1 , -pos.y].read && SharesFloor(pos, Vector2Int.right))
+                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && !positions[pos.x + 1, -pos.y].read && SharesFloor(pos, Vector2Int.right))
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = 1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 , -pos.y].wall && !positions[pos.x - 1 , -pos.y].read && SharesFloor(pos, Vector2Int.left))
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1, -pos.y].wall && !positions[pos.x - 1, -pos.y].read && SharesFloor(pos, Vector2Int.left))
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = -1;
@@ -641,14 +641,14 @@ public partial class Room: MonoBehaviour
                     value = false;
                 }
             }
-            else if(rotation == 90)
+            else if (rotation == 90)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1 , -pos.y].wall && !positions[pos.x + 1 , -pos.y].read && SharesFloor(pos, Vector2Int.right))
+                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && !positions[pos.x + 1, -pos.y].read && SharesFloor(pos, Vector2Int.right))
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = -1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1 ,-pos.y].wall && !positions[pos.x - 1 , -pos.y].read && SharesFloor(pos, Vector2Int.left))
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1, -pos.y].wall && !positions[pos.x - 1, -pos.y].read && SharesFloor(pos, Vector2Int.left))
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = 1;
@@ -658,14 +658,14 @@ public partial class Room: MonoBehaviour
                     value = false;
                 }
             }
-            else if(rotation == 180)
+            else if (rotation == 180)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x , (-pos.y - 1)].wall && !positions[pos.x , (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down))
+                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x, (-pos.y - 1)].wall && !positions[pos.x, (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down))
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = 1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x , (-pos.y + 1)].wall && !positions[pos.x , (-pos.y + 1)].read && SharesFloor(pos, Vector2Int.up))
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x, (-pos.y + 1)].wall && !positions[pos.x, (-pos.y + 1)].read && SharesFloor(pos, Vector2Int.up))
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = -1;
@@ -675,14 +675,14 @@ public partial class Room: MonoBehaviour
                     value = false;
                 }
             }
-            else if(rotation == 0)
+            else if (rotation == 0)
             {
-                if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x , (-pos.y - 1)].wall && !positions[pos.x , (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down)) 
+                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x, (-pos.y - 1)].wall && !positions[pos.x, (-pos.y - 1)].read && SharesFloor(pos, Vector2Int.down))
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = -1;
                 }
-                else if(IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x ,(-pos.y + 1)].wall && !positions[pos.x , (-pos.y + 1)].read  && SharesFloor(pos, Vector2Int.up))
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x, (-pos.y + 1)].wall && !positions[pos.x, (-pos.y + 1)].read && SharesFloor(pos, Vector2Int.up))
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = 1;
@@ -695,10 +695,10 @@ public partial class Room: MonoBehaviour
             //Debug.Log("It has a neighbor in this direction: " + direction);
             return new Tuple<bool, Vector2Int, int>(value, direction, rotationDir);
         }
-        
+
         public List<Tuple<List<MeshMaker.WallData>, bool>> ExtractWalls(Entrances entrances)
         {
-           // Debug.Log("<color=green> NEW ROOM</color>");
+            // Debug.Log("<color=green> NEW ROOM</color>");
             List<Tuple<List<MeshMaker.WallData>, bool>> data = new List<Tuple<List<MeshMaker.WallData>, bool>>();
             Vector2Int pos = new Vector2Int(-1, -1);
             int currentAngle = 0;
@@ -707,24 +707,24 @@ public partial class Room: MonoBehaviour
 
             if (entrances != null && entrances.entrances.Count > 0)
             {
-              //  Debug.Log("<color=green> NEW WALL</color>");
-                for(int i = 0; i < entrances.entrances.Count; i++) //! makes the code only work when theres a door
+                //  Debug.Log("<color=green> NEW WALL</color>");
+                for (int i = 0; i < entrances.entrances.Count; i++) //! makes the code only work when theres a door
                 {
-                    if(!entrances.entrances[i].open || !entrances.entrances[i].spawned){continue;}
+                    if (!entrances.entrances[i].open || !entrances.entrances[i].spawned) { continue; }
                     //Go through each entrance, and make a wall to its left. There will only ever be as many walls as there are entrances kappa
                     //Find a wall that has a floor next to it
                     //Debug.Log("Extracting walls");
-                   // Debug.Log("New entrance wall: " + i + " at position: " + entrances.entrances[i].positions[0]);
-                    pos = new Vector2Int(-1,-1);
+                    // Debug.Log("New entrance wall: " + i + " at position: " + entrances.entrances[i].positions[0]);
+                    pos = new Vector2Int(-1, -1);
                     currentAngle = 0; //Current angle should only be 0 if the floor found points down.
 
                     ExtractWalls_GetStartPosition(ref pos, ref currentAngle, entrances.entrances[i]);
-                   // Debug.Log("I got start position: " + pos);
+                    // Debug.Log("I got start position: " + pos);
                     OnExtractWalls(ref currentAngle, ref pos, ref data);
-                  //  Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
+                    //  Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
                 }
             }
-           // else //If this is a closed room without doors
+            // else //If this is a closed room without doors
             for (int x = 0; x < size.x; x++)
             {
                 for (int y = 0; y < size.y; y++)
@@ -741,7 +741,7 @@ public partial class Room: MonoBehaviour
                     }
                 }
             }
-            
+
             return data;
         }
         void OnExtractWalls(ref int currentAngle, ref Vector2Int pos, ref List<Tuple<List<MeshMaker.WallData>, bool>> data)
@@ -759,16 +759,16 @@ public partial class Room: MonoBehaviour
             positions[pos.x, pos.y].read = true;
             Vector2Int startPosition = pos;
 
-            while(returnData.Item1) //If there is a wall neighbor, proceed
+            while (returnData.Item1) //If there is a wall neighbor, proceed
             {
                 startPosition = pos;
                 //Follow that direction until its empty
                 int steps = 1;
-            //Debug.Log("Checking index: " + (pos.x + returnData.Item2.x + size.x * (-pos.y + returnData.Item2.y)));
+                //Debug.Log("Checking index: " + (pos.x + returnData.Item2.x + size.x * (-pos.y + returnData.Item2.y)));
                 ExtractWalls_GetSteps(ref pos, ref steps, returnData.Item2, currentAngle);
-                
+
                 int isThisWallFollowingOuterCorner = 0;
-                if(returnData.Item3 < 0 && wall.Item1.Count > 0)
+                if (returnData.Item3 < 0 && wall.Item1.Count > 0)
                 {
                     //If lastWall is less than 0, then this is the following wall after an outer corner, so it must be moved up and shortened
                     isThisWallFollowingOuterCorner = 1;
@@ -778,11 +778,11 @@ public partial class Room: MonoBehaviour
 
                 float roundedness = indoors ? 0 : UnityEngine.Random.Range(0.0f, 1.0f);
 
-                if(returnData.Item3 < 0)
+                if (returnData.Item3 < 0)
                 {
                     //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
                     isThisWallEndingWithOuterCorner = 1;
-                    if(!indoors)
+                    if (!indoors)
                     {
                         roundedness = 1.0f;
                     }
@@ -791,7 +791,7 @@ public partial class Room: MonoBehaviour
                 {
                     roundedness = 0;
                 }
-                
+
                 //Debug.Log("<color=green>Amount of steps: </color>" + steps + " angle: " + currentAngle);
                 //Only set wrap to true if the last wall ends up adjacent to the first wall
 
@@ -817,37 +817,37 @@ public partial class Room: MonoBehaviour
 
                 float divisionModifier = 0; //Apparently different divisions try to put the walls at different places, annoyingly
 
-                if( positions[pos.x + size.x * -pos.y].divisions.x > 1)
+                if (positions[pos.x + size.x * -pos.y].divisions.x > 1)
                 {
-                    divisionModifier = 1.0f / (((float)positions[pos.x + size.x * -pos.y].divisions.x+1) / ((float)positions[pos.x + size.x * -pos.y].divisions.x - 1)); //This perfectly describes where each wall will stand, based on amount of division
+                    divisionModifier = 1.0f / (((float)positions[pos.x + size.x * -pos.y].divisions.x + 1) / ((float)positions[pos.x + size.x * -pos.y].divisions.x - 1)); //This perfectly describes where each wall will stand, based on amount of division
                 }
-                
 
-                if(currentAngle == 0)
+
+                if (currentAngle == 0)
                 {
                     //Debug.Log("adding 0 degree wall");
-                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner,startPosition.y,0), startPosition, 
-                    new Vector3(-divisionModifier, 0, 0), 
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - divisionModifier + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
+                    new Vector3(-divisionModifier, 0, 0),
                     -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                 }
-                if(currentAngle == 90)
+                if (currentAngle == 90)
                 {
                     //Debug.Log("adding 90 degree wall");
-                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner,0), startPosition, 
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - 0.5f + divisionModifier - isThisWallFollowingOuterCorner, 0), startPosition,
                     new Vector3(-0.5f, -0.5f + divisionModifier), //-0.5f + divisionModifier - isThisWallFollowingOuterCorner
                     -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                 }
-                if(currentAngle == 180)
+                if (currentAngle == 180)
                 {
                     //Debug.Log("adding 180 degree wall");
-                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier,startPosition.y - 1,0), startPosition,
-                    new Vector3(-divisionModifier, 0, 0), 
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + divisionModifier, startPosition.y - 1, 0), startPosition,
+                    new Vector3(-divisionModifier, 0, 0),
                     -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
                 }
-                if(currentAngle == 270)
+                if (currentAngle == 270)
                 {
                     //Debug.Log("adding 270 degree wall");
-                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f,startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner ,0), startPosition, 
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 0.5f - divisionModifier + isThisWallFollowingOuterCorner, 0), startPosition,
                     new Vector3(-0.5f, -0.5f + divisionModifier), //-0.5f - divisionModifier + isThisWallFollowingOuterCorner
                     -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, 4, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness)); // y - 0.5f
                 }
@@ -855,7 +855,7 @@ public partial class Room: MonoBehaviour
                 currentAngle += 90 * returnData.Item3; //This code can only do inner corners atm, not outer corners
                 currentAngle = (int)Math.Mod(currentAngle, 360);
             }
-           // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
+            // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
             wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
             data.Add(wall);
             //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
@@ -868,59 +868,59 @@ public partial class Room: MonoBehaviour
         void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)
         {
             //Get the position that is to the left of the given entrance
-            if(entrance.dir == new Vector2Int(0,1)) //north
+            if (entrance.dir == new Vector2Int(0, 1)) //north
             {
-                pos = new Vector2Int(entrance.positions[entrance.positions.Count-1].x + 1, -entrance.positions[entrance.positions.Count-1].y);
+                pos = new Vector2Int(entrance.positions[entrance.positions.Count - 1].x + 1, -entrance.positions[entrance.positions.Count - 1].y);
                 currentAngle = 0;
             }
-            if(entrance.dir == new Vector2Int(0,-1)) //south
+            if (entrance.dir == new Vector2Int(0, -1)) //south
             {
-                pos = new Vector2Int(entrance.positions[entrance.positions.Count-1].x - 1, -entrance.positions[entrance.positions.Count-1].y);
+                pos = new Vector2Int(entrance.positions[entrance.positions.Count - 1].x - 1, -entrance.positions[entrance.positions.Count - 1].y);
                 currentAngle = 180;
             }
-            if(entrance.dir == new Vector2Int(1,0)) //right
+            if (entrance.dir == new Vector2Int(1, 0)) //right
             {
-                pos = new Vector2Int(entrance.positions[entrance.positions.Count-1].x , -entrance.positions[entrance.positions.Count-1].y - 1);
+                pos = new Vector2Int(entrance.positions[entrance.positions.Count - 1].x, -entrance.positions[entrance.positions.Count - 1].y - 1);
                 currentAngle = 270;
             }
-            if(entrance.dir == new Vector2Int(-1,0)) //left
+            if (entrance.dir == new Vector2Int(-1, 0)) //left
             {
-                pos = new Vector2Int(entrance.positions[entrance.positions.Count-1].x , -entrance.positions[entrance.positions.Count-1].y + 1);
+                pos = new Vector2Int(entrance.positions[entrance.positions.Count - 1].x, -entrance.positions[entrance.positions.Count - 1].y + 1);
                 currentAngle = 90;
             }
 
 
 
-           /*for(int x = 0; x < size.x; x++)
-            {
-                for(int y = 0; y < size.y; y++)
-                {
-                    //TODO Wall reading should actually start at the first found door!
-                    //TODO Do this later when the doors have been changed for big rooms
+            /*for(int x = 0; x < size.x; x++)
+             {
+                 for(int y = 0; y < size.y; y++)
+                 {
+                     //TODO Wall reading should actually start at the first found door!
+                     //TODO Do this later when the doors have been changed for big rooms
 
-                    //Check if there is floor diagonally right down, because walls can only be drawn from left to right
-                    //If there are none, rotate the search three times. If there still are none, then there is an error
-                    if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && (x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 2 || x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 3))
-                    //2 is floor, 3 is door but door also counts as floor
-                    {
-                        pos = new Vector2Int(x, -y); 
-                        currentAngle = 90;
-                        break; 
-                    }
-                        //if none of the directions are a floor, then it is a void
-                    // template.positions[x + template.size.x * y].SetIdentity(0);
-                }
-                if(pos != new Vector2Int(-1,-1))
-                {
-                    break;
-                }
-            }*/
+                     //Check if there is floor diagonally right down, because walls can only be drawn from left to right
+                     //If there are none, rotate the search three times. If there still are none, then there is an error
+                     if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && (x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 2 || x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 3))
+                     //2 is floor, 3 is door but door also counts as floor
+                     {
+                         pos = new Vector2Int(x, -y); 
+                         currentAngle = 90;
+                         break; 
+                     }
+                         //if none of the directions are a floor, then it is a void
+                     // template.positions[x + template.size.x * y].SetIdentity(0);
+                 }
+                 if(pos != new Vector2Int(-1,-1))
+                 {
+                     break;
+                 }
+             }*/
             //Debug.Log("The position found to start from, that has a floor next to it: " + pos);
         }
         void ExtractWalls_GetSteps(ref Vector2Int pos, ref int steps, Vector2Int direction, int currentAngle)
         {
             //Check that the next direction is a wall, and also that said position has more than 1 neighbor otherwise you get weird bugs cuz walls try to be built with 0 width
-            while(
+            while (
                 IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && positions[pos.x + direction.x, -pos.y + direction.y].wall &&
                 ExtractWalls_CheckHasEnoughWallsAhead(pos, direction, currentAngle) &&
                 SharesFloor(pos, direction)
@@ -930,37 +930,37 @@ public partial class Room: MonoBehaviour
                 steps++;
                 pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
                 // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-                positions[pos.x , -pos.y].read = true;
+                positions[pos.x, -pos.y].read = true;
             }
         }
         bool SharesFloor(Vector2Int pos, Vector2Int direction)
         {
             //!If there is a wall ahead in that direction, check if they share a floor. Otherwise, dont go to it
 
-            if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y )) && positions[pos.x + direction.x, -pos.y + direction.y].wall)
+            if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && positions[pos.x + direction.x, -pos.y + direction.y].wall)
             {
                 List<Vector2Int> temp = new List<Vector2Int>();
                 int[] constraints = positions.GetValidConstraints(pos.x, -pos.y);
-                
-                for(int x = constraints[0]; x < constraints[2]; x++)
+
+                for (int x = constraints[0]; x < constraints[2]; x++)
                 {
-                    for(int y = constraints[1]; y < constraints[3]; y++)
+                    for (int y = constraints[1]; y < constraints[3]; y++)
                     {
-                        if(positions[x,y].elevation < positions[pos.x, -pos.y].elevation)
+                        if (positions[x, y].elevation < positions[pos.x, -pos.y].elevation)
                         {
-                            temp.Add(new Vector2Int(x,y));
+                            temp.Add(new Vector2Int(x, y));
                         }
                     }
                 }
 
                 constraints = positions.GetValidConstraints(pos.x + direction.x, -pos.y + direction.y);
-                for(int x = constraints[0]; x < constraints[2]; x++)
+                for (int x = constraints[0]; x < constraints[2]; x++)
                 {
-                    for(int y = constraints[1]; y < constraints[3]; y++)
+                    for (int y = constraints[1]; y < constraints[3]; y++)
                     {
-                        for(int i = 0; i < temp.Count; i++)
+                        for (int i = 0; i < temp.Count; i++)
                         {
-                            if(temp[i] == new Vector2Int(x,y))
+                            if (temp[i] == new Vector2Int(x, y))
                             {
                                 //Then this means the next wall shares this floor
                                 return true;
@@ -974,17 +974,17 @@ public partial class Room: MonoBehaviour
         }
         bool ExtractWalls_CheckHasEnoughWallsAhead(Vector2Int pos, Vector2Int direction, int currentAngle)
         {
-            if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && !positions[pos.x + direction.x * 2, -pos.y + direction.y * 2].wall) 
+            if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && !positions[pos.x + direction.x * 2, -pos.y + direction.y * 2].wall)
             //Check if the next position after the next isn't a wall, cuz then the next position is the last
             //This if statement runs if the next after the next position is the last
             {
                 Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle); //Check if it's an outer corner, cuz only then should the next check happen
 
-                if(returnData.Item3 == -1)
+                if (returnData.Item3 == -1)
                 {
-                    Vector2 temp = (Quaternion.Euler(0,0,-90) * (Vector2)direction);
+                    Vector2 temp = (Quaternion.Euler(0, 0, -90) * (Vector2)direction);
                     Vector2Int rotatedDirection = new Vector2Int(Mathf.RoundToInt(temp.x), Mathf.RoundToInt(temp.y));
-                    if(IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x *2, pos.y - direction.y - rotatedDirection.y *2)) && positions[pos.x + direction.x  + rotatedDirection.x *2 ,-pos.y + direction.y + rotatedDirection.y * 2].wall)
+                    if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x * 2, pos.y - direction.y - rotatedDirection.y * 2)) && positions[pos.x + direction.x + rotatedDirection.x * 2, -pos.y + direction.y + rotatedDirection.y * 2].wall)
                     //Check if the next position has enough walls in that direction to go that far 
                     {
                         return true;
@@ -1000,12 +1000,12 @@ public partial class Room: MonoBehaviour
         public List<MeshMaker.SurfaceData> ExtractFloor()
         {
             List<MeshMaker.SurfaceData> returnData = new List<MeshMaker.SurfaceData>();
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
-                    int elevation = positions[x,y].wall ? 0: positions[x,y].elevation;
-                    returnData.Add(new MeshMaker.SurfaceData(new Vector3Int(x,-y -1, elevation), positions[x,y].ceilingVertices, positions[x,y].floorVertices, positions[x,y].divisions.x, positions[x,y].sidesWhereThereIsWall));
+                    int elevation = positions[x, y].wall ? 0 : positions[x, y].elevation;
+                    returnData.Add(new MeshMaker.SurfaceData(new Vector3Int(x, -y - 1, elevation), positions[x, y].ceilingVertices, positions[x, y].floorVertices, positions[x, y].divisions.x, positions[x, y].sidesWhereThereIsWall));
                 }
             }
             return returnData;
@@ -1013,9 +1013,9 @@ public partial class Room: MonoBehaviour
         public List<TileTemplate> GetEntranceTiles()
         {
             List<TileTemplate> tiles = new List<TileTemplate>();
-            for(int i = 0; i < positions.Count(); i++)
+            for (int i = 0; i < positions.Count(); i++)
             {
-                if(positions[i].door)
+                if (positions[i].door)
                 {
                     tiles.Add(positions[i]);
                 }
@@ -1028,20 +1028,20 @@ public partial class Room: MonoBehaviour
         }
         public void SetEntranceTileVertices(List<Vector3> vertices, Vector2Int position, Vector3 originRoomPosition, Vector3 destinationRoomPosition, bool start) //The entrance of this room
         {
-            if(start)
+            if (start)
             {
                 positions[position].startVertices = vertices;
             }
             else
             {
-                if(positions[position].endVertices.Count > 0)
+                if (positions[position].endVertices.Count > 0)
                 {
                     Debug.Log("Tried to add when there is already data");
                     return;
                 }
                 Debug.Log("Setting end vertices here with: " + vertices.Count + " vertices");
                 Vector3 adjustmentVector = originRoomPosition - destinationRoomPosition;
-                for(int i = 0; i < vertices.Count; i++)
+                for (int i = 0; i < vertices.Count; i++)
                 {
                     positions[position].endVertices.Add(vertices[i] + adjustmentVector);
                 }
@@ -1050,22 +1050,22 @@ public partial class Room: MonoBehaviour
         void EnsureEntranceReachability(Entrances.Entrance entrance)
         {
             List<Vector2Int> currentPosition = new List<Vector2Int>();
-            for(int i = 0; i < entrance.positions.Count; i++)
+            for (int i = 0; i < entrance.positions.Count; i++)
             {
                 currentPosition.Add(new Vector2Int(entrance.positions[i].x, -entrance.positions[i].y));
                 positions[entrance.positions[i]].elevation = 0;
             }
 
-            for(int i = 0; i < currentPosition.Count; i++)
+            for (int i = 0; i < currentPosition.Count; i++)
             {
-                while(IsPositionWithinBounds(currentPosition[i] - entrance.dir)) //While youre still within bounds
+                while (IsPositionWithinBounds(currentPosition[i] - entrance.dir)) //While youre still within bounds
                 {
                     currentPosition[i] = currentPosition[i] - entrance.dir;
-                    if(positions[currentPosition[i].x, -currentPosition[i].y].elevation > positions[entrance.positions[0]].elevation) //If there is a wall in the direction of this door
+                    if (positions[currentPosition[i].x, -currentPosition[i].y].elevation > positions[entrance.positions[0]].elevation) //If there is a wall in the direction of this door
                     {
                         positions[currentPosition[i].x, -currentPosition[i].y].elevation = 0;
                     }
-                    else if(positions[currentPosition[i].x, -currentPosition[i].y].elevation == 0) //If youve reached a floor, stop
+                    else if (positions[currentPosition[i].x, -currentPosition[i].y].elevation == 0) //If youve reached a floor, stop
                     {
                         break;
                     }
@@ -1077,7 +1077,7 @@ public partial class Room: MonoBehaviour
             Texture2D tex = new Texture2D(size.x, size.y, TextureFormat.ARGB32, false);
             Color[] colors = new Color[size.x * size.y];
             Grid<TileTemplate> grid = positions.FlipVertically();
-            for(int i = 0; i < size.x * size.y; i++)
+            for (int i = 0; i < size.x * size.y; i++)
             {
                 float lumValue = (float)grid[i].elevation / 20f + 0.5f;
                 colors[i] = Color.HSVToRGB(0.3f, 1, lumValue);
@@ -1092,11 +1092,12 @@ public partial class Room: MonoBehaviour
         public GameObject obj;
         public bool occupied; //Can be occupied without an object, in which case no placement square will be rendered
         public int elevation;
+        public int index;
 
-        public PlacementGridReference(GameObject obj_in, int elevation_in)
+        public PlacementGridReference(int index_in, int elevation_in, GameObject obj_in = null)
         {
+            index = index_in;
             elevation = elevation_in;
-            obj = obj_in;
         }
     }
     public Grid<PlacementGridReference> placementGrid;
@@ -1117,7 +1118,7 @@ public partial class Room: MonoBehaviour
 
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
     {
-        if(directions == null)
+        if (directions == null)
         {
             directions = new Entrances(gridPosition, roomSize, (transform.position / 20).ToV2Int());
         }
@@ -1132,16 +1133,16 @@ public partial class Room: MonoBehaviour
         OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
     }
 
-    public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
+    public void Initialize(Vector2Int location, Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
     {
         DebugLog.AddToMessage("Step", "Initializing with size: " + roomSize);
         //Location here only refers to the gridposition where it connects to its origin room. If it has expanded, we want the transform.position to be the upper left corner
         //That is to say, if size is positive (doesnt point down or right), then it should be pushed by its size
-        transform.position = new Vector2(Mathf.Sign(roomSize.x) == 1 ? location.x: location.x + roomSize.x + 20, Mathf.Sign(roomSize.y) == 1 ? location.y + roomSize.y - 20: location.y);
+        transform.position = new Vector2(Mathf.Sign(roomSize.x) == 1 ? location.x : location.x + roomSize.x + 20, Mathf.Sign(roomSize.y) == 1 ? location.y + roomSize.y - 20 : location.y);
         section = section_in;
         OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
     }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding) 
+    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding)
     {
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
@@ -1161,12 +1162,12 @@ public partial class Room: MonoBehaviour
     {
         //This shouldn't actually get called until the doors have all been finalized, which is only when the whole dungeon is done
         //So this should not get called in OnInitialize!!
-        Color color = new Color32((byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220), 255);
+        Color color = new Color32((byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), 255);
         Material wallMaterial = new Material(wallMaterial_in.shader);
         wallMaterial.CopyPropertiesFromMaterial(wallMaterial_in);
         Material floorMaterial = new Material(floorMaterial_in.shader);
         floorMaterial.CopyPropertiesFromMaterial(floorMaterial_in);
-        if(template.indoors)
+        if (template.indoors)
         {
             wallMaterial.mainTexture = floorMaterial_in.mainTexture;
             wallMaterial.color = color + Color.white / 10;
@@ -1179,15 +1180,15 @@ public partial class Room: MonoBehaviour
         CreateWalls(template, wallMaterial);
         CreateFloor(template, floorMaterial);
         SavePlacementGrid(template);
-        //Furnish(floorMaterial);
+        Furnish(floorMaterial);
     }
     void CreateWalls(RoomTemplate template, Material wallMaterial)
     {
         DebugLog.AddToMessage("Substep", "Creating walls");
         List<Tuple<List<MeshMaker.WallData>, bool>> data = template.ExtractWalls(directions);
-       // Debug.Log("Data size: " + data.Count);
+        // Debug.Log("Data size: " + data.Count);
 
-        for(int i = 0; i < data.Count; i++)
+        for (int i = 0; i < data.Count; i++)
         {
             GameObject wallObject = new GameObject("Wall");
             wallObject.transform.parent = this.gameObject.transform;
@@ -1203,25 +1204,25 @@ public partial class Room: MonoBehaviour
 
 
         MeshMaker.CreateSurface(template.ExtractFloor(), floorObject.transform, floorMaterial);
-        floorObject.transform.localPosition = new Vector3(- 10, 10, 0);
+        floorObject.transform.localPosition = new Vector3(-10, 10, 0);
     }
 
-    private void Update() 
+    private void Update()
     {
-        if(!grass){return;}
+        if (!grass) { return; }
         Vector2 radius = new Vector2(Mathf.Abs(size.x) / 2, -Mathf.Abs(size.y) / 2);
-        centerPoint = transform.position - new Vector3(10,-10, 0) + (Vector3)radius; //10,10 to make the position the corner and then push it to the middle'
+        centerPoint = transform.position - new Vector3(10, -10, 0) + (Vector3)radius; //10,10 to make the position the corner and then push it to the middle'
         //These variables are for the frustum culling. But I havent gotten those to work yet
 
         Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-        if(renderers.Any(r => r.isVisible))
+        if (renderers.Any(r => r.isVisible))
         {
             grass.UpdateVegetation();
         }
     }
-    private void FixedUpdate() 
+    private void FixedUpdate()
     {
-        if(!grass){return;}
+        if (!grass) { return; }
         grass.FixedUpdateVegetation();
     }
 
@@ -1236,16 +1237,24 @@ public partial class Room: MonoBehaviour
             vase.transform.localPosition = FindRandomPlacementPositionOfSize(vase, new Vector2Int(2,2));
         }*/
 
-       /* GameObject rock = new GameObject("Rock");
-        MeshRenderer rend = rock.AddComponent<MeshRenderer>();
-        MeshFilter filt = rock.AddComponent<MeshFilter>();
-        filt.mesh = MeshMaker.CreateRock();
-        Material matz = Resources.Load<Material>("Materials/Stone");
-        rend.material = matz;
-        rock.AddComponent<SphereCollider>();*/
-
-        GameObject chest = new GameObject("Chest");
-        MeshMaker.CreateChest(chest, 0);
+        /* GameObject rock = new GameObject("Rock");
+         MeshRenderer rend = rock.AddComponent<MeshRenderer>();
+         MeshFilter filt = rock.AddComponent<MeshFilter>();
+         filt.mesh = MeshMaker.CreateRock();
+         Material matz = Resources.Load<Material>("Materials/Stone");
+         rend.material = matz;
+         rock.AddComponent<SphereCollider>();*/
+        int val = 0;
+        for(int i = 0; i < 5; i++)
+        {
+            if (RequestPosition(val = GetAllPlacementGridPositionsNextToAWall().GetRandom().index, new Vector2Int(1, 1)))
+            {
+                /*GameObject chest = new GameObject("Chest");
+                chest.transform.parent = transform;
+                MeshMaker.CreateChest(chest, 0);
+                chest.transform.position = new Vector3(placementGrid[val].index % placementGrid.Size().x, -(placementGrid[val].index / placementGrid.Size().y) + 19, placementGrid[val].elevation);*/
+            }
+        }
     }
 
     Vector3 FindRandomPlacementPositionOfSize(GameObject obj, Vector2Int size)
@@ -1257,13 +1266,13 @@ public partial class Room: MonoBehaviour
             searching = false;
             Vector2Int startPos = placementGrid.GetRandomPosition();
 
-            for(int x = 0; x < size.x; x++)
+            for (int x = 0; x < size.x; x++)
             {
-                for(int y = 0; y < size.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
                     positions.Add(new Vector2Int(startPos.x + x, startPos.y + y));
-                    if(!placementGrid.IsWithinBounds(startPos.x + x, -startPos.y - y) || 
-                        placementGrid[startPos.x + x, startPos.y + y].occupied || 
+                    if (!placementGrid.IsWithinBounds(startPos.x + x, -startPos.y - y) ||
+                        placementGrid[startPos.x + x, startPos.y + y].occupied ||
                         placementGrid[startPos.x + x, startPos.y + y].elevation != placementGrid[startPos].elevation)
                     {
                         //!if adjacent position is occupied or if the adjacent elevation is different
@@ -1274,16 +1283,20 @@ public partial class Room: MonoBehaviour
                 }
             }
         }
-        while(searching);
+        while (searching);
 
-        for(int i = 0; i < positions.Count; i++)
+        for (int i = 0; i < positions.Count; i++)
         {
             placementGrid[positions[i]].occupied = true;
             placementGrid[positions[i]].obj = obj;
         }
 
-        return new Vector3((float)positions[0].x / 2f, -(float)positions[0].y / 2f, -placementGrid[positions[0]].elevation) + new Vector3(- 9.5f, 9.75f, 0); 
+        return new Vector3((float)positions[0].x / 2f, -(float)positions[0].y / 2f, -placementGrid[positions[0]].elevation) + new Vector3(-9.5f, 9.75f, 0);
         //!This is a magic number, I know. It centers the vase to the position its supposed to be on
+    }
+    public bool RequestPosition(int i, Vector2Int size)
+    {
+        return RequestPosition(new Vector2(i % placementGrid.Size().x, i / placementGrid.Size().x), size);
     }
 
     public bool RequestPosition(Vector2 pos, Vector2Int size)
@@ -1292,13 +1305,13 @@ public partial class Room: MonoBehaviour
         pos *= 2;
         Vector2Int posInt = new Vector2Int((int)pos.x + 1, (int)pos.y + 1);
         //Transform pos from worldspace to the gridspace, which is about twice as big
-        for(int x = 0; x < size.x; x++)
+        for (int x = 0; x < size.x; x++)
         {
-            for(int y = 0; y < size.y; y++)
+            for (int y = 0; y < size.y; y++)
             {
                 positions.Add(new Vector2Int(posInt.x + x, posInt.y + y));
-                if(!placementGrid.IsWithinBounds(posInt.x + x, -posInt.y + y) || 
-                    placementGrid[posInt.x + x, posInt.y + y].occupied || 
+                if (!placementGrid.IsWithinBounds(posInt.x + x, -posInt.y + y) ||
+                    placementGrid[posInt.x + x, posInt.y + y].occupied ||
                     placementGrid[posInt.x + x, posInt.y + y].elevation != placementGrid[posInt].elevation)
                 {
                     //!if adjacent position is occupied or if the adjacent elevation is different
@@ -1307,7 +1320,7 @@ public partial class Room: MonoBehaviour
                 }
             }
         }
-        for(int i = 0; i < positions.Count; i++)
+        for (int i = 0; i < positions.Count; i++)
         {
             placementGrid[positions[i]].occupied = true;
         }
@@ -1317,15 +1330,15 @@ public partial class Room: MonoBehaviour
     void SavePlacementGrid(RoomTemplate template)
     {
         placementGrid = new Grid<PlacementGridReference>(new Vector2Int(template.size.x * 2, template.size.y * 2));
-        for(int y = 0; y < template.size.y * 2; y++)
+        for (int y = 0; y < template.size.y * 2; y++)
         {
-            for(int x = 0; x < template.size.x * 2; x++)
+            for (int x = 0; x < template.size.x * 2; x++)
             {
                 float eq_x = (float)x / 2f;
                 float eq_y = (float)y / 2f;
                 int index = (int)eq_x + template.size.x * (int)eq_y;
                 int elevation = template.positions[index].wall ? 0 : template.positions[index].elevation;
-                placementGrid.Add(new PlacementGridReference(null, elevation));
+                placementGrid.Add(new PlacementGridReference(x + template.size.x * y, elevation));
             }
         }
     }
@@ -1335,12 +1348,12 @@ public partial class Room: MonoBehaviour
         templateTexture = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
         Grid<RoomTemplate.TileTemplate> grid = template.positions.FlipVertically();
 
-        for(int x = 0; x < template.size.x; x++)
+        for (int x = 0; x < template.size.x; x++)
         {
-            for(int y = 0; y < template.size.y; y++)
+            for (int y = 0; y < template.size.y; y++)
             {
-                RoomTemplate.TileTemplate temp = grid[x,y];
-                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/ temp.door ? Color.red : temp.read ? debug.wallColor: temp.wall ? Color.white : debug.floorColor;
+                RoomTemplate.TileTemplate temp = grid[x, y];
+                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/ temp.door ? Color.red : temp.read ? debug.wallColor : temp.wall ? Color.white : debug.floorColor;
                 templateTexture.SetPixel(x, y, color);
             }
         }
@@ -1365,8 +1378,8 @@ public partial class Room: MonoBehaviour
     public List<Entrances.Entrance> GetEntrances(bool open, bool spawned)
     {
         DebugLog.AddToMessage("Substep", "Getting open unspawned entrances");
-        List<Entrances.Entrance> openEntrances = new List<Entrances.Entrance>{};
-        foreach(Entrances.Entrance entrance in directions.entrances)
+        List<Entrances.Entrance> openEntrances = new List<Entrances.Entrance> { };
+        foreach (Entrances.Entrance entrance in directions.entrances)
         {
             if (open == entrance.open && spawned == entrance.spawned) //open !spawned
             {
@@ -1381,21 +1394,21 @@ public partial class Room: MonoBehaviour
         //This gets if the room is an endroom. However, this could be set by having the rooms be endrooms when they spawn, unless they get linked
         //And then set rooms being spawned from as no longer being endrooms
         List<Entrances.Entrance> entrances = new List<Entrances.Entrance> { };
-        if(directions == null){return false;}
-        foreach(Entrances.Entrance entrance in directions.entrances)
+        if (directions == null) { return false; }
+        foreach (Entrances.Entrance entrance in directions.entrances)
         {
-            if(entrance.spawned == true && entrance.open == true)
+            if (entrance.spawned == true && entrance.open == true)
             {
                 entrances.Add(entrance);
             }
         }
         return entrances.Count == 1;
-    } 
+    }
 
     public void ChooseRoomType(LevelData data)
     {
         List<RoomType> probabilityList = new List<RoomType> { }; //A list of roomtypes to choose between
-        List<RoomType> roomsToCheck = new List<RoomType>{RoomType.AmbushRoom, RoomType.TreasureRoom, RoomType.RestingRoom, RoomType.NormalRoom}; //A list of roomtypes to check the probability of
+        List<RoomType> roomsToCheck = new List<RoomType> { RoomType.AmbushRoom, RoomType.TreasureRoom, RoomType.RestingRoom, RoomType.NormalRoom }; //A list of roomtypes to check the probability of
 
         if (GetIsEndRoom())
         {
@@ -1405,9 +1418,9 @@ public partial class Room: MonoBehaviour
         }
         else
         {
-            for(int i = 0; i < roomsToCheck.Count; i++)
+            for (int i = 0; i < roomsToCheck.Count; i++)
             {
-                for(int j = 0; j < data.GetRoomProbability(roomsToCheck[i]); j++)
+                for (int j = 0; j < data.GetRoomProbability(roomsToCheck[i]); j++)
                 {
                     probabilityList.Add(roomsToCheck[i]);
                 }
@@ -1432,12 +1445,15 @@ public partial class Room: MonoBehaviour
     {
         //GetComponentInChildren<Number>().OnDisplayNumber(roomData.stepsAwayFromMainRoom);
     }
-    public void RenderPlacementGrid(Mesh placementSpot, Material mat)
+    public PlacementGridReference[] GetAllPlacementGridPositionsNextToAWall() =>
+        placementGrid.ReturnAllValuesOnCondition((i) => IsPlacementGridPositionNextToAWall(i));
+
+    public void RenderPlacementGrid(Mesh placementSpot, Material mat, LevelManager.PlacementRenderMode mode)
     {
         for(int i = 0; i < placementGrid.items.Count; i++)
         {
             MaterialPropertyBlock block = new MaterialPropertyBlock();
-            block.SetColor("_Occupied", placementGrid[i].occupied ? Color.red : Color.green);
+            block.SetColor("_Occupied", GetColorForRenderPlacementGrid(i, mode));
             Vector3 position = placementGrid.Position(i); //This will get the grid position of the index, not the actual real world position
             //use drawmesh this time for convenience sake
 
@@ -1455,6 +1471,39 @@ public partial class Room: MonoBehaviour
             }
         }
     }
+    public bool IsPlacementGridPositionNextToAWall(int i)
+    {
+        return placementGrid.GetSurroundingValues(i).Any(c => c.elevation > placementGrid[i].elevation);
+    }
+    public bool IsPlacementGridPositionNextToAnEntrance()
+    {
+        return false;
+    }
+    public Color GetColorForRenderPlacementGrid(int i, LevelManager.PlacementRenderMode mode)
+    {
+        if(placementGrid[i].occupied)
+        {
+            if(mode == LevelManager.PlacementRenderMode.BUILD)
+            {
+                return Color.red;
+            }
+            else
+            {
+                return Color.black;
+            }
+        }
+        else if(mode == LevelManager.PlacementRenderMode.POSITION && IsPlacementGridPositionNextToAWall(i))
+        {
+            return Color.yellow;
+        }
+        else if(IsPlacementGridPositionNextToAnEntrance())
+        {
+            return Color.magenta;
+        }
+        return Color.green;
+    }
+
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.magenta;

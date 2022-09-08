@@ -55,6 +55,10 @@ using System.Linq;
             items[Mathf.Abs(v.x) + size.x * Mathf.Abs(v.y)] = value;
         }
     }    
+    public Vector2Int Size()
+    {
+        return size;
+    }
 
     public void Add(T value)
     {
@@ -176,5 +180,51 @@ using System.Linq;
     public Vector2Int GetRandomPosition()
     {
         return new Vector2Int(Random.Range(0, size.x), Random.Range(0, size.y));
+    }
+    public T[] GetSurroundingValues(int val)
+    {
+        List<T> values = new List<T>();
+        int[] constr = GetValidConstraints(val);
+        for (int i = constr[0]; i < constr[2]; i++)
+        {
+            for (int j = constr[1]; j < constr[3]; j++)
+            {
+                if (i + size.x * j == val)
+                {
+                    continue;
+                }
+                values.Add(this[i, j]);
+            }
+        }
+        return values.ToArray();
+    }
+    public T[] GetSurroundingValues(int x, int y)
+    {
+        List<T> values = new List<T>();
+        int[] constr = GetValidConstraints(x, y);
+        for(int i = constr[0]; i < constr[2]; i++)
+        {
+            for(int j = constr[1]; j < constr[2]; j++)
+            {
+                if(i == x && j == y)
+                {
+                    continue;
+                }
+                values.Add(this[i, j]);
+            }
+        }
+        return values.ToArray();
+    }
+    public T[] ReturnAllValuesOnCondition(System.Predicate<int> function)
+    {
+        List<T> values = new List<T>();
+        for(int i = 0; i < items.Count; i++)
+        {
+            if(function(i))
+            {
+                values.Add(items[i]);
+            }
+        }
+        return items.ToArray();
     }
 }
