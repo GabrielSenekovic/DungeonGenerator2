@@ -1247,12 +1247,15 @@ public partial class Room : MonoBehaviour
         int val = 0;
         for(int i = 0; i < 5; i++)
         {
-            if (RequestPosition(val = GetAllPlacementGridPositionsNextToAWall().GetRandom().index, new Vector2Int(1, 1)))
+            PlacementGridReference[] gridReferences = GetAllPlacementGridPositionsNextToAWall();
+            if(gridReferences.Count() == 0) { return; } //It's not supposed to be able to zero, ever
+            if (RequestPositionFromGridSpace(val = gridReferences.GetRandom().index, new Vector2Int(2, 2)))
             {
-                /*GameObject chest = new GameObject("Chest");
+                GameObject chest = new GameObject("Chest");
                 chest.transform.parent = transform;
                 MeshMaker.CreateChest(chest, 0);
-                chest.transform.position = new Vector3(placementGrid[val].index % placementGrid.Size().x, -(placementGrid[val].index / placementGrid.Size().y) + 19, placementGrid[val].elevation);*/
+                chest.transform.localPosition = 
+                    new Vector3((float)(placementGrid[val].index % placementGrid.Size().x)/2.0f - 9.5f, (float)(-(placementGrid[val].index / placementGrid.Size().y) + 19)/2.0f, placementGrid[val].elevation);
             }
         }
     }
@@ -1294,12 +1297,57 @@ public partial class Room : MonoBehaviour
         return new Vector3((float)positions[0].x / 2f, -(float)positions[0].y / 2f, -placementGrid[positions[0]].elevation) + new Vector3(-9.5f, 9.75f, 0);
         //!This is a magic number, I know. It centers the vase to the position its supposed to be on
     }
-    public bool RequestPosition(int i, Vector2Int size)
+    public bool RequestPositionFromGridSpace(int i, Vector2Int size)
     {
-        return RequestPosition(new Vector2(i % placementGrid.Size().x, i / placementGrid.Size().x), size);
+        List<Vector2Int> positions = new List<Vector2Int>();
+        Vector2Int pos = new Vector2Int(i % placementGrid.Size().x, i / placementGrid.Size().y);
+        //Transform pos from worldspace to the gridspace, which is about twice as big
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                positions.Add(new Vector2Int(pos.x + x, pos.y + y));
+                if (!placementGrid.IsWithinBounds(pos.x + x, -pos.y - y) ||
+                    placementGrid[pos.x + x, pos.y + y].occupied ||
+                    placementGrid[pos.x + x, pos.y + y].elevation != placementGrid[pos].elevation)
+                {
+                    positions.Clear();
+                }
+            }
+        }
+        for (int j = 0; j < positions.Count; j++)
+        {
+            placementGrid[positions[j]].occupied = true;
+        }
+        return positions.Count > 0;
+    }
+    public bool RequestPositionFromGridSpace(Vector2Int pos, Vector2Int size)
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+        //Transform pos from worldspace to the gridspace, which is about twice as big
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                positions.Add(new Vector2Int(pos.x + x, pos.y + y));
+                /*if (!placementGrid.IsWithinBounds(pos.x + x, -pos.y + y) ||
+                    placementGrid[pos.x + x, pos.y + y].occupied ||
+                    placementGrid[pos.x + x, pos.y + y].elevation != placementGrid[pos].elevation)
+                {
+                    //!if adjacent position is occupied or if the adjacent elevation is different
+                    //!then this position is bad, continue while loop
+                    positions.Clear();
+                }*/
+            }
+        }
+        for (int i = 0; i < positions.Count; i++)
+        {
+            placementGrid[positions[i]].occupied = true;
+        }
+        return positions.Count > 0;
     }
 
-    public bool RequestPosition(Vector2 pos, Vector2Int size)
+    public bool RequestPositionFromWorldSpace(Vector2 pos, Vector2Int size)
     {
         List<Vector2Int> positions = new List<Vector2Int>();
         pos *= 2;
@@ -1330,6 +1378,7 @@ public partial class Room : MonoBehaviour
     void SavePlacementGrid(RoomTemplate template)
     {
         placementGrid = new Grid<PlacementGridReference>(new Vector2Int(template.size.x * 2, template.size.y * 2));
+        int i = 0;
         for (int y = 0; y < template.size.y * 2; y++)
         {
             for (int x = 0; x < template.size.x * 2; x++)
@@ -1338,7 +1387,8 @@ public partial class Room : MonoBehaviour
                 float eq_y = (float)y / 2f;
                 int index = (int)eq_x + template.size.x * (int)eq_y;
                 int elevation = template.positions[index].wall ? 0 : template.positions[index].elevation;
-                placementGrid.Add(new PlacementGridReference(x + template.size.x * y, elevation));
+                placementGrid.Add(new PlacementGridReference(i, elevation));
+                i++;
             }
         }
     }

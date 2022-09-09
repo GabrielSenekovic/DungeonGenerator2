@@ -80,7 +80,7 @@ public class MeshBatchRenderer : MonoBehaviour
                     {
                         float elevation = room.placementGrid[index].elevation;
                         Vector3 position = new Vector3(Random.Range(x, x + 1.0f), Random.Range(y - 1.0f, y), -elevation);
-                        if(room.RequestPosition(position, new Vector2Int(1,1)))
+                        if(room.RequestPositionFromWorldSpace(position, new Vector2Int(1,1)))
                         {
                             position = new Vector3(position.x + (int)vegetation.transform.position.x, -position.y + (int)vegetation.transform.position.y + 19, position.z);
                             currentBatch.Add(new ObjectData(position, new Vector3(1, 1, 1), Quaternion.Euler(0, 0, Random.Range(0, 360)), new Vector3(x + 0.5f + (int)vegetation.transform.position.x, -(y - 0.5f) + (int)vegetation.transform.position.y + 19, -elevation))); 

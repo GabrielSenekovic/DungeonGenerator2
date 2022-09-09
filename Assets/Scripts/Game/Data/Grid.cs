@@ -225,6 +225,6 @@ using System.Linq;
                 values.Add(items[i]);
             }
         }
-        return items.ToArray();
+        return values.ToArray();
     }
 }
