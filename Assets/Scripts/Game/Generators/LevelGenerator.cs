@@ -48,8 +48,9 @@ public partial class LevelGenerator : MonoBehaviour
         templates[0].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].directions);
         Room.RoomTemplate template = templates[0];
         DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+        Texture2D tex = DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateMaps(ref template);
         //Surround this one room with floors
-        GameObject surroundings = new GameObject("Surroundings");
+        /*GameObject surroundings = new GameObject("Surroundings");
         surroundings.transform.parent = this.gameObject.transform;
         for(int x = 0; x < 3; x++)
         {
@@ -66,7 +67,7 @@ public partial class LevelGenerator : MonoBehaviour
                 Room temp = surroundingObject.AddComponent<Room>();
                 surroundingPositions.Add(new Tuple<Vector2Int, Room>(new Vector2Int(x,y), temp));
             }
-        }
+        }*/
     }
     public void GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
     {
