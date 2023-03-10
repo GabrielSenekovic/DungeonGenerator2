@@ -64,7 +64,7 @@ public partial class Room:MonoBehaviour
         public RoomTemplate(Vector2Int size_in, bool indoors_in, bool surrounding_in, string instructions = "")
         {
             size = size_in;
-            positions = new Grid<RoomTemplate.TileTemplate>(size_in);
+            positions = new Grid<TileTemplate>(size_in);
             indoors = indoors_in;
             surrounding = surrounding_in;
             CreateRoomTemplate(instructions);
@@ -82,13 +82,13 @@ public partial class Room:MonoBehaviour
                     Vector2Int divisions = new Vector2Int(1, 1); //1,1
                     if (!indoors) { divisions = new Vector2Int(2, 2); }
                     int elevation = surrounding ? 4 : 0;
-                    positions.Add(new RoomTemplate.TileTemplate(elevation, divisions));
+                    positions.Add(new TileTemplate(elevation, divisions));
 
                     if (!surrounding)
                     {
-                        //CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 4); //?Basic thickness. Can't be thinner than 2
+                        CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 4); //?Basic thickness. Can't be thinner than 2
                         //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
-                        CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
+                        //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
                     }
                 }
             }
@@ -580,7 +580,7 @@ public partial class Room:MonoBehaviour
         }
         bool ExtractWalls_DoesWallWrap(List<MeshMaker.WallData> data)
         {
-            return false;
+            return true;
         }
 
         void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)

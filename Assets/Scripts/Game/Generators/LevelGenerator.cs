@@ -911,6 +911,7 @@ public partial class LevelGenerator : MonoBehaviour
     }
     private void OnDrawGizmos() 
     {
+        if (DunGenes.Instance == null) { return; }
         foreach(LevelData.Section section in DunGenes.Instance.gameData.CurrentLevel.sections)
         {
             foreach(Room room in section.rooms)
