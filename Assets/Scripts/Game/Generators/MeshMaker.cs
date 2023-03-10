@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using UnityEngine.UIElements;
 
 public partial class MeshMaker : MonoBehaviour
 {
@@ -762,9 +763,9 @@ public partial class MeshMaker : MonoBehaviour
                 for(int j = 0; j < positions[i].floorVertices.Count; j+=2)
                 {
                     //! we create a fan structure to the corner
-                    Vector3 corner = (positions[i].sidesWhereThereIsWall[0].side - positions[i].sidesWhereThereIsWall[1].side).ToV3() + new Vector3(positions[i].position.x, positions[i].position.y, 0);
-                    allVertices.Add(new Vector3(positions[i].floorVertices[j].x,   positions[i].floorVertices[j].y, 0));
-                    allVertices.Add(new Vector3(positions[i].floorVertices[j+1].x, positions[i].floorVertices[j+1].y, 0));
+                    Vector3 corner = (positions[i].sidesWhereThereIsWall[0].side - positions[i].sidesWhereThereIsWall[1].side).ToV3() + new Vector3(positions[i].position.x, positions[i].position.y, -positions[i].position.z);
+                    allVertices.Add(new Vector3(positions[i].floorVertices[j].x,   positions[i].floorVertices[j].y, -positions[i].position.z));
+                    allVertices.Add(new Vector3(positions[i].floorVertices[j+1].x, positions[i].floorVertices[j+1].y, -positions[i].position.z));
                     allVertices.Add(corner);
                     allVertices.Add(corner);
 
