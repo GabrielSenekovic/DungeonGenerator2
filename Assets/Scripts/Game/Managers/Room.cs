@@ -67,7 +67,6 @@ public partial class Room: MonoBehaviour
     public Texture2D mapTexture;
     public int section;
     public Vegetation grass;
-    [SerializeField] string templateInstruction;
 
     public Vector2 centerPoint; //DEBUGGING
 
@@ -79,12 +78,12 @@ public partial class Room: MonoBehaviour
         }
         directions.OpenAllEntrances();
     }
-    public void Initialize(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
+    public void Initialize(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding, string instructions = "")
     {
         Debug.Log("<color=green>Initializing the Origin Room</color>");
         //This Initialize() function is for the origin room specifically, as it already has its own position
         section = section_in;
-        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates, surrounding);
+        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates, surrounding, instructions);
         OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
     }
 
@@ -97,13 +96,13 @@ public partial class Room: MonoBehaviour
         section = section_in;
         OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
     }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding) 
+    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding, string instructions = "") 
     {
         size = roomSize;
-        directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
+        //directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
         //Build wall meshes all around the start area in a 30 x 30 square
         Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
-        RoomTemplate template = new RoomTemplate(absSize, indoors, surrounding, templateInstruction);
+        RoomTemplate template = new RoomTemplate(absSize, indoors, surrounding, instructions);
         //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
@@ -193,6 +192,7 @@ public partial class Room: MonoBehaviour
         }*/
 
         GameObject rock = new GameObject("Rock");
+        rock.transform.parent = transform;
         MeshRenderer rend = rock.AddComponent<MeshRenderer>();
         MeshFilter filt = rock.AddComponent<MeshFilter>();
         filt.mesh = MeshMaker.CreateRock();
@@ -298,7 +298,7 @@ public partial class Room: MonoBehaviour
                 RoomTemplate.TileTemplate temp = grid[x,y];
                 Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/ 
                     temp.door ? Color.red : 
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.READ ? debug.wallColor: 
+                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? debug.wallColor: 
                     temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta:
                     temp.wall ? Color.white : debug.floorColor;
                 templateTexture.SetPixel(x, y, color);
@@ -413,6 +413,13 @@ public partial class Room: MonoBehaviour
             {
                 Graphics.DrawMesh(placementSpot, matrix, mat, 0, null, 0, block);
             }
+        }
+    }
+    public void OnReset()
+    {
+        for(int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(transform.GetChild(i).gameObject);
         }
     }
     private void OnDrawGizmos()

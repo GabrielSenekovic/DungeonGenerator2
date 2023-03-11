@@ -39,6 +39,69 @@ public partial class LevelGenerator : MonoBehaviour
     public int southestPoint = 0;
     public Vector2Int sizeOfMap = Vector2Int.zero;
 
+    public void Update()
+    {
+        bool press = false;
+        string instructions = "";
+        if(Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            press = true;
+            //Test outer corner and door
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            press = true;
+            instructions = "S[4,2]";
+            //Test inner corner
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            press = true;
+            instructions = "S[2,1], C[4,1]";
+            //Test both inner and outer corner, without doors
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            press = true;
+            instructions = "S[4,1], S[2,2]";
+            //Test multiple altitudes, with 2 steps apart
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            press = true;
+            instructions = "S[3,2], S[2,4]";
+            //Test multiple altitudes, with 1 step apart (Was previously impossible)
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            press = true;
+            instructions = "S[4,1], C[4,2], S[1,3]";//, W[3,2], W[3,4], W[2,4]";
+            //Test multiple altitudes, with overlap
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha7))
+        {
+            press = true;
+            instructions = "W[8,1]";
+            //Test circle
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha8))
+        {
+            press = true;
+            instructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]";
+            //Test multiple altitudes, with circles
+        }
+        if (press)
+        {
+            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].OnReset();
+            List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
+            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].Initialize(new Vector2Int(20, 20), false, 0, ref templates, false, instructions);
+            templates[0].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].directions);
+            Room.RoomTemplate template = templates[0];
+            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+            Texture2D tex = DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateMaps(ref template);
+        }
+    }
+
     public void GenerateStartArea()
     {
         //Called when not in the level

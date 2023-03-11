@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 public partial class Room:MonoBehaviour
 {
     public class RoomTemplate
@@ -17,7 +18,8 @@ public partial class Room:MonoBehaviour
             {
                 UNREAD,
                 READ,
-                READFIRST
+                FINISHED, //Has been read all the way up
+                READFIRST //The first value of that wall that got read
             }
             public ReadValue read;
 
@@ -75,28 +77,89 @@ public partial class Room:MonoBehaviour
             //In here it will be determined if the room is a circle, if it is a corridor, etc
             Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
             Vector2 wallThickness = new Vector2(UnityEngine.Random.Range(size.x / 2 - 4, size.x / 2), UnityEngine.Random.Range(size.y / 2 - 4, size.y / 2));
-
+            highestElevation = 2;
+            if (instructions == "")
+            {
+                for (int y = 0; y < size.y; y++)
+                {
+                    for (int x = 0; x < size.x; x++)
+                    {
+                        Vector2Int divisions = new Vector2Int(1, 1); //1,1
+                        if (!indoors) { divisions = new Vector2Int(2, 2); }
+                        int elevation = surrounding ? 4 : 0;
+                        positions.Add(new TileTemplate(elevation, divisions));
+                        if (!surrounding)
+                        {
+                            CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
+                            CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 2); //?Basic thickness. Can't be thinner than 2
+                                                                                   //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
+                                                                                   //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
+                                                                                   //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                ParseInstructions(instructions);
+            }
+            //SmoothenOut();
+        }
+        void ParseInstructions(string instructions)
+        {
+            Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
+            List<Action<int, int>> actions = new List<Action<int, int>>(); 
+            for(int i = 0; i < instructions.Length; i++)
+            {
+                switch(instructions[i])
+                {
+                    case 'S': //Create square
+                        i++; //Skip the square bracket
+                        int width = ParseNumber(instructions, ref i);
+                        int elevation = ParseNumber(instructions, ref i);
+                        if(elevation > highestElevation) { highestElevation = elevation; }
+                        actions.Add((x, y) => CreateRoomTemplate_Square(new Vector2(width, width), x, y, elevation));
+                        break;
+                    case 'C': //Create cross
+                        i++;
+                        int width2 = ParseNumber(instructions, ref i);
+                        int elevation2 = ParseNumber(instructions, ref i);
+                        if (elevation2 > highestElevation) { highestElevation = elevation2; }
+                        actions.Add((x, y) => CreateRoomTemplate_Cross(new Vector2(width2, width2), x, y, elevation2));
+                        break;
+                    case 'W': //Create circle
+                        i++;
+                        int width3 = ParseNumber(instructions, ref i);
+                        int elevation3 = ParseNumber(instructions, ref i);
+                        if (elevation3 > highestElevation) { highestElevation = elevation3; }
+                        actions.Add((x, y) => CreateRoomTemplate_Circle(roomCenter, new Vector2(width3, width3), x, y, elevation3));
+                        break;
+                }
+            }
             for (int y = 0; y < size.y; y++)
             {
                 for (int x = 0; x < size.x; x++)
                 {
-                    Vector2Int divisions = new Vector2Int(1, 1); //1,1
-                    if (!indoors) { divisions = new Vector2Int(2, 2); }
-                    int elevation = surrounding ? 4 : 0;
-                    positions.Add(new TileTemplate(elevation, divisions));
-                    highestElevation = 2;
-
-                    if (!surrounding)
+                    for(int i = 0; i < actions.Count; i++)
                     {
-                        CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
-                        CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 2); //?Basic thickness. Can't be thinner than 2
-                        //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
-                        //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
-                        //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
+                        Vector2Int divisions = new Vector2Int(2, 2); //1,1
+                        positions.Add(new TileTemplate(0, divisions));
+                        actions[i](x, y);
                     }
                 }
             }
-            //SmoothenOut();
+        }
+        int ParseNumber(string instructions, ref int index)
+        {
+            string number = "";
+            index++;
+            while (index < instructions.Count() && char.IsDigit(instructions[index]))
+            {
+                number += instructions[index];
+                index++;
+            }
+            int.TryParse(number, out int result);
+            return result;
         }
         void SmoothenOut()
         {
@@ -163,16 +226,18 @@ public partial class Room:MonoBehaviour
                 }
             }
         }
-        void CreateRoomTemplate_Circle(Vector2 center, Vector2 wallThickness, int x, int y)
+        void CreateRoomTemplate_Circle(Vector2 center, Vector2 wallThickness, int x, int y, int elevation)
         {
             float distanceToCenter = new Vector2(x + 0.5f - center.x, y + 0.5f - center.y).magnitude;
-            if (distanceToCenter > wallThickness.x && distanceToCenter > wallThickness.y)
+            if (distanceToCenter > wallThickness.x && 
+                distanceToCenter > wallThickness.y && 
+                elevation > positions[x + (int)size.x * y].elevation)
             {
                 //if the higher limit is 0, then the code just generates a circle, period
-                int temp = UnityEngine.Random.Range(0, 2);
+                int temp = UnityEngine.Random.Range(0, 0);
                 if (temp == 0)
                 {
-                    positions[x + (int)size.x * y].elevation = 4;
+                    positions[x + (int)size.x * y].elevation = elevation;
                 }
             }
         }
@@ -211,7 +276,7 @@ public partial class Room:MonoBehaviour
                 }
             }
             IdentifyWalls();
-            UnscatterWalls();
+            //UnscatterWalls();
             BloatWallCrossings();
         }
         void IdentifyWalls()
@@ -226,8 +291,8 @@ public partial class Room:MonoBehaviour
                     {
                         for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                         {
-                            //If this position has one adjacent position that is a lower elevation from itself, then it is a wall
-                            if (positions[x_w, y_w].elevation < positions[x, y].elevation)
+                            //If this position has one adjacent position that is a higher elevation from itself, then it is a wall
+                            if (positions[x_w, y_w].elevation > positions[x, y].elevation)
                             {
                                 positions[x, y].wall = true;
                             }
@@ -349,26 +414,44 @@ public partial class Room:MonoBehaviour
             // Debug.Log(pos + " <color=red>is not within bounds</color>");
             return false;
         }
-        public Tuple<bool, Vector2Int, int> HasWallNeighbor(Vector2Int pos, int rotation, int currentElevation)
+        public void HasWallNeighbor(Vector2Int pos, int rotation, int currentElevation, out bool hasWallNeighbor, 
+            out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn)
         {
-            //Debug.Log("Checking if position: " + pos + "Has any free neighbors");
-            // Debug.Log("Rotation: " + rotation);
+            /*HasWallNeighbor
+             * 
+             * It checks first the angle of rotation
+             * Then it checks both turning to right or left, if those positions are valid
+             * And if those positions are unread and the correct elevation
+             * Then the direction and rotation gets set and the method is exited
+             * It is also used specifically for turning around
+            */
             Vector2Int direction = Vector2Int.zero;
             bool value = true;
             int rotationDir = 0;
+            higherElevationDirection = new Vector2Int(0, 0);
             if (rotation == 270)
             {
-                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && 
-                    positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.right) && positions[pos.x + 1, -pos.y].elevation > currentElevation)
+                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && 
+                    positions[pos.x + 1, -pos.y].wall && 
+                    positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
+                    positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
+                    )
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = 1;
+                    higherElevationDirection = new Vector2Int(0, -1);
                 }
-                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1, -pos.y].wall && 
-                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.left) && positions[pos.x - 1, -pos.y].elevation > currentElevation)
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && 
+                    positions[pos.x - 1, -pos.y].wall && 
+                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, -pos.y + 1].elevation > currentElevation &&
+                    positions[pos.x - 1, -pos.y + 1].elevation > positions[pos.x - 1, -pos.y].elevation
+                    )
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(0, 1);
                 }
                 else
                 {
@@ -377,17 +460,27 @@ public partial class Room:MonoBehaviour
             }
             else if (rotation == 90)
             {
-                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && positions[pos.x + 1, -pos.y].wall && 
-                    positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.right) && positions[pos.x + 1, -pos.y].elevation > currentElevation)
+                if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && 
+                    positions[pos.x + 1, -pos.y].wall && 
+                    positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
+                    positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
+                    )
                 {
                     direction = new Vector2Int(1, 0);
                     rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(0, -1);
                 }
-                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && positions[pos.x - 1, -pos.y].wall && 
-                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.left) && positions[pos.x - 1, -pos.y].elevation > currentElevation)
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && 
+                    positions[pos.x - 1, -pos.y].wall && 
+                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, -pos.y + 1].elevation > currentElevation &&
+                    positions[pos.x - 1, -pos.y + 1].elevation > positions[pos.x - 1, -pos.y].elevation
+                    )
                 {
                     direction = new Vector2Int(-1, 0);
                     rotationDir = 1;
+                    higherElevationDirection = new Vector2Int(0, 1);
                 }
                 else
                 {
@@ -396,17 +489,27 @@ public partial class Room:MonoBehaviour
             }
             else if (rotation == 180)
             {
-                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x, (-pos.y - 1)].wall && 
-                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.down) && positions[pos.x, (-pos.y - 1)].elevation > currentElevation)
+                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
+                    positions[pos.x, (-pos.y - 1)].wall && 
+                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, (-pos.y - 1)].elevation > currentElevation &&
+                    positions[pos.x - 1, (-pos.y - 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
+                    )
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = 1;
+                    higherElevationDirection = new Vector2Int(-1, 0);
                 }
-                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x, (-pos.y + 1)].wall && 
-                    positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.up) && positions[pos.x, (-pos.y + 1)].elevation > currentElevation)
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && 
+                    positions[pos.x, (-pos.y + 1)].wall && 
+                    positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
+                    positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
+                    )
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(1, 0);
                 }
                 else
                 {
@@ -415,25 +518,36 @@ public partial class Room:MonoBehaviour
             }
             else if (rotation == 0)
             {
-                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && positions[pos.x, (-pos.y - 1)].wall && 
-                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.down) && positions[pos.x, (-pos.y - 1)].elevation > currentElevation)
+                if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && 
+                    positions[pos.x, (-pos.y - 1)].wall && 
+                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, (-pos.y - 1)].elevation > currentElevation &&
+                    positions[pos.x - 1, (-pos.y - 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
+                    )
                 {
                     direction = new Vector2Int(0, -1);
                     rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(-1, 0);
                 }
-                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && positions[pos.x, (-pos.y + 1)].wall && 
-                    positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD && SharesFloor(pos, Vector2Int.up) && positions[pos.x, (-pos.y + 1)].elevation > currentElevation)
+                else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && 
+                    positions[pos.x, (-pos.y + 1)].wall && 
+                    positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
+                    positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y + 1)].elevation
+                    )
                 {
                     direction = new Vector2Int(0, 1);
                     rotationDir = 1;
+                    higherElevationDirection = new Vector2Int(1, 0);
                 }
                 else
                 {
                     value = false;
                 }
             }
-            //Debug.Log("It has a neighbor in this direction: " + direction);
-            return new Tuple<bool, Vector2Int, int>(value, direction, rotationDir);
+            hasWallNeighbor = value;
+            neighborDirection = direction;
+            angleToTurn = rotationDir;
         }
 
         public List<Tuple<List<MeshMaker.WallData>, bool>> ExtractWalls(Entrances entrances)
@@ -444,6 +558,7 @@ public partial class Room:MonoBehaviour
             int currentAngle = 0;
 
             //Make one that works for all purposes
+            int currentElevation = 0;
 
             if (entrances != null && entrances.entrances.Count > 0)
             {
@@ -461,146 +576,152 @@ public partial class Room:MonoBehaviour
 
                     ExtractWalls_GetStartPosition(ref pos, ref currentAngle, entrances.entrances[i]);
                     Debug.Log("I got start position: " + pos);
-                    OnExtractWalls(ref currentAngle, ref pos, ref data);
+                    OnExtractWalls(ref currentAngle, ref pos, ref data, currentElevation);
                     Debug.Log("I got: " + data[data.Count - 1].Item1.Count);
                 }
             }
             // else //If this is a closed room without doors
-            for (int x = 0; x < size.x; x++)
+            while (currentElevation < highestElevation)
             {
-                for (int y = 0; y < size.y; y++)
+                for (int x = 0; x < size.x; x++)
                 {
-                    //Check if there is floor diagonally right down, because walls can only be drawn from left to right
-                    //If there are none, rotate the search three times. If there still are none, then there is an error
-                    if (IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && !positions[x + 1, y + 1].wall
-                        && positions[x, y].wall && positions[x, y].read == TileTemplate.ReadValue.UNREAD
-                        && positions[x, y].elevation > positions[x + 1, y + 1].elevation)
+                    for (int y = 0; y < size.y; y++)
                     {
-                        pos = new Vector2Int(x, -y);
-                        currentAngle = 270;
-                        OnExtractWalls(ref currentAngle, ref pos, ref data);
+                        //Check if there is floor diagonally right down, because walls can only be drawn from left to right
+                        //If there are none, rotate the search three times. If there still are none, then there is an error
+                        bool isUnread = positions[x, y].read == TileTemplate.ReadValue.UNREAD;
+                        bool isNextToWall = positions[x, y - 1].elevation > positions[x, y].elevation;
+                        bool elevationLowerThanCurrent = positions[x, y].elevation <= currentElevation;
+                        if (IsPositionWithinBounds(new Vector2Int(x, -y + 1)) &&
+                            positions[x, y].wall &&
+                            positions[x, y].read == TileTemplate.ReadValue.UNREAD &&
+                            positions[x, y - 1].elevation > positions[x, y].elevation && 
+                            positions[x, y].elevation <= currentElevation)
+                        {
+                            pos = new Vector2Int(x, -y);
+                            currentAngle = 270;
+                            OnExtractWalls(ref currentAngle, ref pos, ref data, currentElevation);
+                        }
                     }
                 }
+                currentElevation++;
+                ResetReadValue(currentElevation);
             }
+            
             return data;
         }
-        void OnExtractWalls(ref int currentAngle, ref Vector2Int pos, ref List<Tuple<List<MeshMaker.WallData>, bool>> data)
+        void OnExtractWalls(ref int currentAngle, ref Vector2Int pos, ref List<Tuple<List<MeshMaker.WallData>, bool>> data, int currentElevation)
         {
             //Find direction to follow
             Tuple<List<MeshMaker.WallData>, bool> wall = new Tuple<List<MeshMaker.WallData>, bool>(new List<MeshMaker.WallData>(), false);
+       
+            HasWallNeighbor(pos, currentAngle, currentElevation, out bool hasWallNeighbor, out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn); //Item2 is the direction to go to
+            Debug.Log("Did I find wall neighbor? " + hasWallNeighbor);
+            currentAngle += 90 * angleToTurn;
+            currentAngle = (int)Math.Mod(currentAngle, 360);
+            positions[pos.x, pos.y].read = TileTemplate.ReadValue.READFIRST;
+            Vector2Int startPosition = pos;
 
-            int currentElevation = 0;
-            while(currentElevation < highestElevation)
+            int safety = 0;
+            while (hasWallNeighbor) //If there is a wall neighbor, proceed
             {
-                Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle, currentElevation); //Item2 is the direction to go to
-                Debug.Log("Did I find wall neighbor? " + returnData.Item1);
-                //Debug.Log("<color=yellow>"+currentAngle+"</color>");
-                //Debug.Log("<color=yellow>"+returnData.Item3+"</color>");
-                currentAngle += 90 * returnData.Item3;
-                currentAngle = (int)Math.Mod(currentAngle, 360);
-                //Debug.Log("<color=yellow>"+currentAngle+"</color>");
-                positions[pos.x, pos.y].read = TileTemplate.ReadValue.READFIRST;
-                Vector2Int startPosition = pos;
-
-                int safety = 0;
-                while (returnData.Item1) //If there is a wall neighbor, proceed
+                safety++;
+                if(safety > 100) 
                 {
-                    safety++;
-                    if(safety > 100) { return; }
-                    startPosition = pos;
-                    //Follow that direction until its empty
-                    int steps = 1;
-                    //Debug.Log("Checking index: " + (pos.x + returnData.Item2.x + size.x * (-pos.y + returnData.Item2.y)));
-                    ExtractWalls_GetSteps(ref pos, ref steps, returnData.Item2, currentAngle, currentElevation);
-
-                    int isThisWallFollowingOuterCorner = 0;
-                    if (returnData.Item3 < 0 && wall.Item1.Count > 0)
-                    {
-                        //If lastWall is less than 0, then this is the following wall after an outer corner, so it must be moved up and shortened
-                        isThisWallFollowingOuterCorner = 1;
-                    }
-                    returnData = HasWallNeighbor(pos, currentAngle, currentElevation);
-                    int isThisWallEndingWithOuterCorner = 0;
-
-                    float roundedness = indoors ? 0 : UnityEngine.Random.Range(0.0f, 1.0f);
-
-                    if (returnData.Item3 < 0)
-                    {
-                        //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
-                        isThisWallEndingWithOuterCorner = 1;
-                        if (!indoors)
-                        {
-                            roundedness = 1.0f;
-                        }
-                    }
-                    else
-                    {
-                        roundedness = 0;
-                    }
-
-                    //Debug.Log("<color=green>Amount of steps: </color>" + steps + " angle: " + currentAngle);
-                    //Only set wrap to true if the last wall ends up adjacent to the first wall
-
-                    //! make one wall curvy but none other
-                    AnimationCurve curve = new AnimationCurve();
-                    /*Keyframe temp = new Keyframe();
-                    temp.time = 0;
-                    temp.value = 0;
-                    temp.inTangent = 1;
-                    curve.AddKey(temp);
-
-                    temp.time = 0.5f;
-                    temp.value = 0.25f;
-                    temp.inTangent = 0;
-                    temp.outTangent = 0;
-
-                    curve.AddKey(temp);
-
-                    temp.time = 1;
-                    temp.value = 0;
-                    curve.AddKey(temp);*/
-                    //! END OF CURVE
-
-                    if (currentAngle == 0)
-                    {
-                        Debug.Log("adding 0 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
-                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
-                    }
-
-                    if (currentAngle == 90)
-                    {
-                        Debug.Log("adding 90 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
-                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
-                    }
-                    if (currentAngle == 180)
-                    {
-                        Debug.Log("adding 180 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1, 0), startPosition,
-                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
-                    }
-                    if (currentAngle == 270)
-                    {
-                        Debug.Log("adding 270 degree wall");
-                        wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
-                        -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
-                    }
-                    //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
-                    currentAngle += 90 * returnData.Item3; //This code can only do inner corners atm, not outer corners
-                    currentAngle = (int)Math.Mod(currentAngle, 360);
+                    Debug.Log("SAFETY YEET");
+                    return; 
                 }
-                // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
-                wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
-                data.Add(wall);
-                //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
-                currentElevation++;
-                ResetReadValue();
+                startPosition = pos;
+                //Follow that direction until its empty
+                int steps = 1;
+                ExtractWalls_GetSteps(ref pos, ref steps, neighborDirection, higherElevationDirection, currentAngle, currentElevation);
+
+                int isThisWallFollowingOuterCorner = 0;
+                if (angleToTurn < 0 && wall.Item1.Count > 0)
+                {
+                    //If lastWall is less than 0, then this is the following wall after an outer corner, so it must be moved up and shortened
+                    isThisWallFollowingOuterCorner = 1;
+                }
+                HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn);
+                int isThisWallEndingWithOuterCorner = 0;
+
+                float roundedness = indoors ? 0 : UnityEngine.Random.Range(0.0f, 1.0f);
+
+                if (angleToTurn < 0)
+                {
+                    //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
+                    isThisWallEndingWithOuterCorner = 1;
+                    if (!indoors)
+                    {
+                        roundedness = 1.0f;
+                    }
+                }
+                else
+                {
+                    roundedness = 0;
+                }
+
+                //Debug.Log("<color=green>Amount of steps: </color>" + steps + " angle: " + currentAngle);
+                //Only set wrap to true if the last wall ends up adjacent to the first wall
+
+                //! make one wall curvy but none other
+                AnimationCurve curve = new AnimationCurve();
+                /*Keyframe temp = new Keyframe();
+                temp.time = 0;
+                temp.value = 0;
+                temp.inTangent = 1;
+                curve.AddKey(temp);
+
+                temp.time = 0.5f;
+                temp.value = 0.25f;
+                temp.inTangent = 0;
+                temp.outTangent = 0;
+
+                curve.AddKey(temp);
+
+                temp.time = 1;
+                temp.value = 0;
+                curve.AddKey(temp);*/
+                //! END OF CURVE
+
+                if (currentAngle == 0)
+                {
+                    Debug.Log("adding 0 degree wall");
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
+                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                }
+
+                if (currentAngle == 90)
+                {
+                    Debug.Log("adding 90 degree wall");
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
+                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                }
+                if (currentAngle == 180)
+                {
+                    Debug.Log("adding 180 degree wall");
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1, 0), startPosition,
+                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                }
+                if (currentAngle == 270)
+                {
+                    Debug.Log("adding 270 degree wall");
+                    wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
+                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                }
+                //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
+                currentAngle += 90 * angleToTurn; //This code can only do inner corners atm, not outer corners
+                currentAngle = (int)Math.Mod(currentAngle, 360);
             }
+            // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
+            wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
+            data.Add(wall);
+            //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
         }
-        void ResetReadValue()
+        void ResetReadValue(int currentElevation)
         {
-            positions.items.ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
+            //Reset all elevations that are the same or lower than currentElevation
+            positions.items.Where(i => i.elevation <= currentElevation && i.read != TileTemplate.ReadValue.FINISHED).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
             //Do this between each elevation
         }
         bool ExtractWalls_DoesWallWrap(List<MeshMaker.WallData> data)
@@ -610,6 +731,10 @@ public partial class Room:MonoBehaviour
 
         void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)
         {
+            /* Get Start Position
+             * 
+             * It takes an entrance and then attempts to make a wall from there
+             */
             //Get the position that is to the left of the given entrance
             if (entrance.dir == new Vector2Int(0, 1)) //north
             {
@@ -660,21 +785,31 @@ public partial class Room:MonoBehaviour
              }*/
             //Debug.Log("The position found to start from, that has a floor next to it: " + pos);
         }
-        void ExtractWalls_GetSteps(ref Vector2Int pos, ref int steps, Vector2Int direction, int currentAngle, int currentElevation)
+        void ExtractWalls_GetSteps(ref Vector2Int pos, ref int steps, Vector2Int direction, Vector2Int directionOfHigherElevation, int currentAngle, int currentElevation)
         {
-            //Check that the next direction is a wall, and also that said position has more than 1 neighbor otherwise you get weird bugs cuz walls try to be built with 0 width
+            /* Get Steps
+             * 
+             * This function is supposed to keep going in a given direction
+             * Checking that each step is the same
+             * 
+             * */
             while (
-                IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && positions[pos.x + direction.x, -pos.y + direction.y].wall &&
-                ExtractWalls_CheckHasEnoughWallsAhead(pos, direction, currentAngle, currentElevation) &&
-                SharesFloor(pos, direction) &&
-                positions[pos.x, -pos.y].elevation > currentElevation
-                //While the position in the next direction is a wall
+                IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && 
+                positions[pos.x + direction.x, -pos.y + direction.y].wall &&
+                positions[pos.x + direction.x, -pos.y + direction.y].elevation <= currentElevation
                 )
             {
                 steps++;
                 pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
                 // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-                positions[pos.x, -pos.y].read = TileTemplate.ReadValue.READ;
+                if(positions[pos.x + directionOfHigherElevation.x, -pos.y + directionOfHigherElevation.y].elevation == currentElevation + 1)
+                {
+                    positions[pos.x, -pos.y].read = TileTemplate.ReadValue.FINISHED;
+                }
+                else
+                {
+                    positions[pos.x, -pos.y].read = TileTemplate.ReadValue.READ;
+                }
             }
         }
         bool SharesFloor(Vector2Int pos, Vector2Int direction)
@@ -718,17 +853,21 @@ public partial class Room:MonoBehaviour
         }
         bool ExtractWalls_CheckHasEnoughWallsAhead(Vector2Int pos, Vector2Int direction, int currentAngle, int currentElevation)
         {
-            if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && !positions[pos.x + direction.x * 2, -pos.y + direction.y * 2].wall)
+            if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x * 2, pos.y - direction.y * 2)) && 
+                positions[pos.x + direction.x * 2, -pos.y + direction.y * 2].wall
+                )
             //Check if the next position after the next isn't a wall, cuz then the next position is the last
             //This if statement runs if the next after the next position is the last
             {
-                Tuple<bool, Vector2Int, int> returnData = HasWallNeighbor(pos, currentAngle, currentElevation); //Check if it's an outer corner, cuz only then should the next check happen
+                HasWallNeighbor(pos, currentAngle, currentElevation, out bool hasWallNeighbor, out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn); 
+                //Check if it's an outer corner, cuz only then should the next check happen
 
-                if (returnData.Item3 == -1)
+                if (angleToTurn == -1) //If is an outer corner
                 {
                     Vector2 temp = (Quaternion.Euler(0, 0, -90) * (Vector2)direction);
                     Vector2Int rotatedDirection = new Vector2Int(Mathf.RoundToInt(temp.x), Mathf.RoundToInt(temp.y));
-                    if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x * 2, pos.y - direction.y - rotatedDirection.y * 2)) && positions[pos.x + direction.x + rotatedDirection.x * 2, -pos.y + direction.y + rotatedDirection.y * 2].wall)
+                    if (IsPositionWithinBounds(new Vector2Int(pos.x + direction.x + rotatedDirection.x * 2, pos.y - direction.y - rotatedDirection.y * 2)) && 
+                        positions[pos.x + direction.x + rotatedDirection.x * 2, -pos.y + direction.y + rotatedDirection.y * 2].wall)
                     //Check if the next position has enough walls in that direction to go that far 
                     {
                         return true;
