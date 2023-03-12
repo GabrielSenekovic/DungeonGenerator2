@@ -19,9 +19,11 @@ public partial class Room:MonoBehaviour
                 UNREAD,
                 READ,
                 FINISHED, //Has been read all the way up
-                READFIRST //The first value of that wall that got read
+                READFIRST, //The first value of that wall that got read
+                READFIRSTFINISHED
             }
             public ReadValue read;
+            public bool error;
 
             public Vector2Int divisions; //This also only does something if the identity is a wall
                                          //If divide into multiple parts, like, three by three quads on one wall tile on outdoor walls for instance. Usually, on indoor walls, its completely flat
@@ -424,6 +426,9 @@ public partial class Room:MonoBehaviour
              * And if those positions are unread and the correct elevation
              * Then the direction and rotation gets set and the method is exited
              * It is also used specifically for turning around
+             * 
+             * On an inner corner (1), don't check the position next to the next for a wall, rather, check the adjacent position of where you are
+             * Othwerwise, if the corner is just one step, it will overshoot, and not make a wall
             */
             Vector2Int direction = Vector2Int.zero;
             bool value = true;
@@ -431,11 +436,15 @@ public partial class Room:MonoBehaviour
             higherElevationDirection = new Vector2Int(0, 0);
             if (rotation == 270)
             {
+                bool bool1 = positions[pos.x + 1, pos.y].wall;
+                bool bool2 = positions[pos.x + 1, pos.y].read == TileTemplate.ReadValue.UNREAD;
+                bool bool3 = positions[pos.x, -pos.y - 1].elevation > currentElevation;
+                bool bool4 = positions[pos.x, -pos.y - 1].elevation > positions[pos.x + 1, pos.y].elevation;
                 if (IsPositionWithinBounds(new Vector2Int(pos.x + 1, pos.y)) && 
-                    positions[pos.x + 1, -pos.y].wall && 
-                    positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
-                    positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
+                    positions[pos.x + 1, pos.y].wall &&
+                    positions[pos.x + 1, pos.y].elevation <= currentElevation &&
+                    positions[pos.x, -pos.y - 1].elevation > currentElevation &&
+                    positions[pos.x, -pos.y - 1].elevation > positions[pos.x + 1, pos.y].elevation
                     )
                 {
                     direction = new Vector2Int(1, 0);
@@ -443,10 +452,10 @@ public partial class Room:MonoBehaviour
                     higherElevationDirection = new Vector2Int(0, -1);
                 }
                 else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && 
-                    positions[pos.x - 1, -pos.y].wall && 
-                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x - 1, -pos.y + 1].elevation > currentElevation &&
-                    positions[pos.x - 1, -pos.y + 1].elevation > positions[pos.x - 1, -pos.y].elevation
+                    positions[pos.x - 1, pos.y].wall && 
+                    positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, pos.y - 1].elevation > currentElevation &&
+                    positions[pos.x - 1, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
                     )
                 {
                     direction = new Vector2Int(-1, 0);
@@ -472,10 +481,10 @@ public partial class Room:MonoBehaviour
                     higherElevationDirection = new Vector2Int(0, -1);
                 }
                 else if (IsPositionWithinBounds(new Vector2Int(pos.x - 1, pos.y)) && 
-                    positions[pos.x - 1, -pos.y].wall && 
-                    positions[pos.x - 1, -pos.y].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x - 1, -pos.y + 1].elevation > currentElevation &&
-                    positions[pos.x - 1, -pos.y + 1].elevation > positions[pos.x - 1, -pos.y].elevation
+                    positions[pos.x - 1, pos.y].wall && 
+                    positions[pos.x - 1, pos.y].elevation <= currentElevation &&
+                    positions[pos.x, pos.y - 1].elevation > currentElevation &&
+                    positions[pos.x, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
                     )
                 {
                     direction = new Vector2Int(-1, 0);
@@ -490,10 +499,11 @@ public partial class Room:MonoBehaviour
             else if (rotation == 180)
             {
                 if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
-                    positions[pos.x, (-pos.y - 1)].wall && 
-                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x - 1, (-pos.y - 1)].elevation > currentElevation &&
-                    positions[pos.x - 1, (-pos.y - 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
+                    positions[pos.x, pos.y + 1].wall &&
+                    positions[pos.x, pos.y + 1].elevation <= currentElevation &&
+                    //positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, pos.y].elevation > currentElevation &&
+                    positions[pos.x - 1, pos.y].elevation > positions[pos.x, pos.y + 1].elevation
                     )
                 {
                     direction = new Vector2Int(0, -1);
@@ -519,10 +529,10 @@ public partial class Room:MonoBehaviour
             else if (rotation == 0)
             {
                 if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y + 1)) && 
-                    positions[pos.x, (-pos.y - 1)].wall && 
-                    positions[pos.x, (-pos.y - 1)].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x - 1, (-pos.y - 1)].elevation > currentElevation &&
-                    positions[pos.x - 1, (-pos.y - 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
+                    positions[pos.x, pos.y + 1].wall && 
+                    positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x - 1, pos.y + 1].elevation > currentElevation &&
+                    positions[pos.x - 1, pos.y + 1].elevation > positions[pos.x, pos.y + 1].elevation
                     )
                 {
                     direction = new Vector2Int(0, -1);
@@ -530,10 +540,11 @@ public partial class Room:MonoBehaviour
                     higherElevationDirection = new Vector2Int(-1, 0);
                 }
                 else if (IsPositionWithinBounds(new Vector2Int(pos.x, pos.y - 1)) && 
-                    positions[pos.x, (-pos.y + 1)].wall && 
-                    positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD && 
-                    positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
-                    positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y + 1)].elevation
+                    positions[pos.x, pos.y - 1].wall &&
+                    positions[pos.x, pos.y - 1].elevation <= currentElevation &&
+                    //positions[pos.x, pos.y - 1].read == TileTemplate.ReadValue.UNREAD && 
+                    positions[pos.x + 1, pos.y].elevation > currentElevation &&
+                    positions[pos.x + 1, pos.y].elevation > positions[pos.x, pos.y].elevation
                     )
                 {
                     direction = new Vector2Int(0, 1);
@@ -544,6 +555,10 @@ public partial class Room:MonoBehaviour
                 {
                     value = false;
                 }
+            }
+            if(!value)
+            {
+                positions[pos.x, pos.y].error = true;
             }
             hasWallNeighbor = value;
             neighborDirection = direction;
@@ -634,6 +649,10 @@ public partial class Room:MonoBehaviour
                 startPosition = pos;
                 //Follow that direction until its empty
                 int steps = 1;
+                if (angleToTurn == -1)
+                {
+                    pos = new Vector2Int(pos.x + neighborDirection.x, pos.y - neighborDirection.y);
+                }
                 ExtractWalls_GetSteps(ref pos, ref steps, neighborDirection, higherElevationDirection, currentAngle, currentElevation);
 
                 int isThisWallFollowingOuterCorner = 0;
@@ -643,14 +662,13 @@ public partial class Room:MonoBehaviour
                     isThisWallFollowingOuterCorner = 1;
                 }
                 HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn);
-                int isThisWallEndingWithOuterCorner = 0;
 
                 float roundedness = indoors ? 0 : UnityEngine.Random.Range(0.0f, 1.0f);
 
                 if (angleToTurn < 0)
                 {
                     //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
-                    isThisWallEndingWithOuterCorner = 1;
+                    steps--;
                     if (!indoors)
                     {
                         roundedness = 1.0f;
@@ -688,30 +706,32 @@ public partial class Room:MonoBehaviour
                 {
                     Debug.Log("adding 0 degree wall");
                     wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
-                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                    -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
                 }
-
                 if (currentAngle == 90)
                 {
                     Debug.Log("adding 90 degree wall");
                     wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
-                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                    -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
                 }
                 if (currentAngle == 180)
                 {
                     Debug.Log("adding 180 degree wall");
                     wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1, 0), startPosition,
-                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                    -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
                 }
                 if (currentAngle == 270)
                 {
                     Debug.Log("adding 270 degree wall");
                     wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
-                    -currentAngle, steps - isThisWallEndingWithOuterCorner - isThisWallFollowingOuterCorner, currentElevation, 0, positions[pos.x + size.x * -pos.y].divisions, curve, roundedness));
+                    -currentAngle, steps , currentElevation, 0, positions[pos].divisions, curve, roundedness));
                 }
                 //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
                 currentAngle += 90 * angleToTurn; //This code can only do inner corners atm, not outer corners
                 currentAngle = (int)Math.Mod(currentAngle, 360);
+                if (positions[pos].read == TileTemplate.ReadValue.READFIRSTFINISHED ||
+                    positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                { break; }
             }
             // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
             wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
@@ -721,7 +741,13 @@ public partial class Room:MonoBehaviour
         void ResetReadValue(int currentElevation)
         {
             //Reset all elevations that are the same or lower than currentElevation
-            positions.items.Where(i => i.elevation <= currentElevation && i.read != TileTemplate.ReadValue.FINISHED).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
+            positions.items.Where(i => i.elevation <= currentElevation &&
+            i.read == TileTemplate.ReadValue.READFIRSTFINISHED
+            ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.FINISHED);
+
+            positions.items.Where(i => i.elevation <= currentElevation && 
+            i.read != TileTemplate.ReadValue.FINISHED
+            ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
             //Do this between each elevation
         }
         bool ExtractWalls_DoesWallWrap(List<MeshMaker.WallData> data)
@@ -795,16 +821,29 @@ public partial class Room:MonoBehaviour
              * */
             while (
                 IsPositionWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) && 
-                positions[pos.x + direction.x, -pos.y + direction.y].wall &&
-                positions[pos.x + direction.x, -pos.y + direction.y].elevation <= currentElevation
+                positions[pos.x + direction.x, pos.y - direction.y].wall &&
+                positions[pos.x + direction.x, pos.y - direction.y].elevation <= currentElevation &&
+                positions[pos.x + directionOfHigherElevation.x, pos.y - directionOfHigherElevation.y].elevation > currentElevation
                 )
             {
                 steps++;
                 pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
                 // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-                if(positions[pos.x + directionOfHigherElevation.x, -pos.y + directionOfHigherElevation.y].elevation == currentElevation + 1)
+                if (positions[pos].read == TileTemplate.ReadValue.READFIRSTFINISHED ||
+                    positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                { 
+                    break; 
+                }
+                if (positions[pos.x + directionOfHigherElevation.x, -pos.y + directionOfHigherElevation.y].elevation == currentElevation + 1)
                 {
-                    positions[pos.x, -pos.y].read = TileTemplate.ReadValue.FINISHED;
+                    if(positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                    {
+                        positions[pos].read = TileTemplate.ReadValue.READFIRSTFINISHED;
+                    }
+                    else
+                    {
+                        positions[pos.x, -pos.y].read = TileTemplate.ReadValue.FINISHED;
+                    }
                 }
                 else
                 {

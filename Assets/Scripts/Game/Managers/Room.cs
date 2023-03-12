@@ -296,10 +296,11 @@ public partial class Room: MonoBehaviour
             for(int y = 0; y < template.size.y; y++)
             {
                 RoomTemplate.TileTemplate temp = grid[x,y];
-                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/ 
-                    temp.door ? Color.red : 
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? debug.wallColor: 
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta:
+                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/
+                    temp.door ? Color.red :
+                    temp.error ? Color.green :
+                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? debug.wallColor :
+                    temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta :
                     temp.wall ? Color.white : debug.floorColor;
                 templateTexture.SetPixel(x, y, color);
             }

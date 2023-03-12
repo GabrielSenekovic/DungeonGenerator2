@@ -70,21 +70,27 @@ public partial class LevelGenerator : MonoBehaviour
         {
             press = true;
             instructions = "S[3,2], S[2,4]";
-            //Test multiple altitudes, with 1 step apart (Was previously impossible)
+            //Test multiple altitudes, with 1 step apart
         }
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
             press = true;
-            instructions = "S[4,1], C[4,2], S[1,3]";//, W[3,2], W[3,4], W[2,4]";
+            instructions = "S[4,1], C[4,2], S[1,3]";
             //Test multiple altitudes, with overlap
         }
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
             press = true;
+            instructions = "S[2,1], C[2,2], S[1,3]";
+            //Test multiple altitudes, with overlap, with 1 step apart
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha8))
+        {
+            press = true;
             instructions = "W[8,1]";
             //Test circle
         }
-        if (Input.GetKeyDown(KeyCode.Alpha8))
+        if (Input.GetKeyDown(KeyCode.Alpha9))
         {
             press = true;
             instructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]";
