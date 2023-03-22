@@ -11,13 +11,13 @@ public class RoomEditor : Editor
         DrawDefaultInspector();
         Room room = (Room)target;
         //GUI.DrawTexture(new Rect(0,0,room.templateDEBUG.width * 30, room.templateDEBUG.height * 30), room.templateDEBUG);
-        if (room.templateTexture)
+        if (room.roomData.templateTexture)
         {
-            RenderTexture("Template", room.templateTexture);
+            RenderTexture("Template", room.roomData.templateTexture);
         }
-        if (room.mapTexture)
+        if (room.roomData.mapTexture)
         {
-            RenderTexture("Map", room.mapTexture);
+            RenderTexture("Map", room.roomData.mapTexture);
         }
         //GUILayout.Label(RenderTexture("Template", room.templateDEBUG));
     }
