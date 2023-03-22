@@ -2,29 +2,6 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
-[System.Serializable]public class RoomData
-{
-    public RoomType m_type = RoomType.NormalRoom;
-    public RoomPosition m_roomPosition = RoomPosition.None;
-    public int stepsAwayFromMainRoom = 0;
-    public bool IsBuilt = false;
-}
-public enum RoomType
-{
-    NormalRoom = 0,
-    AmbushRoom = 1,
-    TreasureRoom = 2, //without puzzle
-    PuzzleRoom = 3, //Solve puzzle to get treasure
-    BossRoom = 4,
-    MiniBossRoom = 5,
-    RestingRoom = 6 //Room where enemies cant spawn, and where you can set up a tent. Sometimes theres a merchant here
-}
-
-public enum RoomPosition
-{
-    None = 0,
-    DeadEnd = 1
-}
 
 //Core code
 public partial class Room: MonoBehaviour
@@ -37,11 +14,6 @@ public partial class Room: MonoBehaviour
     }
     public List<EntranceData> entrances = new List<EntranceData>(); //Save vertices for every single door
 
-    [System.Serializable]public struct RoomDebug 
-    {
-        public Color floorColor;
-        public Color wallColor;
-    }
     public class PlacementGridReference
     {
         public GameObject obj;
@@ -55,61 +27,12 @@ public partial class Room: MonoBehaviour
         }
     }
     public Grid<PlacementGridReference> placementGrid;
-    public Entrances directions;
-
-    public Vector2Int size;
-    public Vector2Int originalPosition; //Used for debugging
 
     public RoomData roomData = new RoomData();
-
-    public RoomDebug debug;
-    public Texture2D templateTexture;
-    public Texture2D mapTexture;
-    public int section;
     public Vegetation grass;
 
     public Vector2 centerPoint; //DEBUGGING
 
-    public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
-    {
-        if(directions == null)
-        {
-            directions = new Entrances(gridPosition, roomSize, (transform.position / 20).ToV2Int());
-        }
-        directions.OpenAllEntrances();
-    }
-    public void Initialize(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding, string instructions = "")
-    {
-        Debug.Log("<color=green>Initializing the Origin Room</color>");
-        //This Initialize() function is for the origin room specifically, as it already has its own position
-        section = section_in;
-        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates, surrounding, instructions);
-        OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
-    }
-
-    public void Initialize(Vector2Int location, Vector2Int roomSize,  bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
-    {
-        DebugLog.AddToMessage("Step", "Initializing with size: " + roomSize);
-        //Location here only refers to the gridposition where it connects to its origin room. If it has expanded, we want the transform.position to be the upper left corner
-        //That is to say, if size is positive (doesnt point down or right), then it should be pushed by its size
-        transform.position = new Vector2(Mathf.Sign(roomSize.x) == 1 ? location.x: location.x + roomSize.x + 20, Mathf.Sign(roomSize.y) == 1 ? location.y + roomSize.y - 20: location.y);
-        section = section_in;
-        OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
-    }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding, string instructions = "") 
-    {
-        size = roomSize;
-        directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
-        Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
-        RoomTemplate template = new RoomTemplate(absSize, indoors, surrounding, instructions);
-        templates.Add(template);
-    }
-    public Texture2D CreateMaps(ref RoomTemplate template)
-    {
-        mapTexture = template.CreateMap();
-        SaveTemplateTexture(template);
-        return mapTexture;
-    }
     public void CreateRoom(ref RoomTemplate template, Material floorMaterial_in)
     {
         Color color = new Color32((byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220), 255);
@@ -123,7 +46,7 @@ public partial class Room: MonoBehaviour
     private void Update() 
     {
         if(!grass){return;}
-        Vector2 radius = new Vector2(Mathf.Abs(size.x) / 2, -Mathf.Abs(size.y) / 2);
+        Vector2 radius = new Vector2(Mathf.Abs(roomData.size.x) / 2, -Mathf.Abs(roomData.size.y) / 2);
         centerPoint = transform.position - new Vector3(10,-10, 0) + (Vector3)radius; //10,10 to make the position the corner and then push it to the middle'
         //These variables are for the frustum culling. But I havent gotten those to work yet
 
@@ -245,55 +168,14 @@ public partial class Room: MonoBehaviour
         }
     }
 
-    void SaveTemplateTexture(RoomTemplate template)
-    {
-        templateTexture = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
-        Grid<RoomTemplate.TileTemplate> grid = template.positions.FlipVertically();
-
-        for(int x = 0; x < template.size.x; x++)
-        {
-            for(int y = 0; y < template.size.y; y++)
-            {
-                RoomTemplate.TileTemplate temp = grid[x,y];
-                Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/
-                    temp.door ? Color.red :
-                    temp.error ? Color.green :
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? debug.wallColor :
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta :
-                    temp.wall ? Color.white : debug.floorColor;
-                templateTexture.SetPixel(x, y, color);
-            }
-        }
-        templateTexture.Apply();
-        templateTexture.filterMode = FilterMode.Point;
-    }
-
     public Vector2 GetCameraBoundaries()
     {
-        return size;
+        return roomData.size;
     }
 
     public RoomPosition GetRoomPositionType()
     {
-        return roomData.m_roomPosition;
-    }
-
-    public Entrances GetDirections()
-    {
-        return directions;
-    }
-    public List<Entrances.Entrance> GetEntrances(bool open, bool spawned)
-    {
-        DebugLog.AddToMessage("Substep", "Getting open unspawned entrances");
-        List<Entrances.Entrance> openEntrances = new List<Entrances.Entrance>{};
-        foreach(Entrances.Entrance entrance in directions.entrances)
-        {
-            if (open == entrance.open && spawned == entrance.spawned) //open !spawned
-            {
-                openEntrances.Add(entrance);
-            }
-        }
-        return openEntrances;
+        return roomData.roomPosition;
     }
 
     bool GetIsEndRoom()
@@ -301,8 +183,8 @@ public partial class Room: MonoBehaviour
         //This gets if the room is an endroom. However, this could be set by having the rooms be endrooms when they spawn, unless they get linked
         //And then set rooms being spawned from as no longer being endrooms
         List<Entrances.Entrance> entrances = new List<Entrances.Entrance> { };
-        if(directions == null){return false;}
-        foreach(Entrances.Entrance entrance in directions.entrances)
+        if(roomData.GetDirections() == null){return false;}
+        foreach(Entrances.Entrance entrance in roomData.GetDirections().entrances)
         {
             if(entrance.spawned == true && entrance.open == true)
             {
@@ -311,43 +193,6 @@ public partial class Room: MonoBehaviour
         }
         return entrances.Count == 1;
     } 
-
-    public void ChooseRoomType(LevelData data)
-    {
-        List<RoomType> probabilityList = new List<RoomType> { }; //A list of roomtypes to choose between
-        List<RoomType> roomsToCheck = new List<RoomType>{RoomType.AmbushRoom, RoomType.TreasureRoom, RoomType.RestingRoom, RoomType.NormalRoom}; //A list of roomtypes to check the probability of
-
-        if (GetIsEndRoom())
-        {
-            roomData.m_roomPosition = RoomPosition.DeadEnd;
-            probabilityList.Add(RoomType.TreasureRoom);
-            probabilityList.Add(RoomType.AmbushRoom);
-        }
-        else
-        {
-            for(int i = 0; i < roomsToCheck.Count; i++)
-            {
-                for(int j = 0; j < data.GetRoomProbability(roomsToCheck[i]); j++)
-                {
-                    probabilityList.Add(roomsToCheck[i]);
-                }
-            }
-            if (roomData.stepsAwayFromMainRoom > 5)
-            {
-                probabilityList.Add(RoomType.MiniBossRoom);
-                probabilityList.Add(RoomType.AmbushRoom);
-            }
-        }
-        roomData.m_type = probabilityList[UnityEngine.Random.Range(0, probabilityList.Count)];
-    }
-    public void SetRoomType(RoomType newType)
-    {
-        roomData.m_type = newType;
-    }
-    public RoomType GetRoomType()
-    {
-        return roomData.m_type;
-    }
     public void DisplayDistance()
     {
         //GetComponentInChildren<Number>().OnDisplayNumber(roomData.stepsAwayFromMainRoom);
@@ -385,7 +230,7 @@ public partial class Room: MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.magenta;
-        Vector2 radius = new Vector2(Mathf.Abs(size.x) / 2, -Mathf.Abs(size.y) / 2);
+        Vector2 radius = new Vector2(Mathf.Abs(roomData.size.x) / 2, -Mathf.Abs(roomData.size.y) / 2);
         Gizmos.DrawWireSphere(centerPoint, radius.magnitude);
     }
 }

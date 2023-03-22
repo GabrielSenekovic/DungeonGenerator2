@@ -48,7 +48,7 @@ public class MeshBatchRenderer : MonoBehaviour
     //Move code from Grass.cs to here, so that other scripts can use it
     public static void CreateBatches(Vegetation vegetation, Room room)
     {
-        vegetation.tiles = new Grid<Vegetation.GrassTile>(room.size); vegetation.tiles.Init();
+        vegetation.tiles = new Grid<Vegetation.GrassTile>(room.roomData.size); vegetation.tiles.Init();
         OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip"), 0.1f);
         OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Poppy"), 0.1f);
         OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass"), 1000);

@@ -46,6 +46,11 @@ public class CommandBox : MonoBehaviour
             case "FillInventory" :
                 Party.instance.inventory.FillInventoryWithRandomItems();
             break;
+            case "Generate":
+                if (partsOfCommand.Length == 1) { return; }
+                int.TryParse(partsOfCommand[1], out int result);
+                FindObjectOfType<LevelGenerator>().GenerateFromCommand(result);
+            break;
             case "Give" :
                 if(partsOfCommand.Length == 1){return;}
                 if(partsOfCommand[1] == "Key")

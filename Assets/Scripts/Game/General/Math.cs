@@ -27,6 +27,14 @@ public class Math : MonoBehaviour
             new Vector2Int( 1, 1 ),
             new Vector2Int( 1, -1 ),
             new Vector2Int( -1, -1 ) };
+    public static Vector2Int[] directions = new Vector2Int[4]{
+            new Vector2Int(-1, 0),
+            new Vector2Int( 1, 0),
+            new Vector2Int( 0, -1 ),
+            new Vector2Int( 0, 1 ) };
+    public static Vector2Int[] XY = new Vector2Int[2]{
+            new Vector2Int(1, 0),
+            new Vector2Int(0, 1)};
     //1/limit * x^exponent / limit^exponent
     //The x^exponent determines the curve
     //The limit^exponent only brings it down so that when x is limit, y is one

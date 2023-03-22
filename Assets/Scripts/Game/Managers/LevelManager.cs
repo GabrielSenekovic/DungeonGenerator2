@@ -70,13 +70,27 @@ public enum Mood
     [System.Serializable]public struct RoomGridEntry
     {
         public Vector2Int position;
-        public Room room;
-        public RoomGridEntry(Vector2Int position_in, Room room_in)
+        public RoomData roomData;
+        Room room;
+        public RoomGridEntry(Vector2Int position, RoomData roomData)
         {
-            position = position_in; room = room_in;
+            this.position = position; 
+            this.roomData = roomData;
+            room = null;
         }
+        public void SetRoom(Room room)
+        {
+            this.room = room;
+        }
+        public Room GetRoom() => room;
     }
-    [System.Serializable]public class Section
+    [System.Serializable]public class SectionData //Used only for generation
+    {
+        public List<RoomData> rooms = new List<RoomData>();
+    }
+    public List<SectionData> sectionData = new List<SectionData>();
+    [System.Serializable]
+    public class Section //For the instantiated version
     {
         public List<Room> rooms = new List<Room>();
     }
@@ -94,28 +108,6 @@ public enum Mood
     public Mood GetMood(int i)
     {
         return mood[i];
-    }
-
-    public float GetFullRoomProbabilityPercentage()
-    {
-        //Debug.Log("Full probability: " + (m_treasureRoomProbability + m_normalRoomProbability + m_safeRoomProbability + m_ambushRoomProbability));
-        return treasureRoomProbability + normalRoomProbability + restingRoomProbability + ambushRoomProbability;
-    }
-
-    public float GetRoomProbability(RoomType type)
-    {
-        switch(type)
-        {
-            case RoomType.NormalRoom: return normalRoomProbability;
-            case RoomType.AmbushRoom: return ambushRoomProbability;
-            case RoomType.TreasureRoom: return treasureRoomProbability;
-            case RoomType.RestingRoom: return restingRoomProbability;
-            default: return 0;
-        }
-    }
-    public float GetRoomPercentage(RoomType type)
-    {
-        return (int)(GetRoomProbability(type)/GetFullRoomProbabilityPercentage()*100);
     }
 }
 
@@ -335,8 +327,8 @@ public class LevelManager : MonoBehaviour
         generator.GenerateLevel(this, ref levelData.templates);
         generator.PutDownQuestObjects(this, questData);
 
-        currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
-        CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.size.y + 20, firstRoom.transform.position.y));
+        currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
+        CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.roomData.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.roomData.size.y + 20, firstRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
 
@@ -369,10 +361,10 @@ public class LevelManager : MonoBehaviour
 
             if (CameraMovement.Instance.MoveCamera(new Vector3(newPos.x, newPos.y, CameraMovement.GetRotationObject().transform.position.z), prevPos.ToV3()))
             {
-                CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x,currentRoom.transform.position.x + Mathf.Abs(currentRoom.size.x) - 20) , 
-                new Vector2(currentRoom.transform.position.y - Mathf.Abs(currentRoom.size.y) + 20, currentRoom.transform.position.y));
+                CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x,currentRoom.transform.position.x + Mathf.Abs(currentRoom.roomData.size.x) - 20) , 
+                new Vector2(currentRoom.transform.position.y - Mathf.Abs(currentRoom.roomData.size.y) + 20, currentRoom.transform.position.y));
                // previousRoom.gameObject.SetActive(false);
-                UIManager.Instance.miniMap.SwitchMap(currentRoom.mapTexture);
+                UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
             }
         }
 
@@ -380,7 +372,7 @@ public class LevelManager : MonoBehaviour
     bool CheckIfChangeRoom()
     {
         Vector2Int playerGridPos = (party.GetPartyLeader().transform.position / 20f).ToV2Int();
-        if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + (Mathf.Abs(currentRoom.size.x) - 10))
+        if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + (Mathf.Abs(currentRoom.roomData.size.x) - 10))
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
@@ -401,7 +393,7 @@ public class LevelManager : MonoBehaviour
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - (Mathf.Abs(currentRoom.size.y) - 10))
+        else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - (Mathf.Abs(currentRoom.roomData.size.y) - 10))
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);

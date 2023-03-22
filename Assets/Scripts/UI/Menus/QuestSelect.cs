@@ -54,7 +54,7 @@ public class QuestSelect : MonoBehaviour
             generator.GenerateTemplates(levels[levels.Count - 1], new Vector2Int(20,20), levels[levels.Count - 1].amountOfRoomsCap, levels[levels.Count - 1].amountOfSections);
             levels[levels.Count - 1].templates = levels[levels.Count - 1].templates;
             levels[levels.Count - 1].roomGrid = new List<LevelData.RoomGridEntry>(levels[levels.Count - 1].roomGrid);
-            levels[levels.Count - 1].sections = new List<LevelData.Section>(levels[levels.Count - 1].sections);
+            levels[levels.Count - 1].sectionData = new List<LevelData.SectionData>(levels[levels.Count - 1].sectionData);
             levels[levels.Count - 1].map = generator.map;
             quests.Add(QuestDataGenerator.Initialize(seeds[i].questSeed));
         }
