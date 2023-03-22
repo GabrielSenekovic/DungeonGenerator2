@@ -49,9 +49,9 @@ public class MeshBatchRenderer : MonoBehaviour
     public static void CreateBatches(Vegetation vegetation, Room room)
     {
         vegetation.tiles = new Grid<Vegetation.GrassTile>(room.roomData.size); vegetation.tiles.Init();
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip"), 0.1f);
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Poppy"), 0.1f);
-        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass"), 1000);
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Tulip", ""), 0.1f);
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Poppy", ""), 0.1f);
+        OnCreateBatches(vegetation, room, database.GetDatabaseEntry("Grass", ""), 1000);
     }
     public static void OnCreateBatches(Vegetation vegetation, Room room, EntityDatabase.DatabaseEntry databaseEntry, float density)
     {

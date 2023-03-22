@@ -192,29 +192,75 @@ public partial class Room: MonoBehaviour
             }
         }
         return entrances.Count == 1;
-    } 
+    }
+    public bool RequestPositionFromWorldSpace(Vector2 pos, Vector2Int size)
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+        pos *= 2;
+        Vector2Int posInt = new Vector2Int((int)pos.x + 1, (int)pos.y + 1);
+        //Transform pos from worldspace to the gridspace, which is about twice as big
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                positions.Add(new Vector2Int(posInt.x + x, posInt.y + y));
+                if (!placementGrid.IsWithinBounds(posInt.x + x, -posInt.y + y) ||
+                    placementGrid[posInt.x + x, posInt.y + y].occupied ||
+                    placementGrid[posInt.x + x, posInt.y + y].elevation != placementGrid[posInt].elevation)
+                {
+                    //!if adjacent position is occupied or if the adjacent elevation is different
+                    //!then this position is bad, continue while loop
+                    positions.Clear();
+                }
+            }
+        }
+        for (int i = 0; i < positions.Count; i++)
+        {
+            placementGrid[positions[i]].occupied = true;
+        }
+        return positions.Count > 0;
+    }
     public void DisplayDistance()
     {
         //GetComponentInChildren<Number>().OnDisplayNumber(roomData.stepsAwayFromMainRoom);
     }
-    public void RenderPlacementGrid(Mesh placementSpot, Material mat)
+    public Color GetColorForRenderPlacementGrid(int i, LevelManager.PlacementRenderMode mode)
     {
-        for(int i = 0; i < placementGrid.items.Count; i++)
+        if (placementGrid[i].occupied)
+        {
+            if (mode == LevelManager.PlacementRenderMode.BUILD)
+            {
+                return Color.red;
+            }
+            else
+            {
+                return Color.black;
+            }
+        }
+        else if (mode == LevelManager.PlacementRenderMode.POSITION)
+        {
+            return Color.yellow;
+        }
+        return Color.green;
+    }
+    public void RenderPlacementGrid(Mesh placementSpot, Material mat, LevelManager.PlacementRenderMode mode)
+    {
+        for (int i = 0; i < placementGrid.items.Count; i++)
         {
             MaterialPropertyBlock block = new MaterialPropertyBlock();
-            block.SetColor("_Occupied", placementGrid[i].occupied ? Color.red : Color.green);
+            block.SetColor("_Occupied", GetColorForRenderPlacementGrid(i, mode));
             Vector3 position = placementGrid.Position(i); //This will get the grid position of the index, not the actual real world position
             //use drawmesh this time for convenience sake
 
             position += new Vector3(1f / 4f, 1f / 4f, 0);
 
-            position = new Vector3(position.x / 2, -position.y / 2, -placementGrid[i].elevation - 0.5f) + transform.position + new Vector3(- 10, 10, 0);
+            position = new Vector3(position.x / 2, -position.y / 2, -placementGrid[i].elevation - 0.5f) + transform.position + new Vector3(-10, 10, 0);
 
-            Matrix4x4 matrix = Matrix4x4.TRS(position, Quaternion.identity, new Vector3(1f / 4f, 1f/4f, 1));
+            Matrix4x4 matrix = Matrix4x4.TRS(position, Quaternion.identity, new Vector3(1f / 4f, 1f / 4f, 1));
 
             Vector3 screenPos = Camera.main.WorldToScreenPoint(position);
 
-            if(screenPos.x > 0 && screenPos.x < Camera.main.pixelWidth && screenPos.y > 0 && screenPos.y < Camera.main.pixelHeight)
+            if (screenPos.x > 0 && screenPos.x < Camera.main.pixelWidth && screenPos.y > 0 && screenPos.y < Camera.main.pixelHeight)
             {
                 Graphics.DrawMesh(placementSpot, matrix, mat, 0, null, 0, block);
             }
