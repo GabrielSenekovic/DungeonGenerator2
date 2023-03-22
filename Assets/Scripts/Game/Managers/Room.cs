@@ -99,11 +99,9 @@ public partial class Room: MonoBehaviour
     void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding, string instructions = "") 
     {
         size = roomSize;
-        //directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
-        //Build wall meshes all around the start area in a 30 x 30 square
+        directions = new Entrances(gridPosition, roomSize / 20, transform.position.ToV2Int());
         Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
         RoomTemplate template = new RoomTemplate(absSize, indoors, surrounding, instructions);
-        //CreateRoom(template, wallMaterial, floorMaterial);
         templates.Add(template);
     }
     public Texture2D CreateMaps(ref RoomTemplate template)
@@ -112,53 +110,14 @@ public partial class Room: MonoBehaviour
         SaveTemplateTexture(template);
         return mapTexture;
     }
-    public void CreateRoom(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in)
+    public void CreateRoom(ref RoomTemplate template, Material floorMaterial_in)
     {
-        //This shouldn't actually get called until the doors have all been finalized, which is only when the whole dungeon is done
-        //So this should not get called in OnInitialize!!
         Color color = new Color32((byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220),(byte)UnityEngine.Random.Range(125, 220), 255);
-        Material wallMaterial = new Material(wallMaterial_in.shader);
-        wallMaterial.CopyPropertiesFromMaterial(wallMaterial_in);
-        Material floorMaterial = new Material(floorMaterial_in.shader);
-        floorMaterial.CopyPropertiesFromMaterial(floorMaterial_in);
-        if(template.indoors)
-        {
-            wallMaterial.mainTexture = floorMaterial_in.mainTexture;
-            wallMaterial.color = color + Color.white / 10;
-            floorMaterial.color = color;
-        }
-        else
-        {
-            floorMaterial.SetTexture("_BaseMap", Resources.Load<Texture>("Art/Earth"));
-        }
-        CreateWalls(template, wallMaterial);
-        CreateFloor(template, floorMaterial);
+        Material furnitureMaterial = new Material(floorMaterial_in.shader);
+        furnitureMaterial.CopyPropertiesFromMaterial(floorMaterial_in);
+        furnitureMaterial.color = color;
         SavePlacementGrid(template);
-        Furnish(floorMaterial);
-    }
-    void CreateWalls(RoomTemplate template, Material wallMaterial)
-    {
-        DebugLog.AddToMessage("Substep", "Creating walls");
-        List<Tuple<List<MeshMaker.WallData>, bool>> data = template.ExtractWalls(directions);
-       // Debug.Log("Data size: " + data.Count);
-
-        for(int i = 0; i < data.Count; i++)
-        {
-            GameObject wallObject = new GameObject("Wall");
-            wallObject.transform.parent = gameObject.transform;
-            MeshMaker.CreateWall(wallObject, wallMaterial, data[i].Item1, data[i].Item2, template.positions);
-            wallObject.transform.localPosition = new Vector3(-9.5f, 10, 0);
-        }
-    }
-    void CreateFloor(RoomTemplate template, Material floorMaterial)
-    {
-        DebugLog.AddToMessage("Substep", "Creating floor");
-        GameObject floorObject = new GameObject("Floor");
-        floorObject.transform.parent = gameObject.transform;
-
-
-        MeshMaker.CreateSurface(template.ExtractFloor(), floorObject.transform, floorMaterial);
-        floorObject.transform.localPosition = new Vector3(- 10, 10, 0);
+        Furnish(furnitureMaterial);
     }
 
     private void Update() 

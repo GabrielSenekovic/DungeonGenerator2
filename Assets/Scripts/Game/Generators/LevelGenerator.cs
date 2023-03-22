@@ -98,26 +98,30 @@ public partial class LevelGenerator : MonoBehaviour
         }
         if (press)
         {
-            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].OnReset();
-            List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
-            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].Initialize(new Vector2Int(20, 20), false, 0, ref templates, false, instructions);
-            templates[0].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].directions);
-            Room.RoomTemplate template = templates[0];
-            DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
-            Texture2D tex = DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateMaps(ref template);
+            OnGenerateOneRoom(true, instructions);
         }
+    }
+    public void OnGenerateOneRoom(bool withEntrances, string instructions = "")
+    {
+        LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
+        currentLevel.sections[0].rooms[0].OnReset();
+        List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
+        currentLevel.sections[0].rooms[0].Initialize(new Vector2Int(20, 20), false, 0, ref templates, false, instructions);
+        if(withEntrances)
+        {
+            currentLevel.sections[0].rooms[0].directions.ActivateAllEntrances();
+        }
+        templates[0].AddEntrancesToRoom(currentLevel.sections[0].rooms[0].directions);
+        Room.RoomTemplate template = templates[0];
+        RoomTemplateReader reader = new RoomTemplateReader(template, currentLevel.sections[0].rooms[0].transform);
+        reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), currentLevel.sections[0].rooms[0].directions);
+        currentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
+        Texture2D tex = currentLevel.sections[0].rooms[0].CreateMaps(ref template);
     }
 
     public void GenerateStartArea()
     {
-        //Called when not in the level
-
-        List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
-        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].Initialize(new Vector2Int(20,20), false, 0, ref templates, false);
-        templates[0].AddEntrancesToRoom(DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].directions);
-        Room.RoomTemplate template = templates[0];
-        DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
-        Texture2D tex = DunGenes.Instance.gameData.CurrentLevel.sections[0].rooms[0].CreateMaps(ref template);
+        OnGenerateOneRoom(false);
         //Surround this one room with floors
         /*GameObject surroundings = new GameObject("Surroundings");
         surroundings.transform.parent = this.gameObject.transform;
@@ -334,24 +338,26 @@ public partial class LevelGenerator : MonoBehaviour
                 Vector2Int currentRoomSize = new Vector2Int(5,5);
                 
                 Tuple<Room, List<Room.Entrances.Entrance>> originRoom = new Tuple<Room, List<Room.Entrances.Entrance>>(new Room(), new List<Room.Entrances.Entrance>(){});
-                try
+
+                if(j != 0) //If not the first room every section, find a room to originate from
                 {
-                    if(j != 0) //If not the first room every section, find a room to originate from
+                    originRoom = GetRandomRoomOfSection(i, data, true, false); 
+                    if(originRoom == null) //! If there are no open entrances in any room, break and start the next section
                     {
-                        originRoom = GetRandomRoomOfSection(i, data, true, false); //! If there are no open entrances in any room, the catch will be executed
-                        DebugLog.AddToMessage("Spawning from", originRoom.Item1.transform.position.ToString());
+                        break;
                     }
-                    else if(i != 0) //And if not the first room of the first section, its the first room of the current section. Get a room to originate from
-                    {
-                        //Gets any random room to spawn from. This is good for optional routes or for key item routes
-                        List<Tuple<Room, List<Room.Entrances.Entrance>>> roomsWithAvailableDoors = GetRooms(data, false, false);
-                        originRoom = roomsWithAvailableDoors[UnityEngine.Random.Range(0, roomsWithAvailableDoors.Count)];
-                        //Gets the last room of last section. This is good for linear progression through dungeon
-                        // originRoom = new Tuple<Room, List<Room.Entrances.Entrance>> (data.sections[i-1].rooms[data.sections[i-1].rooms.Count - 1], 
-                        //data.sections[i-1].rooms[data.sections[i-1].rooms.Count - 1].directions.entrances);
-                        OpenAvailableEntrances(originRoom.Item1, data);
-                    }
-                }catch{DebugLog.TerminateMessage("Could no longer spawn new rooms"); throw new Exception();}
+                    DebugLog.AddToMessage("Spawning from", originRoom.Item1.transform.position.ToString());
+                }
+                else if(i != 0) //And if not the first room of the first section, its the first room of the current section. Get a room to originate from
+                {
+                    //Gets any random room to spawn from. This is good for optional routes or for key item routes
+                    List<Tuple<Room, List<Room.Entrances.Entrance>>> roomsWithAvailableDoors = GetRooms(data, false, false);
+                    originRoom = roomsWithAvailableDoors[UnityEngine.Random.Range(0, roomsWithAvailableDoors.Count)];
+                    //Gets the last room of last section. This is good for linear progression through dungeon
+                    // originRoom = new Tuple<Room, List<Room.Entrances.Entrance>> (data.sections[i-1].rooms[data.sections[i-1].rooms.Count - 1], 
+                    //data.sections[i-1].rooms[data.sections[i-1].rooms.Count - 1].directions.entrances);
+                    OpenAvailableEntrances(originRoom.Item1, data);
+                }
 
                 data.sections[i].rooms.Add(Instantiate(RoomPrefab, transform));
                 data.sections[i].rooms[j].name = "Room #" + (numberOfRooms+1); numberOfRooms++;
@@ -458,7 +464,9 @@ public partial class LevelGenerator : MonoBehaviour
             {
                 DebugLog.AddToMessage("Generating", DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].name);
                 Room.RoomTemplate template = templates[count];
-                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+                RoomTemplateReader reader = new RoomTemplateReader(template, DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform);
+                reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].directions);
+                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
                 SaveWallVertices(ref templates, template, DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j], DunGenes.Instance.gameData.CurrentLevel);
                 count++;
                 DebugLog.PublishMessage();
@@ -467,10 +475,10 @@ public partial class LevelGenerator : MonoBehaviour
         for(int i = 0; i < surroundingPositions.Count; i++)
         {
             Room.RoomTemplate template = templates[count];
-            surroundingPositions[i].Item2.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+            surroundingPositions[i].Item2.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
             count++;
         }
-        PlantFlora(ref templates);
+        //PlantFlora(ref templates);
     }
     void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin, LevelData data)
     {
@@ -832,7 +840,11 @@ public partial class LevelGenerator : MonoBehaviour
         DebugLog.AddToMessage("Rooms with open doors", roomsWithOpenDoors.Count.ToString());
         //! if rooms with open doors is empty, this will cause an error
         //! this will only happen if no rooms have open doors
-        return roomsWithOpenDoors[UnityEngine.Random.Range(0, roomsWithOpenDoors.Count - 1)];
+        if(roomsWithOpenDoors.Count > 0)
+        {
+            return roomsWithOpenDoors[UnityEngine.Random.Range(0, roomsWithOpenDoors.Count - 1)];
+        }
+        return null;
     }
 
     public List<Tuple<Vector2Int, Room>> GetAllConnectingRooms(Room origin, LevelData data)

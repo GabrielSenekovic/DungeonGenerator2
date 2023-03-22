@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 public partial class Room: MonoBehaviour
 {
     [System.Serializable]
@@ -200,10 +201,11 @@ public partial class Room: MonoBehaviour
         }
         public void OpenAllEntrances()
         {
-            for (int i = 0; i < entrances.Count; i++)
-            {
-                entrances[i].SetOpen(true);
-            }
+            entrances.ForEach(e => { e.SetOpen(true); });
+        }
+        public void ActivateAllEntrances()
+        {
+            entrances.ForEach(e => { e.Activate(); });
         }
         public Tuple<bool, Entrance> GetEntrance(Vector2Int gridPosition, Vector2Int direction)
         {
