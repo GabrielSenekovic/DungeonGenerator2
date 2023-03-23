@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
+
+using Random = UnityEngine.Random;
+using RoomTemplate = Room.RoomTemplate;
+using SectionData = LevelData.SectionData;
+using Section = LevelData.Section;
 
 public partial class LevelGenerator : MonoBehaviour
 {
@@ -75,15 +81,27 @@ public partial class LevelGenerator : MonoBehaviour
         //Then build the rooms
         //This is where the templates list should end. It is not needed after this
         int count = 0;
-        for (int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sectionData.Count; i++)
+        LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
+        for (int i = 0; i < currentLevel.sectionData.Count; i++)
         {
-            for (int j = 0; j < DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms.Count; j++)
+            currentLevel.sections.Add(new Section());
+            for (int j = 0; j < currentLevel.sectionData[i].rooms.Count; j++)
             {
-                DebugLog.AddToMessage("Generating", DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j].name);
-                Room.RoomTemplate template = templates[count];
-                RoomTemplateReader reader = new RoomTemplateReader(template, DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].transform);
-                reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j].GetDirections());
-                DunGenes.Instance.gameData.CurrentLevel.sections[i].rooms[j].CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
+                Room newRoom = Instantiate(RoomPrefab, transform);
+                RoomData roomData = currentLevel.sectionData[i].rooms[j];
+
+                newRoom.name = roomData.name;
+                newRoom.roomData = roomData;
+                newRoom.transform.position = roomData.position;
+                currentLevel.sections[i].rooms.Add(newRoom);
+                DebugLog.AddToMessage("Generating", roomData.name);
+
+                List<LevelData.RoomGridEntry> entries = currentLevel.roomGrid.Where(e => e.roomData.originalPosition == roomData.originalPosition).ToList();
+                entries.ForEach(e => e.SetRoom(newRoom));
+                RoomTemplate template = templates[count];
+                RoomTemplateReader reader = new RoomTemplateReader(template, newRoom.transform);
+                reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), roomData.GetDirections());
+                newRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
                 //SaveWallVertices(ref templates, template, DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j], DunGenes.Instance.gameData.CurrentLevel);
                 count++;
                 DebugLog.PublishMessage();
@@ -91,7 +109,7 @@ public partial class LevelGenerator : MonoBehaviour
         }
         for (int i = 0; i < surroundingPositions.Count; i++)
         {
-            Room.RoomTemplate template = templates[count];
+            RoomTemplate template = templates[count];
             surroundingPositions[i].Item2.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
             count++;
         }

@@ -67,7 +67,7 @@ public enum Mood
     public bool mushroom = false;
     public bool crystal = false;
 
-    [System.Serializable]public struct RoomGridEntry
+    [System.Serializable]public class RoomGridEntry
     {
         public Vector2Int position;
         public RoomData roomData;

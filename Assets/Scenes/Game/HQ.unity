@@ -648,6 +648,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 621374489, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
+      propertyPath: TimeOfDay
+      value: 13.2
+      objectReference: {fileID: 0}
     - target: {fileID: 708863037, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
       propertyPath: text
       value: 

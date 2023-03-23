@@ -5,6 +5,11 @@ using System;
 using System.Linq;
 
 using Random = UnityEngine.Random;
+using RoomTemplate = Room.RoomTemplate;
+using SectionData = LevelData.SectionData;
+using UnityEngine.UIElements;
+using System.Drawing;
+using Color = UnityEngine.Color;
 
 public partial class LevelGenerator : MonoBehaviour
 {
@@ -68,14 +73,16 @@ public partial class LevelGenerator : MonoBehaviour
     {
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
         currentLevel.sections[0].rooms[0].OnReset();
-        List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
-        currentLevel.sectionData[0].rooms[0].Initialise(new Vector2Int(20, 20), false, 0, ref templates, false, instructions);
+        List<RoomTemplate> templates = new List<RoomTemplate>();
+        currentLevel.sectionData.Add(new SectionData());
+        currentLevel.sectionData[0].rooms.Add(new RoomData());
+        currentLevel.sectionData[0].rooms[0].Initialise(new Vector2Int(20, 20), 0, ref templates, instructions);
         if(withEntrances)
         {
             currentLevel.sectionData[0].rooms[0].GetDirections().ActivateAllEntrances();
         }
         templates[0].AddEntrancesToRoom(currentLevel.sectionData[0].rooms[0].GetDirections());
-        Room.RoomTemplate template = templates[0];
+        RoomTemplate template = templates[0];
         RoomTemplateReader reader = new RoomTemplateReader(template, currentLevel.sections[0].rooms[0].transform);
         reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), 
             currentLevel.sectionData[0].rooms[0].GetDirections());
@@ -113,53 +120,65 @@ public partial class LevelGenerator : MonoBehaviour
         
         Random.InitState(DunGenes.Instance.gameData.levelConstructionSeed);
 
-        List<Room.RoomTemplate> templates = new List<Room.RoomTemplate>();
+        List<RoomTemplate> templates = new List<RoomTemplate>();
 
-        data.sectionData.Add(new LevelData.SectionData());
+        data.sectionData.Add(new SectionData());
         data.sectionData[0].rooms.Add(new RoomData());
         //data.sections[0].rooms.Add(Instantiate(RoomPrefab, Vector3.zero, Quaternion.identity, transform));
         data.roomGrid.Add(new LevelData.RoomGridEntry(Vector2Int.zero, data.sectionData[0].rooms[0]));
-        data.sectionData[0].rooms[0].Initialise(RoomSize, true, 0, ref templates, false);
+        data.sectionData[0].rooms[0].Initialise(RoomSize, 0, ref templates);
 
         SpawnRooms(Random.Range((int)(amountOfRooms.x + data.sectionData[0].rooms.Count),
                                 (int)(amountOfRooms.y + data.sectionData[0].rooms.Count)), Random.Range((int)(amountOfSections.x),
                                 (int)(amountOfSections.y)), RoomSize, data, ref templates);
         // Debug.Log("RoomGrid size " + roomGrid.Count);
         FinishRooms(ref templates, data); //Touch up, adding entrances and stuff
-        GenerateMap(ref templates, data);
+        GenerateFullTemplate(ref templates, data);
         data.templates = templates;
     }
-    void GenerateMap(ref List<Room.RoomTemplate> templates, LevelData data)
+    void GenerateFullTemplate(ref List<RoomTemplate> templates, LevelData data)
     {
-        sizeOfMap = new Vector2Int((rightestPoint+1) - leftestPoint, northestPoint - (southestPoint-1)) * new Vector2Int(20,20);
-        //Plus twenty because otherwise its just the upper left corner of that square. I want the lowermost point of it
+        sizeOfMap = new Vector2Int((rightestPoint + 1) - leftestPoint, northestPoint - (southestPoint - 1)) * new Vector2Int(20, 20);
         int count = 0;
-        Debug.Log("Size of map:" + sizeOfMap);
-        map = new Texture2D(sizeOfMap.x, sizeOfMap.y, TextureFormat.ARGB32, false);
+        RoomTemplate bigTemplate = new RoomTemplate(sizeOfMap);
 
-        for(int i = 0; i < data.sectionData.Count; i++)
+        for (int i = 0; i < data.sectionData.Count; i++)
         {
-            for(int j = 0; j < data.sectionData[i].rooms.Count; j++)
+            for (int j = 0; j < data.sectionData[i].rooms.Count; j++)
             {
                 DebugLog.AddToMessage("Getting map image", data.sectionData[i].rooms[j].name);
-                Room.RoomTemplate template = templates[count];
-                Texture2D tex = data.sectionData[i].rooms[j].CreateMaps(ref template);
+                RoomTemplate template = templates[count];
                 int kStart = (int)data.sectionData[i].rooms[j].position.x + Mathf.Abs(leftestPoint * 20);
-                int lStart = (int)data.sectionData[i].rooms[j].position.y + Mathf.Abs((southestPoint - 1)*20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
-                //- Mathf.Abs(southestPoint * 20);
-                Debug.Log("Position: " + data.sectionData[i].rooms[j].position + " K Start: " + kStart + " L Start: " + lStart);
-                for(int k = 0; k < tex.width ; k++)
+                int lStart = (int)data.sectionData[i].rooms[j].position.y + Mathf.Abs((southestPoint - 1) * 20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
+                for (int k = 0; k < template.size.x; k++)
                 {
-                    for(int l = 0; l < tex.height ; l++)
+                    for (int l = 0; l < template.size.y; l++)
                     {
-                       // map.SetPixel(k + kStart,l + lStart, tex.GetPixel(k,l));
-                        map.SetPixel(k + kStart,lStart-l, tex.GetPixel(k,l));
+                        //Debug.Log("x: " + (k + kStart) + " and y: " + (l + lStart) + " Width: " + bigTemplate.size.x + " Count is: " + bigTemplate.positions.Count());
+                        //Debug.Log("x: " + k + " and y: " + l + "Width: " + template.size.x + " Count is: " + template.positions.Count());
+                        bigTemplate.positions[k + kStart, lStart - l] = template.positions[k, l];
                     }
                 }
                 count++;
                 DebugLog.PublishMessage();
             }
         }
+        GenerateMap(bigTemplate);
+    }
+    void GenerateMap(RoomTemplate template)
+    {
+        sizeOfMap = new Vector2Int((rightestPoint+1) - leftestPoint, northestPoint - (southestPoint-1)) * new Vector2Int(20,20);
+        //Plus twenty because otherwise its just the upper left corner of that square. I want the lowermost point of it
+        //Debug.Log("Size of map:" + sizeOfMap);
+        Color[] colors = new Color[sizeOfMap.x * sizeOfMap.y];
+        map = new Texture2D(sizeOfMap.x, sizeOfMap.y, TextureFormat.ARGB32, false);
+        Grid<RoomTemplate.TileTemplate> grid = template.positions.FlipVertically();
+        for (int i = 0; i < sizeOfMap.x * sizeOfMap.y; i++)
+        {
+            float lumValue = (float)grid[i].elevation / 20f + 0.5f;
+            colors[i] = Color.HSVToRGB(0.3f, 1, lumValue);
+        }
+        map.Finish(colors);
         map.Apply();
         map.filterMode = FilterMode.Point;
         if(UIManager.Instance != null)
@@ -224,13 +243,14 @@ public partial class LevelGenerator : MonoBehaviour
    
     void SpawnRooms(int amountOfRooms, int amountOfSections, Vector2Int RoomSize, LevelData data, ref List<Room.RoomTemplate> templates)
     {
-        System.DateTime before = System.DateTime.Now;
+        DateTime before = DateTime.Now;
+        numberOfRooms = 1;
         //this spawns all rooms
         for(int i = 0; i < amountOfSections; i++)
         {
             if(i != 0)
             {
-                data.sectionData.Add(new LevelData.SectionData());
+                data.sectionData.Add(new SectionData());
             }
             int k = 0;
             for (int j = data.sectionData[i].rooms.Count; k < amountOfRooms; j++)
@@ -271,7 +291,7 @@ public partial class LevelGenerator : MonoBehaviour
 
                 Vector2Int gridPositionWhereOriginRoomConnects = Vector2Int.zero;
                 Vector2Int gridPositionWhereNewRoomConnects = GetNewRoomCoordinates(data.sectionData[i].rooms[j], originRoom.Item1.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereOriginRoomConnects, data);
-                data.sectionData[i].rooms[j].Initialize(gridPositionWhereNewRoomConnects, currentRoomSize * 20, indoors, i, ref templates, false);
+                data.sectionData[i].rooms[j].Initialize(gridPositionWhereNewRoomConnects, currentRoomSize * 20, i, ref templates);
                 data.sectionData[i].rooms[j].stepsAwayFromMainRoom = originRoom.Item1.stepsAwayFromMainRoom + 1;
                 data.sectionData[i].rooms[j].originalPosition = gridPositionWhereNewRoomConnects;
                 if(data.sectionData[i].rooms[j].stepsAwayFromMainRoom > furthestDistanceFromSpawn)
@@ -311,8 +331,8 @@ public partial class LevelGenerator : MonoBehaviour
             }
             CloseAllEntrances(data);
         }
-        System.DateTime after = System.DateTime.Now; 
-        System.TimeSpan duration = after.Subtract(before);
+        DateTime after = DateTime.Now; 
+        TimeSpan duration = after.Subtract(before);
         Debug.Log("<color=blue>Time to spawn rooms: </color>" + duration.TotalMilliseconds + " milliseconds, which is: " + duration.TotalSeconds + " seconds");
     }
     void OpenAvailableEntrances(RoomData origin, LevelData data)

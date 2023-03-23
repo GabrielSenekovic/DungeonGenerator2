@@ -40,29 +40,29 @@ public class RoomData
     public Texture2D templateTexture;
     public Texture2D mapTexture;
 
-    public void Initialise(Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding, string instructions = "")
+    public void Initialise(Vector2Int roomSize, int section_in, ref List<RoomTemplate> templates, string instructions = "")
     {
         Debug.Log("<color=green>Initializing the Origin Room</color>");
         //This Initialize() function is for the origin room specifically, as it already has its own position
         section = section_in;
-        OnInitialize(Vector2Int.zero, roomSize, indoors, ref templates, surrounding, instructions);
+        OnInitialize(Vector2Int.zero, roomSize, ref templates, instructions);
         OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
     }
-    public void Initialize(Vector2Int location, Vector2Int roomSize, bool indoors, int section_in, ref List<RoomTemplate> templates, bool surrounding)
+    public void Initialize(Vector2Int location, Vector2Int roomSize, int section_in, ref List<RoomTemplate> templates)
     {
         DebugLog.AddToMessage("Step", "Initializing with size: " + roomSize);
         //Location here only refers to the gridposition where it connects to its origin room. If it has expanded, we want the transform.position to be the upper left corner
         //That is to say, if size is positive (doesnt point down or right), then it should be pushed by its size
         position = new Vector2(Mathf.Sign(roomSize.x) == 1 ? location.x : location.x + roomSize.x + 20, Mathf.Sign(roomSize.y) == 1 ? location.y + roomSize.y - 20 : location.y);
         section = section_in;
-        OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, indoors, ref templates, surrounding);
+        OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, ref templates);
     }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, bool indoors, ref List<RoomTemplate> templates, bool surrounding, string instructions = "")
+    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, ref List<RoomTemplate> templates, string instructions = "")
     {
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20, position.ToV2Int());
         Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
-        RoomTemplate template = new RoomTemplate(absSize, indoors, surrounding, instructions);
+        RoomTemplate template = new RoomTemplate(absSize, instructions);
         templates.Add(template);
     }
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space

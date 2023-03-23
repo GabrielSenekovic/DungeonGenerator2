@@ -64,14 +64,11 @@ public partial class Room:MonoBehaviour
         public Vector2Int size;
         public Grid<TileTemplate> positions;
         public bool indoors;
-        public bool surrounding;
         public int highestElevation;
-        public RoomTemplate(Vector2Int size_in, bool indoors_in, bool surrounding_in, string instructions = "")
+        public RoomTemplate(Vector2Int size_in, string instructions = "")
         {
             size = size_in;
             positions = new Grid<TileTemplate>(size_in);
-            indoors = indoors_in;
-            surrounding = surrounding_in;
             CreateRoomTemplate(instructions);
         }
         void CreateRoomTemplate(string instructions)
@@ -88,16 +85,13 @@ public partial class Room:MonoBehaviour
                     {
                         Vector2Int divisions = new Vector2Int(1, 1); //1,1
                         if (!indoors) { divisions = new Vector2Int(2, 2); }
-                        int elevation = surrounding ? 4 : 0;
+                        int elevation = 0;
                         positions.Add(new TileTemplate(elevation, divisions));
-                        if (!surrounding)
-                        {
-                            CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
-                            CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 2); //?Basic thickness. Can't be thinner than 2
-                                                                                   //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
-                                                                                   //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
-                                                                                   //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
-                        }
+                        CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
+                        CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 2); //?Basic thickness. Can't be thinner than 2
+                                                                                //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
+                                                                                //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
+                                                                                //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
                     }
                 }
             }
