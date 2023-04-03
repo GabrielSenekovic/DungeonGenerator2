@@ -8,14 +8,15 @@ using Random = UnityEngine.Random;
 using RoomTemplate = Room.RoomTemplate;
 using SectionData = LevelData.SectionData;
 using Section = LevelData.Section;
+using Entrances = Room.Entrances;
 
 public partial class LevelGenerator : MonoBehaviour
 {
-    public void GenerateLevel(LevelManager level, ref List<Room.RoomTemplate> templates)
+    public void GenerateLevel(LevelManager level, ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate)
     {
         DateTime before = DateTime.Now;
         //GenerateSurroundings(ref templates, DunGenes.Instance.gameData.CurrentLevel);
-        BuildRooms(ref templates);
+        BuildRooms(ref templates, ref bigTemplate);
 
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
         level.firstRoom = currentLevel.sections[0].rooms[0];
@@ -75,13 +76,17 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }*/
     }
-    void BuildRooms(ref List<Room.RoomTemplate> templates)
+    void BuildRooms(ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate)
     {
         //Now that all entrances have been set, you can put the entrances down on each room template and adjust the templates to make sure there is always space to get to each door
         //Then build the rooms
         //This is where the templates list should end. It is not needed after this
         int count = 0;
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
+        GameObject levelMesh = new GameObject("Level Mesh");
+        RoomTemplateReader reader = new RoomTemplateReader(bigTemplate, levelMesh.transform);
+        levelMesh.transform.position = new Vector2(leftestPoint * 20, -southestPoint * 20);
+        reader.CreateLevel(ref bigTemplate, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
         for (int i = 0; i < currentLevel.sectionData.Count; i++)
         {
             currentLevel.sections.Add(new Section());
@@ -99,10 +104,7 @@ public partial class LevelGenerator : MonoBehaviour
                 List<LevelData.RoomGridEntry> entries = currentLevel.roomGrid.Where(e => e.roomData.originalPosition == roomData.originalPosition).ToList();
                 entries.ForEach(e => e.SetRoom(newRoom));
                 RoomTemplate template = templates[count];
-                RoomTemplateReader reader = new RoomTemplateReader(template, newRoom.transform);
-                reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), roomData.GetDirections());
                 newRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
-                //SaveWallVertices(ref templates, template, DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j], DunGenes.Instance.gameData.CurrentLevel);
                 count++;
                 DebugLog.PublishMessage();
             }

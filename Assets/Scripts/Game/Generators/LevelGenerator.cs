@@ -84,7 +84,7 @@ public partial class LevelGenerator : MonoBehaviour
         templates[0].AddEntrancesToRoom(currentLevel.sectionData[0].rooms[0].GetDirections());
         RoomTemplate template = templates[0];
         RoomTemplateReader reader = new RoomTemplateReader(template, currentLevel.sections[0].rooms[0].transform);
-        reader.CreateRoom(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), 
+        reader.CreateLevel(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), 
             currentLevel.sectionData[0].rooms[0].GetDirections());
         currentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
         Texture2D tex = currentLevel.sectionData[0].rooms[0].CreateMaps(ref template);
@@ -164,6 +164,7 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }
         GenerateMap(bigTemplate);
+        data.bigTemplate = bigTemplate;
     }
     void GenerateMap(RoomTemplate template)
     {

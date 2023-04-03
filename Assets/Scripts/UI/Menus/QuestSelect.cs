@@ -146,16 +146,6 @@ public class QuestSelect : MonoBehaviour
         detailText.text = "\nQuestgiver: " + NameDatabase.GetRandomName();
         detailText.text += "\nObjective: " + "\nDifficulty level: \nReward: \n";
         detailText.text += "\nInformation about the destination: \n";
-        detailText.text += "\nThis place is a: " + levels[index_in].biome + ". \n";
-        if(levels[index_in].mood[0] != levels[index_in].mood[1])
-        {
-            detailText.text += GetBiomeDescription(levels[index_in].mood[0], false) + " ";
-            detailText.text += GetBiomeDescription(levels[index_in].mood[1], false) + "\n";
-        }
-        else
-        {
-            detailText.text += GetBiomeDescription(levels[index_in].mood[0], true) + "\n";
-        }
         detailText.PlaceSprite(Sprite.Create(levels[index_in].map, new Rect(0, 0, levels[index_in].map.width, levels[index_in].map.height), new Vector2(0.5f, 0.5f), 16));
         detailText.text += "\nSeeds: \nData seed: " + seeds[index_in].dataSeed + "\n";
         detailText.text += "Construction seed: " + seeds[index_in].constructionSeed + "\n";
@@ -166,39 +156,8 @@ public class QuestSelect : MonoBehaviour
         detailText.text = "";
         detailText.Write();
     }
-    public string GetBiomeDescription(Mood mood, bool same)
+    public string GetBiomeDescription(bool same)
     {
-        if(!same)
-        {
-            switch(mood)
-            {
-                case Mood.Adventurous: return "This place is perfect for the passionate adventurer.";
-                case Mood.Calm: return "It is a generally calm location where people pass through to sooth their spirits.";
-                case Mood.Creepy: return "Some say that this place might be haunted.";
-                case Mood.Dangerous: return "This location is notorious for the many traps that loiter around. Enter at your own risk.";
-                case Mood.Cursed: return "A curse has befallen this place. Be very careful.";
-                case Mood.Decrepit: return "Ruins of ancient civilization scatter these lands.";
-                case Mood.Fabulous: return "Fabulous sights await whoever steps food on these lands.";
-                case Mood.Mysterious: return "A thick mist of magic envelops this place.";
-                case Mood.Plentiful: return "A place of many riches; many a traveler has come here to loot in the past looking to make themselves a new life.";
-                default: return "";
-            }
-        }
-        else
-        {
-            switch(mood)
-            {
-                case Mood.Adventurous: return "This place is perfect for the passionate adventurer.";
-                case Mood.Calm: return "Here it is so calm that you can hear little else than the gentle sounds of nature. There is a high chance to find a settlement.";
-                case Mood.Creepy: return "There are no doubts that this place is haunted. Scattered across these lands are little other than the remains of what once lived.";
-                case Mood.Dangerous: return "This location is notorious for the many traps that loiter around. Enter at your own risk.";
-                case Mood.Cursed: return "An incredible curse plagues these lands. Even if you survive there are no guarantees that you will ever be the same.";
-                case Mood.Decrepit: return "Ruins of an ancient civilization scatter these lands.";
-                case Mood.Fabulous: return "Fabulous sights await whoever steps food on these lands.";
-                case Mood.Mysterious: return "A thick mist of magic envelops this place.";
-                case Mood.Plentiful: return "A place of many riches; many a traveler has come here to loot in the past looking to make themselves a new life.";
-                default: return "";
-            }
-        }
+        return "description";
     }
 }

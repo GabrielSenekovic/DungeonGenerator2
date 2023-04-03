@@ -24,7 +24,7 @@ public class RoomTemplateReader
         highestElevation = template.highestElevation;
         this.roomTransform = roomTransform;
     }
-    public void CreateRoom(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in, Entrances directions)
+    public void CreateLevel(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in, Entrances directions = null)
     {
         Color color = new Color32((byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), 255);
         Material wallMaterial = new Material(wallMaterial_in.shader);

@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using System;
 public class MusicGenerator : MonoBehaviour
 {
+    /*
     public enum Key
     {
         C = 0
@@ -75,8 +76,6 @@ public class MusicGenerator : MonoBehaviour
     public AudioSource melody;
     public bool playing = false;
     public Section.PlayType playType;
-
-    public Mood mood;
 
     private void Start()
     {
@@ -312,5 +311,5 @@ public class MusicGenerator : MonoBehaviour
             }
         }
         playing = false;
-    }
+    }*/
 }
