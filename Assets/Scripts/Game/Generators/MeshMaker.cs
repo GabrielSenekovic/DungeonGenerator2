@@ -763,18 +763,16 @@ public partial class MeshMaker : MonoBehaviour
         mesh.Optimize();
         mesh.RecalculateNormals();
     }
-
     static public void CreateSurface(List<SurfaceData> positions, Transform trans, Material floorMaterial)
     {
         //Positions literally mean the position of every single quad on the grid
         List<Vector3> allVertices = new List<Vector3>();
+        List<int> newIndices = new List<int>();
         List<Vector2> newUV = new List<Vector2>();
-
-        int lastAmountVert = 0;
-
+        Dictionary<Vector3Int, int> alreadyMadeVertices = new Dictionary<Vector3Int, int>();
         for (int i = 0; i < positions.Count; i++)
         {
-            //When it connects to connectingVertices, it needs to know what sides of the tile has been made so it can fill in the rest
+            //I can't just add all of them. Since some of the quads will be on different altitudes. They won't all connect. It's not consistent
             Vector3 centerOfTile = new Vector3(positions[i].position.x + 0.5f, positions[i].position.y + 0.5f, -positions[i].position.z);
             if (positions[i].ceilingVertices.Count > 0)
             {
@@ -785,22 +783,51 @@ public partial class MeshMaker : MonoBehaviour
                     allVertices.Add(centerOfTile);
                     allVertices.Add(centerOfTile);
 
+                    //3, 1, 0, 3, 2, 1
+                    newIndices.Add(allVertices.Count - 1);
+                    newIndices.Add(allVertices.Count - 3);
+                    newIndices.Add(allVertices.Count - 4);
+                    newIndices.Add(allVertices.Count - 1);
+                    newIndices.Add(allVertices.Count - 2);
+                    newIndices.Add(allVertices.Count - 3);
+
                     newUV.AddRange(Math.calcUV(allVertices).ToList());
                 }
             }
             else
             {
-                allVertices.Add(new Vector3(positions[i].position.x, positions[i].position.y, -positions[i].position.z));
-                allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y, -positions[i].position.z));
-                allVertices.Add(new Vector3(positions[i].position.x + 1, positions[i].position.y + 1, -positions[i].position.z));
-                allVertices.Add(new Vector3(positions[i].position.x, positions[i].position.y + 1, -positions[i].position.z));
+                Vector3Int[] checkingPosition = new Vector3Int[4]
+                {
+                    new Vector3Int(positions[i].position.x, positions[i].position.y, -positions[i].position.z),
+                    new Vector3Int(positions[i].position.x + 1, positions[i].position.y, -positions[i].position.z),
+                    new Vector3Int(positions[i].position.x + 1, positions[i].position.y + 1, -positions[i].position.z),
+                    new Vector3Int(positions[i].position.x, positions[i].position.y + 1, -positions[i].position.z)
+                };
 
-                newUV.AddRange(Math.calcUV(allVertices).ToList());
+                for(int j = 0; j < 4; j++)
+                {
+                    CreateSurface_AddIfNotExist(ref alreadyMadeVertices, positions, ref allVertices,ref newUV, i, checkingPosition[j]);
+                }
+
+                int[] indices = new int[4];
+                for(int j = 0; j < 4; j++)
+                {
+                    alreadyMadeVertices.TryGetValue(checkingPosition[j], out int index);
+                    indices[j] = index;
+                }
+                //3,1,0,3,2,1
+                newIndices.Add(indices[3]); 
+                newIndices.Add(indices[1]);
+                newIndices.Add(indices[0]);
+                newIndices.Add(indices[3]);
+                newIndices.Add(indices[2]);
+                newIndices.Add(indices[1]);
             }
-            //!Then this is a tile with connecting vertices, and it needs to be filled up
+            
             for (int j = 0; j < positions[i].sidesWhereThereIsWall.Count; j++)
             {
-                if (positions[i].sidesWhereThereIsWall[j].floor)
+                //Then this is a tile with connecting vertices, and it needs to be filled up
+                if (!positions[i].sidesWhereThereIsWall[j].floor)
                 {
                     allVertices.Add(new Vector3(centerOfTile.x - positions[i].sidesWhereThereIsWall[j].side.x * 0.5f + positions[i].sidesWhereThereIsWall[j].side.y * 0.5f,
                         centerOfTile.y + positions[i].sidesWhereThereIsWall[j].side.y * 0.5f + positions[i].sidesWhereThereIsWall[j].side.x * 0.5f, -positions[i].position.z));
@@ -809,11 +836,74 @@ public partial class MeshMaker : MonoBehaviour
                     allVertices.Add(centerOfTile);
                     allVertices.Add(centerOfTile);
 
+                    //3, 1, 0, 3, 2, 1
+                    newIndices.Add(allVertices.Count - 1);
+                    newIndices.Add(allVertices.Count - 3);
+                    newIndices.Add(allVertices.Count - 4);
+                    newIndices.Add(allVertices.Count - 1);
+                    newIndices.Add(allVertices.Count - 2);
+                    newIndices.Add(allVertices.Count - 3);
+
                     newUV.AddRange(Math.calcUV(allVertices).ToList());
 
                     positions[i].sidesWhereThereIsWall.RemoveAt(j); j--;
                 }
             }
+
+            if (allVertices.Count > 10000)
+            {
+                GameObject floorObject = new GameObject("Floor");
+
+                floorObject.AddComponent<MeshFilter>();
+                floorObject.GetComponent<MeshFilter>().mesh.Init(allVertices.ToArray(), newIndices.ToArray(), newUV.ToArray());
+
+                floorObject.AddComponent<MeshRenderer>();
+                floorObject.GetComponent<MeshRenderer>().material = floorMaterial;
+
+                floorObject.isStatic = true;
+                floorObject.transform.parent = trans;
+
+                MeshCollider mc = floorObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = floorObject.GetComponent<MeshFilter>().mesh;
+
+                allVertices.Clear();
+                newIndices.Clear();
+                newUV.Clear();
+                alreadyMadeVertices.Clear();
+            }
+        }
+        GameObject floorObject2 = new GameObject("Floor");
+
+        floorObject2.AddComponent<MeshFilter>();
+        floorObject2.GetComponent<MeshFilter>().mesh.Init(allVertices.ToArray(), newIndices.ToArray(), newUV.ToArray());
+
+        floorObject2.AddComponent<MeshRenderer>();
+        floorObject2.GetComponent<MeshRenderer>().material = floorMaterial;
+
+        floorObject2.isStatic = true;
+        floorObject2.transform.parent = trans;
+
+        MeshCollider mc2 = floorObject2.AddComponent<MeshCollider>();
+        mc2.sharedMesh = floorObject2.GetComponent<MeshFilter>().mesh;
+    }
+    static void CreateSurface_AddIfNotExist(
+        ref Dictionary<Vector3Int, int> alreadyMadeVertices, 
+        List<SurfaceData> positions, 
+        ref List<Vector3> allVertices,
+        ref List<Vector2> UV,
+        int i, 
+        Vector3Int newPosition)
+    {
+        if (!alreadyMadeVertices.TryGetValue(newPosition, out _))
+        {
+            allVertices.Add(newPosition);
+            alreadyMadeVertices.Add(newPosition, allVertices.Count - 1);
+            UV.Add(new Vector2(newPosition.x, newPosition.y));
+        }
+    }
+    /*static public void CreateSurface(List<SurfaceData> positions, Transform trans, Material floorMaterial)
+    {
+        //Things are left in here that hasn't been moved over yet
             if (positions[i].floorVertices.Count > 0 && positions[i].sidesWhereThereIsWall.Count > 1)
             {
                 for (int j = 0; j < positions[i].floorVertices.Count; j += 2)
@@ -828,70 +918,9 @@ public partial class MeshMaker : MonoBehaviour
                     newUV.AddRange(Math.calcUV(allVertices).ToList());
                 }
             }
-            if (allVertices.Count > lastAmountVert + 1000)
-            {
-                GameObject floorObject = new GameObject("Floor");
-
-                Vector3[] newVertices = new Vector3[] { };
-                Array.Resize(ref newVertices, allVertices.Count - lastAmountVert);
-                allVertices.CopyTo(lastAmountVert, newVertices, 0, allVertices.Count - lastAmountVert);
-                lastAmountVert = allVertices.Count;
-                List<int> newIndices = new List<int>();
-
-                for (int j = 0; j < newVertices.Length; j += 4)
-                {
-                    newIndices.Add(3 + j); //0, 1, 3, 1, 2, 3
-                    newIndices.Add(1 + j);
-                    newIndices.Add(0 + j);
-                    newIndices.Add(3 + j);
-                    newIndices.Add(2 + j);
-                    newIndices.Add(1 + j);
-                }
-
-                floorObject.AddComponent<MeshFilter>();
-                floorObject.GetComponent<MeshFilter>().mesh.Init(newVertices.ToArray(), newIndices.ToArray(), newUV.ToArray());
-
-                floorObject.AddComponent<MeshRenderer>();
-                floorObject.GetComponent<MeshRenderer>().material = floorMaterial;
-
-                floorObject.isStatic = true;
-                floorObject.transform.parent = trans;
-                newUV.Clear();
-
-                MeshCollider mc = floorObject.AddComponent<MeshCollider>();
-                mc.sharedMesh = floorObject.GetComponent<MeshFilter>().mesh;
-            }
+            
         }
-        GameObject floorObject2 = new GameObject("Floor");
-
-        Vector3[] newVertices2 = new Vector3[] { };
-        Array.Resize(ref newVertices2, allVertices.Count - lastAmountVert);
-        allVertices.CopyTo(lastAmountVert, newVertices2, 0, allVertices.Count - lastAmountVert);
-
-        List<int> newIndices2 = new List<int>();
-
-        for (int j = 0; j < newVertices2.Length; j += 4)
-        {
-            newIndices2.Add(3 + j); //0, 1, 3, 1, 2, 3
-            newIndices2.Add(1 + j);
-            newIndices2.Add(0 + j);
-            newIndices2.Add(3 + j);
-            newIndices2.Add(2 + j);
-            newIndices2.Add(1 + j);
-        }
-
-        floorObject2.AddComponent<MeshFilter>();
-        floorObject2.GetComponent<MeshFilter>().mesh.Init(newVertices2.ToArray(), newIndices2.ToArray(), newUV.ToArray());
-
-        floorObject2.AddComponent<MeshRenderer>();
-        floorObject2.GetComponent<MeshRenderer>().material = floorMaterial;
-
-        floorObject2.isStatic = true;
-        floorObject2.transform.parent = trans;
-
-        MeshCollider mc2 = floorObject2.AddComponent<MeshCollider>();
-        mc2.sharedMesh = floorObject2.GetComponent<MeshFilter>().mesh;
-    }
+    }*/
     static public void CreateSurface(Mesh mesh, float height)
     {
         //When you are making a completely flat room without walls

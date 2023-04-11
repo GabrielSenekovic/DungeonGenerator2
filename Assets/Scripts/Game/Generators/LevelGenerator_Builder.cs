@@ -109,12 +109,6 @@ public partial class LevelGenerator : MonoBehaviour
                 DebugLog.PublishMessage();
             }
         }
-        for (int i = 0; i < surroundingPositions.Count; i++)
-        {
-            RoomTemplate template = templates[count];
-            surroundingPositions[i].Item2.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
-            count++;
-        }
         //PlantFlora(ref templates);
     }
    /* void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin, LevelData data)

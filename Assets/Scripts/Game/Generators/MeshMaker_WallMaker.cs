@@ -57,12 +57,16 @@ public partial class MeshMaker: MonoBehaviour
         }
 
         Vector2Int currentGridPosition = Vector2Int.zero;
+        List<Vector3> allVertices = new List<Vector3>();
+        List<int> allIndices = new List<int>();
+        int indexJump = 0; //Saves the vertex count of all previous walls, so indices knows where to go
+        List<Vector2> allUVs = new List<Vector2>();
 
         for (int wallIndex = 0; wallIndex < instructions.Count; wallIndex++)
         {
-            List<Vector3> allVertices = new List<Vector3>();
-            List<int> allIndices = new List<int>();
-            List<Vector2> allUVs = new List<Vector2>();
+            List<Vector3> newVertices = new List<Vector3>();
+            List<int> newIndices = new List<int>();
+            List<Vector2> newUVs = new List<Vector2>();
             //Go through each wall
             WallData currentWall = instructions[wallIndex];
 
@@ -119,14 +123,14 @@ public partial class MeshMaker: MonoBehaviour
                 {
                     float x_increment = 1 / ((float)currentWall.divisions.x + 1);
                     float y_increment = 1 / ((float)currentWall.divisions.y + 1);
-                    allVertices.Add(new Vector3(
+                    newVertices.Add(new Vector3(
                         currentWall.position.x + x * x_increment, 
                         currentWall.position.y, 
                         currentWall.position.z - y * y_increment));
                 }
             }
 
-            CreateWall_Rotate(allVertices, instructions[wallIndex]);
+            CreateWall_Rotate(newVertices, instructions[wallIndex]);
 
             int[] indexValues = new int[] 
             { 
@@ -146,7 +150,7 @@ public partial class MeshMaker: MonoBehaviour
                     int i = x + ((currentWall.divisions.x + 1) * currentWall.length + 1) * y; //The width here is the vertex to start from
                     foreach(var indexValue in indexValues)
                     {
-                        allIndices.Add(indexValue + i);
+                        newIndices.Add(indexJump + indexValue + i);
                     }
                 }
             }
@@ -157,28 +161,43 @@ public partial class MeshMaker: MonoBehaviour
                 {
                     float xIncrement = 1 / ((float)currentWall.divisions.x + 1);
                     float yIncrement = 1 / ((float)currentWall.divisions.y + 1);
-                    allUVs.Add(new Vector2(x * xIncrement, y * yIncrement));
+                    newUVs.Add(new Vector2(x * xIncrement, y * yIncrement));
                 }
             }
-
-            GameObject wallObject = new GameObject("Wall Object ");
-            wallObject.transform.parent = wall.transform;
-            wallObject.transform.position -= new Vector3(0,0, currentWall.elevation);
-
-            wallObject.AddComponent<MeshFilter>();
-            wallObject.GetComponent<MeshFilter>().mesh.Clear();
-            wallObject.GetComponent<MeshFilter>().mesh.vertices = allVertices.ToArray();
-            wallObject.GetComponent<MeshFilter>().mesh.triangles = allIndices.ToArray();
-            wallObject.GetComponent<MeshFilter>().mesh.uv = allUVs.ToArray();
-            wallObject.GetComponent<MeshFilter>().mesh.Optimize();
-            wallObject.GetComponent<MeshFilter>().mesh.RecalculateNormals();
-
-            wallObject.AddComponent<MeshRenderer>();
-            wallObject.GetComponent<MeshRenderer>().material = wallMaterial;
-
-            MeshCollider mc = wallObject.AddComponent<MeshCollider>();
-            mc.sharedMesh = wallObject.GetComponent<MeshFilter>().mesh;
+            allVertices.AddRange(newVertices);
+            allIndices.AddRange(newIndices);
+            allUVs.AddRange(newUVs);
+            indexJump = allVertices.Count;
+            if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != instructions[wallIndex-1].elevation))
+            {
+                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, wallMaterial);
+            }
         }
+        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, wallMaterial);
+    }
+    static void CreateWall_Finish(GameObject wall, WallData currentWall, ref List<Vector3> allVertices,ref List<int> allIndices, ref List<Vector2> allUVs, Material wallMaterial)
+    {
+        GameObject wallObject = new GameObject("Wall Object ");
+        wallObject.transform.parent = wall.transform;
+        wallObject.transform.position -= new Vector3(0, 0, currentWall.elevation);
+
+        wallObject.AddComponent<MeshFilter>();
+        wallObject.GetComponent<MeshFilter>().mesh.Clear();
+        wallObject.GetComponent<MeshFilter>().mesh.vertices = allVertices.ToArray();
+        wallObject.GetComponent<MeshFilter>().mesh.triangles = allIndices.ToArray();
+        wallObject.GetComponent<MeshFilter>().mesh.uv = allUVs.ToArray();
+        wallObject.GetComponent<MeshFilter>().mesh.Optimize();
+        wallObject.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+
+        wallObject.AddComponent<MeshRenderer>();
+        wallObject.GetComponent<MeshRenderer>().material = wallMaterial;
+
+        MeshCollider mc = wallObject.AddComponent<MeshCollider>();
+        mc.sharedMesh = wallObject.GetComponent<MeshFilter>().mesh;
+
+        allVertices.Clear();
+        allIndices.Clear();
+        allUVs.Clear();
     }
    
     static public void CreateWall_AddVertices(List<Vector3> vertices)

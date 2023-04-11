@@ -58,8 +58,8 @@ public partial class LevelGenerator : MonoBehaviour
             case 7: instructions = "S[2,1], C[2,2], S[1,3]"; break; //Test multiple altitudes, with overlap, with 1 step apart
             case 8: instructions = "W[8,1]"; break; //Test circle
             case 9: instructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]"; break; //Test multiple altitudes, with circles
-            case 10: break; //Test 2x2 pillars
-            case 11: break; //Test 1x1 pillars
+            case 10: instructions = "P[2,4]";  break; //Test 2x2 pillars
+            case 11: instructions = "P[1,4]";  break; //Test 1x1 pillars
             case 12: break; //Test enclosed slope square with inner corner slope
             case 13: break; //Test outer corner slope
             case 14: break; //Test steep incline. Should be unwalkable
@@ -72,22 +72,26 @@ public partial class LevelGenerator : MonoBehaviour
     public void OnGenerateOneRoom(bool withEntrances, string instructions = "")
     {
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
-        currentLevel.sections[0].rooms[0].OnReset();
+        Room currentRoom = currentLevel.sections[0].rooms[0];
+        currentRoom.OnReset();
         List<RoomTemplate> templates = new List<RoomTemplate>();
         currentLevel.sectionData.Add(new SectionData());
         currentLevel.sectionData[0].rooms.Add(new RoomData());
-        currentLevel.sectionData[0].rooms[0].Initialise(new Vector2Int(20, 20), 0, ref templates, instructions);
+        RoomData currentRoomData = currentLevel.sectionData[0].rooms[0];
+        currentRoomData.Initialise(new Vector2Int(20, 20), 0, ref templates, instructions);
         if(withEntrances)
         {
-            currentLevel.sectionData[0].rooms[0].GetDirections().ActivateAllEntrances();
+            currentRoomData.GetDirections().ActivateAllEntrances();
         }
-        templates[0].AddEntrancesToRoom(currentLevel.sectionData[0].rooms[0].GetDirections());
+        templates[0].AddEntrancesToRoom(currentRoomData.GetDirections());
+        templates[0].IdentifyWalls();
         RoomTemplate template = templates[0];
-        RoomTemplateReader reader = new RoomTemplateReader(template, currentLevel.sections[0].rooms[0].transform);
-        reader.CreateLevel(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"), 
-            currentLevel.sectionData[0].rooms[0].GetDirections());
-        currentLevel.sections[0].rooms[0].CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
-        Texture2D tex = currentLevel.sectionData[0].rooms[0].CreateMaps(ref template);
+        RoomTemplateReader reader = new RoomTemplateReader(template, currentRoom.transform);
+        reader.CreateLevel(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"),
+            currentRoomData.GetDirections());
+        currentRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
+        currentRoom.roomData = currentRoomData;
+        currentRoomData.CreateMaps(ref template);
     }
 
     public void GenerateStartArea()
@@ -133,14 +137,15 @@ public partial class LevelGenerator : MonoBehaviour
                                 (int)(amountOfSections.y)), RoomSize, data, ref templates);
         // Debug.Log("RoomGrid size " + roomGrid.Count);
         FinishRooms(ref templates, data); //Touch up, adding entrances and stuff
-        GenerateFullTemplate(ref templates, data);
+        GenerateTerrain(ref templates, data, out RoomTemplate bigTemplate);
+        GenerateFullTemplate(ref templates, data, ref bigTemplate);
+        data.bigTemplate = bigTemplate;
+        GenerateMap(data.bigTemplate);
         data.templates = templates;
     }
-    void GenerateFullTemplate(ref List<RoomTemplate> templates, LevelData data)
+    void GenerateFullTemplate(ref List<RoomTemplate> templates, LevelData data, ref RoomTemplate bigTemplate)
     {
-        sizeOfMap = new Vector2Int((rightestPoint + 1) - leftestPoint, northestPoint - (southestPoint - 1)) * new Vector2Int(20, 20);
         int count = 0;
-        RoomTemplate bigTemplate = new RoomTemplate(sizeOfMap);
 
         for (int i = 0; i < data.sectionData.Count; i++)
         {
@@ -163,8 +168,6 @@ public partial class LevelGenerator : MonoBehaviour
                 DebugLog.PublishMessage();
             }
         }
-        GenerateMap(bigTemplate);
-        data.bigTemplate = bigTemplate;
     }
     void GenerateMap(RoomTemplate template)
     {
@@ -187,7 +190,7 @@ public partial class LevelGenerator : MonoBehaviour
             UIManager.Instance.currentMap = map;
         }
     }
-    /*void GenerateSurroundings(ref List<Room.RoomTemplate> templates, LevelData data)
+    void GenerateTerrain(ref List<Room.RoomTemplate> templates, LevelData data, out RoomTemplate bigTemplate)
     {
         for(int i = 0; i < surroundingPositions.Count; i++)
         {
@@ -195,52 +198,10 @@ public partial class LevelGenerator : MonoBehaviour
         }
         surroundingPositions.Clear();
 
-        RoomPrefab = Resources.Load<Room>("Room");
-        GameObject surroundings = new GameObject("Surroundings");
-        surroundings.transform.parent = gameObject.transform;
-        //Go through every single position saved and spawned, and check next to them. If theres nothing in that specific position, spawn a room there like usual, on a higher level
-        for(int i = 0; i < data.roomGrid.Count; i++)
-        {
-            for(int x = -1; x < 2; x++)
-            {
-                for(int y = -1; y < 2; y++)
-                {
-                    if(!CheckIfCoordinatesOccupied(data.roomGrid[i].position + new Vector2Int(x,y), data) && !surroundingPositions.Any(j => j.Item1 == data.roomGrid[i].position + new Vector2Int(x,y)))
-                    {
-                        //Create room here
-                        DebugLog.AddToMessage("Generating", "Surroundings #" + surroundings.transform.childCount);
-                        Room temp = Instantiate(RoomPrefab, transform);
-                        temp.gameObject.name = "Surrounding";
-                        temp.transform.parent = surroundings.transform;
-                        temp.Initialize(data.roomGrid[i].position * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
-                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(data.roomGrid[i].position + new Vector2Int(x,y),temp));
-                        DebugLog.PublishMessage();
-                    }
-                }
-            }
-        }
-        int limit = surroundingPositions.Count;
-        for(int i = 0; i < limit; i++)
-        {
-            for(int x = -1; x < 2; x++)
-            {
-                for(int y = -1; y < 2; y++)
-                {
-                    if(!CheckIfCoordinatesOccupied(surroundingPositions[i].Item1 + new Vector2Int(x,y), data) && !surroundingPositions.Any(j => j.Item1 == surroundingPositions[i].Item1 + new Vector2Int(x,y)))
-                    {
-                        //Create room here
-                        DebugLog.AddToMessage("Generating", "Surroundings #" + surroundings.transform.childCount);
-                        Room temp = Instantiate(RoomPrefab, transform);
-                        temp.gameObject.name = "Surrounding";
-                        temp.transform.parent = surroundings.transform;
-                        temp.Initialize(surroundingPositions[i].Item1 * 20 + new Vector2Int(x,y) * 20, new Vector2Int(20,20), false, -1, ref templates, true);
-                        surroundingPositions.Add(new Tuple<Vector2Int, Room>(surroundingPositions[i].Item1 + new Vector2Int(x,y),temp));
-                        DebugLog.PublishMessage();
-                    }
-                }
-            }
-        }
-    }*/
+        //Keep spawning rooms within the bounds :)
+        sizeOfMap = new Vector2Int((rightestPoint + 1) - leftestPoint, northestPoint - (southestPoint - 1)) * new Vector2Int(20, 20);
+        bigTemplate = new RoomTemplate(sizeOfMap, "B[4], N");
+    }
    
     void SpawnRooms(int amountOfRooms, int amountOfSections, Vector2Int RoomSize, LevelData data, ref List<Room.RoomTemplate> templates)
     {
@@ -287,8 +248,6 @@ public partial class LevelGenerator : MonoBehaviour
                 //data.sections[i].rooms.Add(Instantiate(RoomPrefab, transform));
                 data.sectionData[i].rooms[j].name = "Room #" + (numberOfRooms+1); numberOfRooms++;
                 DebugLog.AddToMessage("Name", data.sectionData[i].rooms[j].name);
-
-                bool indoors = false;
 
                 Vector2Int gridPositionWhereOriginRoomConnects = Vector2Int.zero;
                 Vector2Int gridPositionWhereNewRoomConnects = GetNewRoomCoordinates(data.sectionData[i].rooms[j], originRoom.Item1.position.ToV2Int(), originRoom.Item2, ref currentRoomSize, ref gridPositionWhereOriginRoomConnects, data);

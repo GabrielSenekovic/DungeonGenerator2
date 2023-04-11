@@ -27,6 +27,7 @@ public class RoomTemplateReader
     public void CreateLevel(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in, Entrances directions = null)
     {
         Color color = new Color32((byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), 255);
+        template.IdentifyWalls();
         Material wallMaterial = new Material(wallMaterial_in.shader);
         wallMaterial.CopyPropertiesFromMaterial(wallMaterial_in);
         Material floorMaterial = new Material(floorMaterial_in.shader);
@@ -120,7 +121,8 @@ public class RoomTemplateReader
         //Find direction to follow
         Tuple<List<MeshMaker.WallData>, bool> wall = new Tuple<List<MeshMaker.WallData>, bool>(new List<MeshMaker.WallData>(), false);
 
-        HasWallNeighbor(pos, currentAngle, currentElevation, out bool hasWallNeighbor, out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn); //Item2 is the direction to go to
+        bool wrap = false;
+        HasWallNeighbor(pos, currentAngle, currentElevation, out bool hasWallNeighbor, out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn, ref wrap); //Item2 is the direction to go to
         Debug.Log("Did I find wall neighbor? " + hasWallNeighbor);
         currentAngle += 90 * angleToTurn;
         currentAngle = (int)Math.Mod(currentAngle, 360);
@@ -151,11 +153,11 @@ public class RoomTemplateReader
                 //If lastWall is less than 0, then this is the following wall after an outer corner, so it must be moved up and shortened
                 isThisWallFollowingOuterCorner = 1;
             }
-            HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn);
+            HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn, ref wrap);
 
             float roundedness = 1;
 
-            if (angleToTurn < 0)
+            if (angleToTurn < 0 || wrap)
             {
                 //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
                 steps--;
@@ -216,12 +218,12 @@ public class RoomTemplateReader
             { break; }
         }
         // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
-        wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, ExtractWalls_DoesWallWrap(wall.Item1));
+        wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, wrap);
         data.Add(wall);
         //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
     }
     public void HasWallNeighbor(Vector2Int pos, int rotation, int currentElevation, out bool hasWallNeighbor,
-        out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn)
+        out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn, ref bool wrap)
     {
         /*HasWallNeighbor
          * 
@@ -256,15 +258,27 @@ public class RoomTemplateReader
                 higherElevationDirection = new Vector2Int(0, -1);
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
+                positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y - 1)) &&
                 positions[pos.x - 1, pos.y].wall &&
-                positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.UNREAD &&
                 positions[pos.x - 1, pos.y - 1].elevation > currentElevation &&
                 positions[pos.x - 1, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
                 )
             {
-                direction = new Vector2Int(-1, 0);
-                rotationDir = -1;
-                higherElevationDirection = new Vector2Int(0, 1);
+                if (positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.UNREAD)
+                {
+                    direction = new Vector2Int(-1, 0);
+                    rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(0, 1);
+                }
+                else if (positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.READFIRST || positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                {
+                    value = false;
+                    wrap = true;
+                }
+                else
+                {
+                    value = false;
+                }
             }
             else
             {
@@ -275,14 +289,25 @@ public class RoomTemplateReader
         {
             if (positions.IsWithinBounds(new Vector2Int(pos.x + 1, pos.y)) &&
                 positions[pos.x + 1, -pos.y].wall &&
-                positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD &&
                 positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
                 positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
                 )
             {
-                direction = new Vector2Int(1, 0);
-                rotationDir = -1;
-                higherElevationDirection = new Vector2Int(0, -1);
+                if (positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD)
+                {
+                    direction = new Vector2Int(1, 0);
+                    rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(0, -1);
+                }
+                else if (positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.READFIRST || positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                {
+                    value = false;
+                    wrap = true;
+                }
+                else
+                {
+                    value = false;
+                }
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
                 positions[pos.x - 1, pos.y].wall &&
@@ -316,14 +341,25 @@ public class RoomTemplateReader
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
                 positions[pos.x, (-pos.y + 1)].wall &&
-                positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD &&
                 positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
                 positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
                 )
             {
-                direction = new Vector2Int(0, 1);
-                rotationDir = -1;
-                higherElevationDirection = new Vector2Int(1, 0);
+                if (positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD)
+                {
+                    direction = new Vector2Int(0, 1);
+                    rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(1, 0);
+                }
+                else if (positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.READFIRST || positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                {
+                    value = false;
+                    wrap = true;
+                }
+                else
+                {
+                    value = false;
+                }
             }
             else
             {
@@ -334,14 +370,25 @@ public class RoomTemplateReader
         {
             if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
                 positions[pos.x, pos.y + 1].wall &&
-                positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.UNREAD &&
                 positions[pos.x - 1, pos.y + 1].elevation > currentElevation &&
                 positions[pos.x - 1, pos.y + 1].elevation > positions[pos.x, pos.y + 1].elevation
                 )
             {
-                direction = new Vector2Int(0, -1);
-                rotationDir = -1;
-                higherElevationDirection = new Vector2Int(-1, 0);
+                if(positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.UNREAD)
+                {
+                    direction = new Vector2Int(0, -1);
+                    rotationDir = -1;
+                    higherElevationDirection = new Vector2Int(-1, 0);
+                }
+                else if(positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.READFIRST || positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                {
+                    value = false;
+                    wrap = true;
+                }
+                else
+                {
+                    value = false;
+                }
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
                 positions[pos.x, pos.y - 1].wall &&
@@ -378,10 +425,6 @@ public class RoomTemplateReader
         i.read != TileTemplate.ReadValue.FINISHED
         ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
         //Do this between each elevation
-    }
-    bool ExtractWalls_DoesWallWrap(List<MeshMaker.WallData> data)
-    {
-        return true;
     }
 
     void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)

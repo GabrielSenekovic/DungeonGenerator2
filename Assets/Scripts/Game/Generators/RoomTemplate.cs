@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using TreeEditor;
+
 public partial class Room:MonoBehaviour
 {
     public class RoomTemplate
@@ -104,31 +106,60 @@ public partial class Room:MonoBehaviour
         void ParseInstructions(string instructions)
         {
             Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
-            List<Action<int, int>> actions = new List<Action<int, int>>(); 
+            List<Action<int, int>> actions = new List<Action<int, int>>();
+            int baseAltitude = 0;
             for(int i = 0; i < instructions.Length; i++)
             {
                 switch(instructions[i])
                 {
-                    case 'S': //Create square
-                        i++; //Skip the square bracket
-                        int width = ParseNumber(instructions, ref i);
-                        int elevation = ParseNumber(instructions, ref i);
-                        if(elevation > highestElevation) { highestElevation = elevation; }
-                        actions.Add((x, y) => CreateRoomTemplate_Square(new Vector2(width, width), x, y, elevation));
+                    case 'B':
+                        {
+                            i++;
+                            baseAltitude = ParseNumber(instructions, ref i);
+                            highestElevation += baseAltitude;
+                        }
                         break;
                     case 'C': //Create cross
-                        i++;
-                        int width2 = ParseNumber(instructions, ref i);
-                        int elevation2 = ParseNumber(instructions, ref i);
-                        if (elevation2 > highestElevation) { highestElevation = elevation2; }
-                        actions.Add((x, y) => CreateRoomTemplate_Cross(new Vector2(width2, width2), x, y, elevation2));
+                        {
+                            i++;
+                            int width = ParseNumber(instructions, ref i);
+                            int elevation = ParseNumber(instructions, ref i) + baseAltitude;
+                            if (elevation > highestElevation) { highestElevation = elevation; }
+                            actions.Add((x, y) => CreateRoomTemplate_Cross(new Vector2(width, width), x, y, elevation));
+                        }
+                        break;
+                    case 'N':
+                        {
+                            i++;
+                            actions.Add((x, y) => CreateRoomTemplate_Noise(x, y, baseAltitude));
+                        }
+                        break;
+                    case 'P': //Create pillars
+                        {
+                            i++;
+                            int width = ParseNumber(instructions, ref i);
+                            int elevation = ParseNumber(instructions, ref i) + baseAltitude;
+                            if (elevation > highestElevation) { highestElevation = elevation; }
+                            actions.Add((x, y) => CreateRoomTemplate_Pillars(new Vector2(width, width), x, y, elevation));
+                        }
+                        break;
+                    case 'S': //Create square
+                        {
+                            i++; //Skip the square bracket
+                            int width = ParseNumber(instructions, ref i);
+                            int elevation = ParseNumber(instructions, ref i) + baseAltitude;
+                            if (elevation > highestElevation) { highestElevation = elevation; }
+                            actions.Add((x, y) => CreateRoomTemplate_Square(new Vector2(width, width), x, y, elevation));
+                        }
                         break;
                     case 'W': //Create circle
-                        i++;
-                        int width3 = ParseNumber(instructions, ref i);
-                        int elevation3 = ParseNumber(instructions, ref i);
-                        if (elevation3 > highestElevation) { highestElevation = elevation3; }
-                        actions.Add((x, y) => CreateRoomTemplate_Circle(roomCenter, new Vector2(width3, width3), x, y, elevation3));
+                        {
+                            i++;
+                            int width = ParseNumber(instructions, ref i);
+                            int elevation = ParseNumber(instructions, ref i) + baseAltitude;
+                            if (elevation > highestElevation) { highestElevation = elevation; }
+                            actions.Add((x, y) => CreateRoomTemplate_Circle(roomCenter, new Vector2(width, width), x, y, elevation));
+                        }
                         break;
                 }
             }
@@ -162,13 +193,13 @@ public partial class Room:MonoBehaviour
             float distanceToCenter = new Vector2(x + 0.5f - center.x, y + 0.5f - center.y).magnitude;
             if (distanceToCenter > wallThickness.x && 
                 distanceToCenter > wallThickness.y && 
-                elevation > positions[x + (int)size.x * y].elevation)
+                elevation > positions[x + size.x * y].elevation)
             {
                 //if the higher limit is 0, then the code just generates a circle, period
                 int temp = UnityEngine.Random.Range(0, 0);
                 if (temp == 0)
                 {
-                    positions[x + (int)size.x * y].elevation = elevation;
+                    positions[x + size.x * y].elevation = elevation;
                 }
             }
         }
@@ -180,13 +211,33 @@ public partial class Room:MonoBehaviour
                 positions[x + size.x * y].elevation = elevation;
             }
         }
+        void CreateRoomTemplate_Pillars(Vector2 wallThickness, int x, int y, int elevation)
+        {
+            Vector2 howFarIn = new Vector2(2, 2);
+            if (!(x < howFarIn.x || x > size.x - howFarIn.x - 1 ||
+               y < howFarIn.y || y > size.y - howFarIn.y - 1))
+            {
+                if ((x < howFarIn.x + wallThickness.x || x > size.x - howFarIn.x - 1 - wallThickness.x) &&
+               (y < howFarIn.y + wallThickness.y || y > size.y - howFarIn.y - 1 - wallThickness.y))
+                {
+                    positions[x + size.x * y].elevation = elevation;
+                }
+            }
+        }
         void CreateRoomTemplate_Cross(Vector2 wallThickness, int x, int y, int elevation)
         {
             if ((x < wallThickness.x || x > size.x - wallThickness.x - 1) &&
                (y < wallThickness.y || y > size.y - wallThickness.y - 1))
             {
-                positions[x + (int)size.x * y].elevation = elevation;
+                positions[x + size.x * y].elevation = elevation;
             }
+        }
+        void CreateRoomTemplate_Noise(int x, int y, int elevation)
+        {
+            float noiseValue = Mathf.PerlinNoise(x / 10f, y / 10f) * 10.0f;
+            elevation += (int)noiseValue;
+            positions[x + size.x * y].elevation = elevation;
+            if (elevation > highestElevation) { highestElevation = elevation; }
         }
 
         public void AddEntrancesToRoom(Entrances entrances)
@@ -206,11 +257,10 @@ public partial class Room:MonoBehaviour
                     }
                 }
             }
-            IdentifyWalls();
             //UnscatterWalls();
             //BloatWallCrossings();
         }
-        void IdentifyWalls()
+        public void IdentifyWalls()
         {
             //! this function goes through all positions to identify which positions are where walls are supposed to be
             for (int x = 0; x < size.x; x++)

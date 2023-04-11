@@ -17,12 +17,6 @@ public enum RoomPosition
 [System.Serializable]
 public class RoomData
 {
-    [System.Serializable]
-    public struct RoomDebug
-    {
-        public Color floorColor;
-        public Color wallColor;
-    }
     public RoomPosition roomPosition = RoomPosition.None;
     public int stepsAwayFromMainRoom = 0;
     public bool IsBuilt = false;
@@ -34,8 +28,6 @@ public class RoomData
 
     public Vector2Int size;
     public string name;
-
-    public RoomDebug debug;
 
     public Texture2D templateTexture;
     public Texture2D mapTexture;
@@ -87,11 +79,10 @@ public class RoomData
         }
         return openEntrances;
     }
-    public Texture2D CreateMaps(ref RoomTemplate template)
+    public void CreateMaps(ref RoomTemplate template)
     {
         mapTexture = template.CreateMap();
         SaveTemplateTexture(template);
-        return mapTexture;
     }
     void SaveTemplateTexture(RoomTemplate template)
     {
@@ -106,9 +97,9 @@ public class RoomData
                 Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/
                     temp.door ? Color.red :
                     temp.error ? Color.green :
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? debug.wallColor :
+                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? new Color(0.75f, 0.6f, 0) :
                     temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta :
-                    temp.wall ? Color.white : debug.floorColor;
+                    temp.wall ? Color.white : new Color(0.1f, 0.1f, 0.3f);
                 templateTexture.SetPixel(x, y, color);
             }
         }
