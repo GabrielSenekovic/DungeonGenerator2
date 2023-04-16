@@ -143,26 +143,7 @@ public class LevelManager : MonoBehaviour
     }
     bool UpdateQuest()
     {
-        switch(questData.missionType)
-        {
-            case QuestData.MissionType.Recovery:
-                //return generator.spawnedEndOfLevel.isInteractedWith;
-                return false;
-            case QuestData.MissionType.Backup:
-                if(questData.GetStatus())
-                {
-                    return true;
-                }
-                //If false, update timers about the status of the NPCs youre supposed to help
-                return false;
-            case QuestData.MissionType.Delivery:
-            case QuestData.MissionType.Escort:
-            case QuestData.MissionType.Hunt:
-            case QuestData.MissionType.Inquiry:
-            case QuestData.MissionType.Investigation:
-                return questData.GetStatus();
-            default: return false;
-        }
+        return false;
     }
     public void SetPlacementRenderMode(PlacementRenderMode mode)
     {

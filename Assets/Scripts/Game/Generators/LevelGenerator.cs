@@ -45,31 +45,34 @@ public partial class LevelGenerator : MonoBehaviour
 
     public void GenerateFromCommand(int value)
     {
-        string instructions = "";
-        switch(value)
+        string outsideInstructions = "";
+        string houseInstructions = "";
+        switch (value)
         {
             case 0: break;
             case 1: break;
-            case 2: instructions = "S[4,2]"; break;//Test inner corner
-            case 3: instructions = "S[2,1], C[4,1]"; break; //Test both inner and outer corner, without doors
-            case 4: instructions = "S[4,1], S[2,2]"; break; //Test multiple altitudes, with 2 steps apart
-            case 5: instructions = "S[3,2], S[2,4]"; break; //Test multiple altitudes, with 1 step apart
-            case 6: instructions = "S[4,1], C[4,2], S[1,3]"; break; //Test multiple altitudes, with overlap
-            case 7: instructions = "S[2,1], C[2,2], S[1,3]"; break; //Test multiple altitudes, with overlap, with 1 step apart
-            case 8: instructions = "W[8,1]"; break; //Test circle
-            case 9: instructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]"; break; //Test multiple altitudes, with circles
-            case 10: instructions = "P[2,4]";  break; //Test 2x2 pillars
-            case 11: instructions = "P[1,4]";  break; //Test 1x1 pillars
+            case 2: outsideInstructions = "S[4,2], R[100]"; break;//Test inner corner
+            case 3: outsideInstructions = "S[2,1], C[4,1], R[100]"; break; //Test both inner and outer corner, without doors
+            case 4: outsideInstructions = "S[4,1], S[2,2]"; break; //Test multiple altitudes, with 2 steps apart
+            case 5: outsideInstructions = "S[3,2], S[2,4]"; break; //Test multiple altitudes, with 1 step apart
+            case 6: outsideInstructions = "S[4,1], C[4,2], S[1,3]"; break; //Test multiple altitudes, with overlap
+            case 7: outsideInstructions = "S[2,1], C[2,2], S[1,3]"; break; //Test multiple altitudes, with overlap, with 1 step apart
+            case 8: outsideInstructions = "W[8,1]"; break; //Test circle
+            case 9: outsideInstructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]"; break; //Test multiple altitudes, with circles
+            case 10: outsideInstructions = "P[2,4], R[100]";  break; //Test 2x2 pillars
+            case 11: outsideInstructions = "P[1,4], R[100]";  break; //Test 1x1 pillars
             case 12: break; //Test enclosed slope square with inner corner slope
             case 13: break; //Test outer corner slope
             case 14: break; //Test steep incline. Should be unwalkable
             case 15: break; //Test unsteep incline. Should be walkable
             case 16: break; //Test multiple inclines (One slope more steep than the other, next to eachother)
+            case 17: houseInstructions = "P[2,2], D[6,6]"; break; //Test to build a house by itself
+            case 18: outsideInstructions = "S[4,2]"; houseInstructions = "P[2,2], D[6,6]"; break; //Test to build a house in an environment
             default: return;
         }
-        OnGenerateOneRoom(true, instructions);
+        OnGenerateOneRoom(true, outsideInstructions, houseInstructions);
     }
-    public void OnGenerateOneRoom(bool withEntrances, string instructions = "")
+    public void OnGenerateOneRoom(bool withEntrances, string outsideInstructions = "", string houseInstructions = "")
     {
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
         Room currentRoom = currentLevel.sections[0].rooms[0];
@@ -78,7 +81,7 @@ public partial class LevelGenerator : MonoBehaviour
         currentLevel.sectionData.Add(new SectionData());
         currentLevel.sectionData[0].rooms.Add(new RoomData());
         RoomData currentRoomData = currentLevel.sectionData[0].rooms[0];
-        currentRoomData.Initialise(new Vector2Int(20, 20), 0, ref templates, instructions);
+        currentRoomData.Initialise(new Vector2Int(20, 20), 0, ref templates, outsideInstructions, houseInstructions);
         if(withEntrances)
         {
             currentRoomData.GetDirections().ActivateAllEntrances();
@@ -97,25 +100,6 @@ public partial class LevelGenerator : MonoBehaviour
     public void GenerateStartArea()
     {
         OnGenerateOneRoom(false);
-        //Surround this one room with floors
-        /*GameObject surroundings = new GameObject("Surroundings");
-        surroundings.transform.parent = this.gameObject.transform;
-        for(int x = 0; x < 3; x++)
-        {
-            for(int y = 0; y < 3; y++)
-            {
-                if(x == 1 && y == 1){continue;}
-                GameObject surroundingObject = new GameObject("Surroundings");
-                surroundingObject.transform.parent = surroundings.gameObject.transform;
-                surroundingObject.AddComponent<MeshFilter>();
-                MeshMaker.CreateSurface(surroundingObject.GetComponent<MeshFilter>().mesh, 4);
-                surroundingObject.AddComponent<MeshRenderer>();
-                surroundingObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Ground");
-                surroundingObject.transform.localPosition = new Vector3(-10 - 20 + (x * 20), 10 + 20 - (y * 20), 0);
-                Room temp = surroundingObject.AddComponent<Room>();
-                surroundingPositions.Add(new Tuple<Vector2Int, Room>(new Vector2Int(x,y), temp));
-            }
-        }*/
     }
     public void GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
     {

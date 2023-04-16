@@ -24,7 +24,15 @@ public partial class Room:MonoBehaviour
                 READFIRST, //The first value of that wall that got read
                 READFIRSTFINISHED
             }
+            public enum TileType
+            {
+                NONE = 0,
+                OUTSIDE_WALL = 1, //Outdoor wall
+                HOUSE_WALL = 2, //So create the walls on the outer edges
+                HOUSE_FLOOR = 3
+            }
             public ReadValue read;
+            public TileType tileType;
             public bool error;
 
             public Vector2Int divisions; //This also only does something if the identity is a wall
@@ -63,23 +71,24 @@ public partial class Room:MonoBehaviour
                 elevation = newElevation;
             }
         }
+        public float roundedness; //Should ideally be part of the given walltype later
         public Vector2Int size;
         public Grid<TileTemplate> positions;
         public bool indoors;
         public int highestElevation;
-        public RoomTemplate(Vector2Int size_in, string instructions = "")
+        public RoomTemplate(Vector2Int size_in, string outsideInstructions = "", string houseInstructions = "")
         {
             size = size_in;
             positions = new Grid<TileTemplate>(size_in);
-            CreateRoomTemplate(instructions);
+            CreateRoomTemplate(outsideInstructions, houseInstructions);
         }
-        void CreateRoomTemplate(string instructions)
+        void CreateRoomTemplate(string outsideInstructions, string houseInstructions)
         {
             //In here it will be determined if the room is a circle, if it is a corridor, etc
             Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
             Vector2 wallThickness = new Vector2(UnityEngine.Random.Range(size.x / 2 - 4, size.x / 2), UnityEngine.Random.Range(size.y / 2 - 4, size.y / 2));
             highestElevation = 2;
-            if (instructions == "")
+            if (outsideInstructions == "")
             {
                 for (int y = 0; y < size.y; y++)
                 {
@@ -91,26 +100,30 @@ public partial class Room:MonoBehaviour
                         positions.Add(new TileTemplate(elevation, divisions));
                         CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
                         CreateRoomTemplate_Square(new Vector2(2, 2), x, y, 2); //?Basic thickness. Can't be thinner than 2
-                                                                                //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
-                                                                                //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
-                                                                                //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
+                                                                               //CreateRoomTemplate_Circle(roomCenter, new Vector2(2,2), x, y);
+                                                                               //if (!indoors) { CreateRoomTemplate_Circle(roomCenter, wallThickness, x, y); }
+                                                                               //CreateRoomTemplate_Cross(new Vector2(9,9), x, y, 4);
                     }
                 }
             }
             else
             {
-                ParseInstructions(instructions);
+                ParseOutsideInstructions(outsideInstructions);
+            }
+            if (houseInstructions != "")
+            {
+                ParseHouseInstructions(houseInstructions);
             }
             //SmoothenOut();
         }
-        void ParseInstructions(string instructions)
+        void ParseOutsideInstructions(string instructions)
         {
             Vector2 roomCenter = new Vector2(size.x / 2, size.y / 2);
             List<Action<int, int>> actions = new List<Action<int, int>>();
             int baseAltitude = 0;
-            for(int i = 0; i < instructions.Length; i++)
+            for (int i = 0; i < instructions.Length; i++)
             {
-                switch(instructions[i])
+                switch (instructions[i])
                 {
                     case 'B':
                         {
@@ -143,6 +156,12 @@ public partial class Room:MonoBehaviour
                             actions.Add((x, y) => CreateRoomTemplate_Pillars(new Vector2(width, width), x, y, elevation));
                         }
                         break;
+                    case 'R': //Roundedness
+                        {
+                            i++;
+                            roundedness = ((float)ParseNumber(instructions, ref i)) / 100f;
+                        }
+                        break;
                     case 'S': //Create square
                         {
                             i++; //Skip the square bracket
@@ -167,7 +186,7 @@ public partial class Room:MonoBehaviour
             {
                 for (int x = 0; x < size.x; x++)
                 {
-                    for(int i = 0; i < actions.Count; i++)
+                    for (int i = 0; i < actions.Count; i++)
                     {
                         Vector2Int divisions = new Vector2Int(2, 2); //1,1
                         positions.Add(new TileTemplate(0, divisions));
@@ -175,6 +194,63 @@ public partial class Room:MonoBehaviour
                     }
                 }
             }
+        }
+        void ParseHouseInstructions(string instructions)
+        {
+            int width = 0;
+            int depth = 0;
+            int x = 0;
+            int y = 0;
+            for (int i = 0; i < instructions.Length; i++)
+            {
+                switch (instructions[i])
+                {
+                    case 'D': //Dimensions
+                        {
+                            i++;
+                            width = ParseNumber(instructions, ref i);
+                            depth = ParseNumber(instructions, ref i);
+                        }
+                        break;
+                    case 'P': //Position
+                        {
+                            i++;
+                            x = ParseNumber(instructions, ref i);
+                            y = ParseNumber(instructions, ref i);
+                        }
+                        break;
+                }
+            }
+            if (width == 0 || depth == 0) { return; }
+            //Make box
+            for (int i = x; i < width + x; i++)
+            {
+                positions[i, y].tileType = TileTemplate.TileType.HOUSE_WALL;
+                positions[i, y].elevation = 4;
+                positions[i, y].wall = true;
+                positions[i, y + depth - 1].tileType = TileTemplate.TileType.HOUSE_WALL;
+                positions[i, y + depth - 1].elevation = 4;
+                positions[i, y + depth - 1].wall = true;
+            }
+            for (int i = y; i < depth + y; i++)
+            {
+                positions[x, i].tileType = TileTemplate.TileType.HOUSE_WALL;
+                positions[x, i].elevation = 4;
+                positions[x, i].wall = true;
+                positions[x + width - 1, i].tileType = TileTemplate.TileType.HOUSE_WALL;
+                positions[x + width - 1, i].elevation = 4;
+                positions[x + width - 1, i].wall = true;
+            }
+            //Fill it in
+            for (int i = x + 1; i < width + x - 1; i++)
+            {
+                for (int j = y + 1; j < depth + y - 1; j++)
+                {
+                    positions[i, j].elevation = 0;
+                    positions[i, j].tileType = TileTemplate.TileType.HOUSE_FLOOR;
+                }
+            }
+            highestElevation = Mathf.Max(highestElevation, 4);
         }
         int ParseNumber(string instructions, ref int index)
         {
@@ -191,8 +267,8 @@ public partial class Room:MonoBehaviour
         void CreateRoomTemplate_Circle(Vector2 center, Vector2 wallThickness, int x, int y, int elevation)
         {
             float distanceToCenter = new Vector2(x + 0.5f - center.x, y + 0.5f - center.y).magnitude;
-            if (distanceToCenter > wallThickness.x && 
-                distanceToCenter > wallThickness.y && 
+            if (distanceToCenter > wallThickness.x &&
+                distanceToCenter > wallThickness.y &&
                 elevation > positions[x + size.x * y].elevation)
             {
                 //if the higher limit is 0, then the code just generates a circle, period
@@ -267,13 +343,14 @@ public partial class Room:MonoBehaviour
             {
                 for (int y = 0; y < size.y; y++)
                 {
+                    if (positions[x, y].tileType == TileTemplate.TileType.HOUSE_FLOOR) { continue; }
                     int[] constraints = positions.GetValidConstraints(x, y);
                     for (int x_w = constraints[0]; x_w < constraints[2]; x_w++)
                     {
                         for (int y_w = constraints[1]; y_w < constraints[3]; y_w++)
                         {
                             //If this position has one adjacent position that is a higher elevation from itself, then it is a wall
-                            if (positions[x_w, y_w].elevation > positions[x, y].elevation)
+                            if (positions[x_w, y_w].elevation > positions[x, y].elevation && positions[x_w, y_w].tileType != TileTemplate.TileType.HOUSE_WALL)
                             {
                                 positions[x, y].wall = true;
                             }
@@ -385,7 +462,7 @@ public partial class Room:MonoBehaviour
                 }
             }
         }
-        
+
         public List<TileTemplate> GetEntranceTiles()
         {
             List<TileTemplate> tiles = new List<TileTemplate>();
@@ -456,10 +533,18 @@ public partial class Room:MonoBehaviour
             for (int i = 0; i < size.x * size.y; i++)
             {
                 float lumValue = (float)grid[i].elevation / 20f + 0.5f;
-                colors[i] = Color.HSVToRGB(0.3f, 1, lumValue);
+                float hue = GetMapColor(grid[i].tileType);
+                colors[i] = Color.HSVToRGB(hue, 1, lumValue);
             }
             tex.Finish(colors);
             return tex;
         }
+        float GetMapColor(TileTemplate.TileType type) => type switch
+        {
+            TileTemplate.TileType.NONE => 0.3f,
+            TileTemplate.TileType.HOUSE_WALL => 0.15f,
+            TileTemplate.TileType.HOUSE_FLOOR => 0.1f,
+            _ => 0
+        };
     }
 }

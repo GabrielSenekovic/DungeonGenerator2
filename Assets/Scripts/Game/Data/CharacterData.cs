@@ -2,9 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterData : MonoBehaviour
+public class CharacterData
 {
     public string givenName;
+    public Profession profession;
+
+    public CharacterData(string givenName, Profession profession = null)
+    {
+        this.givenName = givenName;
+        this.profession = profession;
+    }
 
     public string GetName()
     {

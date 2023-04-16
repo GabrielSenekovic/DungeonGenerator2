@@ -31,38 +31,6 @@ public partial class LevelGenerator : MonoBehaviour
     }
     public void PutDownQuestObjects(LevelManager level, QuestData data)
     {
-        switch (data.missionType)
-        {
-            case QuestData.MissionType.Recovery:
-                /*spawnedEndOfLevel = Instantiate(endOfLevel, 
-                    new Vector2(level.lastRoom.transform.position.x + 10, level.lastRoom.transform.position.y + 10), 
-                    Quaternion.identity, level.lastRoom.transform);*/
-                break;
-            case QuestData.MissionType.Inquiry:
-                InquiryQuestData temp = data as InquiryQuestData;
-                /* Instantiate(temp.Target.NPC,
-                     new Vector2(temp.Target.Room.x + 10, temp.Target.Room.y + 10),
-                     Quaternion.identity, level.lastRoom.transform);*/
-                break;
-            case QuestData.MissionType.Delivery:
-                break;
-            case QuestData.MissionType.Backup:
-                BackupQuestData temp2 = data as BackupQuestData;
-                for (int i = 0; i < temp2.NPCsToBackup.Count; i++)
-                {
-                    Instantiate(temp2.NPCsToBackup[i].NPC,
-                    new Vector2(level.lastRoom.transform.position.x + 10, level.lastRoom.transform.position.y + 10),
-                    Quaternion.identity, level.lastRoom.transform);
-                }
-                break;
-            case QuestData.MissionType.Escort:
-                break;
-            case QuestData.MissionType.Hunt:
-                break;
-            case QuestData.MissionType.Investigation:
-                break;
-            default: break;
-        }
     }
     public void BuildLevel(LevelData data, Room currentRoom)
     {

@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Random = UnityEngine.Random;
+using TileType = Room.RoomTemplate.TileTemplate.TileType;
 
 public partial class MeshMaker: MonoBehaviour
 {
@@ -14,16 +15,16 @@ public partial class MeshMaker: MonoBehaviour
         public int elevation;
         public int rotation; //Determines what direction the walls are drawn in. Sides, up, down, diagonal etc
 
-        public float roundedness; //At full roundedness, the corner is perfectly circular besides jaggedness. At zero roundedness, the corner is sharp
-
         public Vector2Int divisions;
 
         public Vector3 position; //The start position to draw the wall from
 
         public Vector2Int actualPosition;
         public AnimationCurve curve;
+        public int angleToTurn;
+        public TileType type;
 
-        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, float roundedness_in)
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int length_in, int height_in, int tilt_in, Vector2Int divisions_in, AnimationCurve curve_in, int angleToTurn, TileType type)
         {
             position = position_in;
             rotation = rotation_in;
@@ -32,10 +33,11 @@ public partial class MeshMaker: MonoBehaviour
             tilt = tilt_in;
             divisions = divisions_in;
             curve = curve_in;
-            roundedness = roundedness_in;
             actualPosition = actualPosition_in;
+            this.angleToTurn = angleToTurn;
+            this.type = type;
         }
-        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, float roundedness_in) //If this wall has the same length as the previous one, you don't have to define length
+        public WallData(Vector3 position_in, Vector2Int actualPosition_in, int rotation_in, int height_in, int tilt_in, AnimationCurve curve_in, int angleToTurn, TileType type) //If this wall has the same length as the previous one, you don't have to define length
         {
             position = position_in;
             rotation = rotation_in;
@@ -44,11 +46,20 @@ public partial class MeshMaker: MonoBehaviour
             tilt = tilt_in;
             divisions = new Vector2Int(1, 1);
             curve = curve_in;
-            roundedness = roundedness_in;
             actualPosition = actualPosition_in;
+            this.angleToTurn = angleToTurn;
+            this.type = type;
         }
     }
-    public static void CreateWall(GameObject wall, Material wallMaterial, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles)
+    [System.Flags]
+    public enum WallType
+    {
+        NONE = 0,
+        LAST = 1, //when the the wall is rounded
+        FIRST = 1 << 1, //when the previous wall is rounded at the end
+        INNER = 1 << 2 //We only need one, not both inner and outer
+    }
+    public static void CreateWall(GameObject wall, Dictionary<TileType, Material> wallMaterials, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, float roundedness)
     {
         if (instructions.Count == 0)
         {
@@ -119,17 +130,41 @@ public partial class MeshMaker: MonoBehaviour
 
             for (int y = 0; y <= currentWall.divisions.y + 1; y++) //if divisions is 0, we want it to run twice
             {
-                for (int x = 0; x <= (currentWall.divisions.x + 1) * currentWall.length; x++) //If division is 0, we want to run this at normal length
+                int limit = (currentWall.divisions.x + 1) * currentWall.length;
+                int limitMinusLastWall = limit - (currentWall.divisions.x + 1);
+                for (int x = 0; x <= limit; x++) //If division is 0, we want to run this at normal length
                 {
                     float x_increment = 1 / ((float)currentWall.divisions.x + 1);
                     float y_increment = 1 / ((float)currentWall.divisions.y + 1);
-                    newVertices.Add(new Vector3(
-                        currentWall.position.x + x * x_increment, 
-                        currentWall.position.y, 
-                        currentWall.position.z - y * y_increment));
+
+                    Vector3 newVertex = new Vector3(
+                        currentWall.position.x + x * x_increment,
+                        currentWall.position.y,
+                        currentWall.position.z - y * y_increment);
+
+                    WallType wallType = Mathf.FloorToInt(x) <= (currentWall.divisions.x + 1) ? WallType.FIRST : Mathf.CeilToInt(x) > limitMinusLastWall ? WallType.LAST : WallType.NONE;
+                    if(wallIndex > 0 && wallType != WallType.NONE)
+                    {
+                        if (wallType == WallType.FIRST && instructions[wallIndex - 1].angleToTurn == 1)
+                        {
+                            wallType |= WallType.INNER;
+                        }
+                        else if(wallType == WallType.LAST && instructions[wallIndex].angleToTurn == 1)
+                        {
+                            wallType |= WallType.INNER;
+                        }
+                    }
+                    Vector3 gridPosition = Vector3.zero;
+                    if(wallType != WallType.NONE)
+                    {
+                        gridPosition = new Vector3(currentWall.position.x + (int)(x * x_increment - x_increment), currentWall.position.y);
+                    }
+
+                    CreateWall_RoundColumn(ref newVertex, gridPosition, wallType, currentWall.divisions, roundedness);
+                    
+                    newVertices.Add(newVertex);
                 }
             }
-
             CreateWall_Rotate(newVertices, instructions[wallIndex]);
 
             int[] indexValues = new int[] 
@@ -139,7 +174,7 @@ public partial class MeshMaker: MonoBehaviour
                 0,
 
                 1 + (currentWall.divisions.x + 1) * currentWall.length,
-                2 +(currentWall.divisions.x + 1) * currentWall.length,
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
                 0
             };
             //Add all indices
@@ -170,10 +205,12 @@ public partial class MeshMaker: MonoBehaviour
             indexJump = allVertices.Count;
             if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != instructions[wallIndex-1].elevation))
             {
-                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, wallMaterial);
+                wallMaterials.TryGetValue(instructions[wallIndex].type, out Material mat);
+                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
             }
         }
-        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, wallMaterial);
+        wallMaterials.TryGetValue(instructions[instructions.Count - 1].type, out Material mat2);
+        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
     }
     static void CreateWall_Finish(GameObject wall, WallData currentWall, ref List<Vector3> allVertices,ref List<int> allIndices, ref List<Vector2> allUVs, Material wallMaterial)
     {
@@ -212,57 +249,35 @@ public partial class MeshMaker: MonoBehaviour
             vertices[count - 4 + i] += new Vector3(Random.Range(-jaggedness, jaggedness), Random.Range(-jaggedness, jaggedness), 0);
         }
     }
-    static public void CreateWall_RoundColumn(ref List<Vector3> allVertices, bool roundLastColumn, bool roundFirstColumn, ref int [] indicesToRotate, List<WallData> instructions, int i, int j, float x, float y, Vector2Int divisions)
+    static public void CreateWall_RoundColumn(ref Vector3 newVertex, Vector2 gridPos, WallType cornerType, Vector2Int divisions, float roundedness)
     {
-        if (roundLastColumn)
+        if(roundedness == 0 || cornerType == WallType.NONE) { return; }
+        int innerOuter = cornerType.HasFlag(WallType.INNER) ? -1 : 1; 
+        if (cornerType.HasFlag(WallType.LAST))
         {
-            for (int index = 0; index < indicesToRotate.Length; index++)
-            {
-                Vector2 circleCenter = new Vector2(0, instructions[i].roundedness); //! Center in a vaccuum
-                circleCenter += new Vector2(x + j, y); //! Make Center relative to this wall tile
+            float x = newVertex.x;
+            float y = newVertex.y;
+            Vector2 circleCenter = new Vector2(0, roundedness * innerOuter); //! Center in a vaccuum
+            circleCenter += gridPos; //! Make Center relative to this wall tile
 
-                Vector2 vectorBetween = (circleCenter - (Vector2)allVertices[allVertices.Count + (indicesToRotate[index] - 4)]);
-                Vector2 normal = vectorBetween.normalized; //! Take the normal from the Center to this position
-                Vector2 movedNormal = new Vector2(x + j, y) - normal;
+            Vector2 vectorBetween = circleCenter - (Vector2)newVertex;
+            vectorBetween.Normalize(); //! Take the normal from the Center to this position
+            Vector2 movedNormal = circleCenter - vectorBetween;
 
-                Vector2 thirdPosition = new Vector2(movedNormal.x, allVertices[allVertices.Count + (indicesToRotate[index] - 4)].y); //! The third position to the normal and the original vertex
-                
-                float move_x = (thirdPosition - (Vector2)allVertices[allVertices.Count + (indicesToRotate[index] - 4)]).magnitude;
-                float move_y = ((movedNormal - thirdPosition)).magnitude;
-
-
-                allVertices[allVertices.Count + (indicesToRotate[index] - 4)] =
-                    new Vector3(
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].x - move_x,
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].y - move_y + 1, //+1
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].z);
-            }
+            newVertex = new Vector3(movedNormal.x, movedNormal.y, newVertex.z);
         }
-        else if (roundFirstColumn)
+        else if (cornerType.HasFlag(WallType.FIRST))
         {
-            for (int index = 0; index < indicesToRotate.Length; index++)
-            {
-
-                Vector2 circleCenter = new Vector2(instructions[i - 1].roundedness, instructions[i - 1].roundedness); //! Center in a vaccuum
-                circleCenter += new Vector2(x, y); //! Make Center relative to this wall tile
+            float x = newVertex.x;
+            float y = newVertex.y;
+            Vector2 circleCenter = new Vector2(roundedness, roundedness * innerOuter); //! Center in a vaccuum
+            circleCenter += gridPos; //! Make Center relative to this wall tile
                                                                                             
-                Vector2 vectorBetween = (circleCenter - (Vector2)allVertices[allVertices.Count + (indicesToRotate[index] - 4)]);
-                Vector2 normal = vectorBetween.normalized; //! Take the normal from the Center to this position
-                Vector2 movedNormal = new Vector2(x, y) - normal;
+            Vector2 vectorBetween = circleCenter - (Vector2)newVertex;
+            vectorBetween.Normalize(); //! Take the normal from the Center to this position
+            Vector2 movedNormal = circleCenter - vectorBetween;
 
-                Vector2 thirdPosition = new Vector2(movedNormal.x, allVertices[allVertices.Count + (indicesToRotate[index] - 4)].y); //! The third position to the normal and the original vertex
-
-                float move_x = (thirdPosition - (Vector2)allVertices[allVertices.Count + (indicesToRotate[index] - 4)]).magnitude;
-                float move_y = ((movedNormal - thirdPosition)).magnitude;
-
-                //Debug.Log("INDEX: " + (newVertices.Count +(indicesToRotate[index] - 4))); 
-
-                allVertices[allVertices.Count + (indicesToRotate[index] - 4)] =
-                    new Vector3(
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].x - move_x + 1,
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].y - move_y + 1,
-                        allVertices[allVertices.Count + (indicesToRotate[index] - 4)].z);
-            }
+            newVertex = new Vector3(movedNormal.x, movedNormal.y, newVertex.z);
         }
     }
     static public void CreateWall_Rotate(List<Vector3> vertices, WallData wall)

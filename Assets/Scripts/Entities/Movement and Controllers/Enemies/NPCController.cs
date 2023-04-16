@@ -11,19 +11,17 @@ public class NPCController : MonoBehaviour
         CHASING = 0,
         ESCAPING = 1,
         IDLE = 2,
-
-        WANDERING = 3
+        WANDERING = 3,
+        WORKING = 4 //Work if not finished instead of going idle
     }
     NPCMovementState movementState = NPCMovementState.IDLE;
 
     MovementModel movementModel;
     StatusConditionModel statusConditionModel;
-
     NPCAttackModel attackModel;
-
     SphereCollider visionCollider;
-
     Transform target;
+    CharacterData characterData;
 
     public float gizmoWidth;
 
@@ -65,6 +63,15 @@ public class NPCController : MonoBehaviour
         {
             movementModel.SetMovementDirection((transform.position - target.position).normalized);
         }
+        else if(movementState == NPCMovementState.WORKING)
+        {
+            //Perform profession
+            bool finished = characterData.profession.Work();
+            if(finished)
+            {
+                movementState = NPCMovementState.IDLE;
+            }
+        }
     }
 
     void Attack()
@@ -103,6 +110,11 @@ public class NPCController : MonoBehaviour
             movementModel.SetMovementDirection(movementModel.GetFacingDirection());
         }
     }
+    void Sleep()
+    {
+        //Reset daily mission
+        characterData.profession.Reset();
+    }
 
     private void OnTriggerStay(Collider other) 
     {
@@ -129,6 +141,7 @@ public class NPCController : MonoBehaviour
             case NPCMovementState.CHASING: Gizmos.color = Color.red; break;
             case NPCMovementState.ESCAPING: Gizmos.color = Color.yellow; break;
             case NPCMovementState.WANDERING: Gizmos.color = Color.blue; break;
+            case NPCMovementState.WORKING: Gizmos.color = Color.cyan; break;
         }
         Gizmos.DrawSphere(transform.position, gizmoWidth);
     }

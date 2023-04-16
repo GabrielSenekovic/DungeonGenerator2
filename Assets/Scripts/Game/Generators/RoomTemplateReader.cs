@@ -50,11 +50,16 @@ public class RoomTemplateReader
         DebugLog.AddToMessage("Substep", "Creating walls");
         List<Tuple<List<MeshMaker.WallData>, bool>> data = ExtractWalls(directions); //These directions will be the ones that connect with other levels
 
-        for(int i = 0; i < data.Count; i++)
+        Dictionary<TileTemplate.TileType, Material> materials = new Dictionary<TileTemplate.TileType, Material>();
+        materials.Add(TileTemplate.TileType.NONE, wallMaterial);
+        Material houseMaterial = new Material(wallMaterial);
+        houseMaterial.SetColor("_BaseColor",Color.red);
+
+        for (int i = 0; i < data.Count; i++)
         {
             GameObject wallObject = new GameObject("Wall");
             wallObject.transform.parent = roomTransform;
-            MeshMaker.CreateWall(wallObject, wallMaterial, data[i].Item1, data[i].Item2, positions);
+            MeshMaker.CreateWall(wallObject, materials, data[i].Item1, data[i].Item2, positions, template.roundedness);
             wallObject.transform.localPosition = new Vector3(-9.5f, 10, 0);
         }
     }
@@ -64,7 +69,14 @@ public class RoomTemplateReader
         GameObject floorObject = new GameObject("Floor");
         floorObject.transform.parent = roomTransform;
 
-        MeshMaker.CreateSurface(ExtractFloor(), floorObject.transform, floorMaterial);
+        Dictionary<TileTemplate.TileType, Material> materials = new Dictionary<TileTemplate.TileType, Material>();
+        materials.Add(TileTemplate.TileType.NONE, floorMaterial);
+        Material houseMaterial = new Material(floorMaterial);
+        houseMaterial.SetColor("_BaseColor", Color.blue);
+        materials.Add(TileTemplate.TileType.HOUSE_FLOOR, houseMaterial);
+        materials.Add(TileTemplate.TileType.HOUSE_WALL, houseMaterial);
+
+        MeshMaker.CreateSurface(ExtractFloor(), floorObject.transform, materials);
         floorObject.transform.localPosition = new Vector3(-10, 10, 0);
     }
     public List<Tuple<List<MeshMaker.WallData>, bool>> ExtractWalls(Entrances entrances)
@@ -103,6 +115,15 @@ public class RoomTemplateReader
                         positions[x, y].read == TileTemplate.ReadValue.UNREAD &&
                         positions[x, y - 1].elevation > positions[x, y].elevation && 
                         positions[x, y].elevation <= currentElevation)
+                    {
+                        pos = new Vector2Int(x, -y);
+                        currentAngle = 270;
+                        OnExtractWalls(ref currentAngle, ref pos, ref data, currentElevation);
+                    }
+
+                    if (positions.IsWithinBounds(new Vector2Int(x, -y + 1)) &&
+                        positions[x, y].tileType == TileTemplate.TileType.HOUSE_WALL &&
+                        positions[x, y].read == TileTemplate.ReadValue.UNREAD)
                     {
                         pos = new Vector2Int(x, -y);
                         currentAngle = 270;
@@ -155,8 +176,6 @@ public class RoomTemplateReader
             }
             HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn, ref wrap);
 
-            float roundedness = 1;
-
             if (angleToTurn < 0 || wrap)
             {
                 //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
@@ -185,30 +204,31 @@ public class RoomTemplateReader
             temp.value = 0;
             curve.AddKey(temp);*/
             //! END OF CURVE
+            float houseWallModifier = positions[pos.x, pos.y].tileType == TileTemplate.TileType.HOUSE_WALL ? 0.2f: 0;
 
             if (currentAngle == 0)
             {
                 Debug.Log("adding 0 degree wall");
-                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y, 0), startPosition,
-                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
+                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y + houseWallModifier, 0), startPosition,
+                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 90)
             {
                 Debug.Log("adding 90 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
-                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
+                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 180)
             {
                 Debug.Log("adding 180 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1, 0), startPosition,
-                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
+                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 270)
             {
                 Debug.Log("adding 270 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
-                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, roundedness));
+                -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
             currentAngle += 90 * angleToTurn; //This code can only do inner corners atm, not outer corners
@@ -242,11 +262,8 @@ public class RoomTemplateReader
         higherElevationDirection = new Vector2Int(0, 0);
         if (rotation == 270)
         {
-            bool bool1 = positions[pos.x + 1, pos.y].wall;
-            bool bool2 = positions[pos.x + 1, pos.y].read == TileTemplate.ReadValue.UNREAD;
-            bool bool3 = positions[pos.x, -pos.y - 1].elevation > currentElevation;
-            bool bool4 = positions[pos.x, -pos.y - 1].elevation > positions[pos.x + 1, pos.y].elevation;
             if (positions.IsWithinBounds(new Vector2Int(pos.x + 1, pos.y)) &&
+                positions[pos.x + 1, pos.y].tileType == positions[pos].tileType &&
                 positions[pos.x + 1, pos.y].wall &&
                 positions[pos.x + 1, pos.y].elevation <= currentElevation &&
                 positions[pos.x, -pos.y - 1].elevation > currentElevation &&
@@ -259,6 +276,7 @@ public class RoomTemplateReader
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
                 positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y - 1)) &&
+                positions[pos.x - 1, pos.y].tileType == positions[pos].tileType &&
                 positions[pos.x - 1, pos.y].wall &&
                 positions[pos.x - 1, pos.y - 1].elevation > currentElevation &&
                 positions[pos.x - 1, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
@@ -288,6 +306,7 @@ public class RoomTemplateReader
         else if (rotation == 90)
         {
             if (positions.IsWithinBounds(new Vector2Int(pos.x + 1, pos.y)) &&
+                positions[pos.x + 1, -pos.y].tileType == positions[pos].tileType &&
                 positions[pos.x + 1, -pos.y].wall &&
                 positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
                 positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
@@ -310,6 +329,7 @@ public class RoomTemplateReader
                 }
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
+                positions[pos.x - 1, pos.y].tileType == positions[pos].tileType &&
                 positions[pos.x - 1, pos.y].wall &&
                 positions[pos.x - 1, pos.y].elevation <= currentElevation &&
                 positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
@@ -329,6 +349,7 @@ public class RoomTemplateReader
         else if (rotation == 180)
         {
             if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
+                positions[pos.x, pos.y + 1].tileType == positions[pos].tileType &&
                 positions[pos.x, pos.y + 1].wall &&
                 positions[pos.x, pos.y + 1].elevation <= currentElevation &&
                 positions[pos.x - 1, pos.y].elevation > currentElevation &&
@@ -340,6 +361,7 @@ public class RoomTemplateReader
                 higherElevationDirection = new Vector2Int(-1, 0);
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
+                positions[pos.x, (-pos.y + 1)].tileType == positions[pos].tileType &&
                 positions[pos.x, (-pos.y + 1)].wall &&
                 positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
                 positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
@@ -369,6 +391,7 @@ public class RoomTemplateReader
         else if (rotation == 0)
         {
             if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
+                positions[pos.x, pos.y + 1].tileType == positions[pos].tileType &&
                 positions[pos.x, pos.y + 1].wall &&
                 positions[pos.x - 1, pos.y + 1].elevation > currentElevation &&
                 positions[pos.x - 1, pos.y + 1].elevation > positions[pos.x, pos.y + 1].elevation
@@ -391,6 +414,7 @@ public class RoomTemplateReader
                 }
             }
             else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
+                positions[pos.x, pos.y - 1].tileType == positions[pos].tileType &&
                 positions[pos.x, pos.y - 1].wall &&
                 positions[pos.x, pos.y - 1].elevation <= currentElevation &&
                 positions[pos.x + 1, pos.y].elevation > currentElevation &&
@@ -455,34 +479,6 @@ public class RoomTemplateReader
             pos = new Vector2Int(entrance.positions[entrance.positions.Count - 1].x, -entrance.positions[entrance.positions.Count - 1].y);
             currentAngle = 270;
         }
-
-
-
-        /*for(int x = 0; x < size.x; x++)
-         {
-             for(int y = 0; y < size.y; y++)
-             {
-                 //TODO Wall reading should actually start at the first found door!
-                 //TODO Do this later when the doors have been changed for big rooms
-
-                 //Check if there is floor diagonally right down, because walls can only be drawn from left to right
-                 //If there are none, rotate the search three times. If there still are none, then there is an error
-                 if(IsPositionWithinBounds(new Vector2Int(x + 1, -y - 1)) && (x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 2 || x < size.x && positions[x + 1 + size.x * (y + 1)].identity == 3))
-                 //2 is floor, 3 is door but door also counts as floor
-                 {
-                     pos = new Vector2Int(x, -y); 
-                     currentAngle = 90;
-                     break; 
-                 }
-                     //if none of the directions are a floor, then it is a void
-                 // template.positions[x + template.size.x * y].SetIdentity(0);
-             }
-             if(pos != new Vector2Int(-1,-1))
-             {
-                 break;
-             }
-         }*/
-        //Debug.Log("The position found to start from, that has a floor next to it: " + pos);
     }
     void ExtractWalls_GetSteps(ref Vector2Int pos, ref int steps, Vector2Int direction, Vector2Int directionOfHigherElevation, int currentAngle, int currentElevation)
     {
@@ -496,7 +492,8 @@ public class RoomTemplateReader
             positions.IsWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) &&
             positions[pos.x + direction.x, pos.y - direction.y].wall &&
             positions[pos.x + direction.x, pos.y - direction.y].elevation <= currentElevation &&
-            positions[pos.x + directionOfHigherElevation.x, pos.y - directionOfHigherElevation.y].elevation > currentElevation
+            positions[pos.x + directionOfHigherElevation.x, pos.y - directionOfHigherElevation.y].elevation > currentElevation &&
+            positions[pos.x + direction.x, pos.y - direction.y].tileType == positions[pos.x, pos.y].tileType
             )
         {
             steps++;
@@ -531,9 +528,20 @@ public class RoomTemplateReader
         {
             for (int y = 0; y < template.size.y; y++)
             {
-                //int elevation = positions[x, y].wall ? 0 : positions[x, y].elevation;
-                int elevation = positions[x, y].elevation;
-                returnData.Add(new MeshMaker.SurfaceData(new Vector3Int(x, -y - 1, elevation), positions[x, y].ceilingVertices, positions[x, y].floorVertices, positions[x, y].divisions.x, positions[x, y].sidesWhereThereIsWall));
+                int elevation = positions[x, y].tileType == TileTemplate.TileType.HOUSE_WALL ? 0 : positions[x, y].elevation;
+                MeshMaker.SurfaceData surfaceData = returnData.FirstOrDefault(e => e.tileType == positions[x, y].tileType);
+                if(surfaceData == null)
+                {
+                    surfaceData = new MeshMaker.SurfaceData(new List<MeshMaker.SurfaceTileData>(), positions[x, y].tileType);
+                    returnData.Add(surfaceData);
+                }
+                surfaceData.tiles.Add(
+                new MeshMaker.SurfaceTileData(
+                    new Vector3Int(x, -y - 1, elevation), 
+                    positions[x, y].ceilingVertices, 
+                    positions[x, y].floorVertices, 
+                    positions[x, y].divisions.x, 
+                    positions[x, y].sidesWhereThereIsWall));
             }
         }
         return returnData;

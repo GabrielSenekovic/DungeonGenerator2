@@ -56,7 +56,7 @@ public class QuestSelect : MonoBehaviour
             levels[levels.Count - 1].roomGrid = new List<LevelData.RoomGridEntry>(levels[levels.Count - 1].roomGrid);
             levels[levels.Count - 1].sectionData = new List<LevelData.SectionData>(levels[levels.Count - 1].sectionData);
             levels[levels.Count - 1].map = generator.map;
-            quests.Add(QuestDataGenerator.Initialize(seeds[i].questSeed));
+            //quests.Add(QuestDataGenerator.Initialize(seeds[i].questSeed));
         }
         detailText.Initialize(graphemeDatabase.fonts[0], true);
     }
@@ -77,7 +77,7 @@ public class QuestSelect : MonoBehaviour
     {
         Time.timeScale = 1;
         DunGenes.Instance.gameData.CurrentLevel = levels[index];
-        GameData.currentQuest = QuestDataGenerator.Initialize(seeds[index].questSeed);
+        //GameData.currentQuest = QuestDataGenerator.Initialize(seeds[index].questSeed);
         DontDestroyOnLoad(DunGenes.Instance);
         DunGenes.Instance.isStartArea = false;
         SceneManager.LoadSceneAsync("Level");
@@ -138,11 +138,6 @@ public class QuestSelect : MonoBehaviour
         detailText.text = "Information about the quest: \n";
         detailText.text += quests[index_in].GetQuestDescription();
         detailText.Write();
-        if(quests[index_in].missionType == QuestData.MissionType.Recovery)
-        {
-            RecoveryQuestData temp = quests[index_in] as RecoveryQuestData;
-            detailText.PlaceSprite(temp.thingToRecover.thing.GetComponentInChildren<SpriteRenderer>().sprite);
-        }
         detailText.text = "\nQuestgiver: " + NameDatabase.GetRandomName();
         detailText.text += "\nObjective: " + "\nDifficulty level: \nReward: \n";
         detailText.text += "\nInformation about the destination: \n";

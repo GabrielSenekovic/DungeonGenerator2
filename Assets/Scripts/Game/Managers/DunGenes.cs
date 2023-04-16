@@ -105,7 +105,8 @@ public class DunGenes : MonoBehaviour
         }
         else
         {
-            return QuestDataGenerator.Initialize(questDataSeed);
+            //Make new
+            return null;
         }
     }
 }

@@ -32,12 +32,12 @@ public class RoomData
     public Texture2D templateTexture;
     public Texture2D mapTexture;
 
-    public void Initialise(Vector2Int roomSize, int section_in, ref List<RoomTemplate> templates, string instructions = "")
+    public void Initialise(Vector2Int roomSize, int section_in, ref List<RoomTemplate> templates, string instructions = "", string houseInstructions = "")
     {
         Debug.Log("<color=green>Initializing the Origin Room</color>");
         //This Initialize() function is for the origin room specifically, as it already has its own position
         section = section_in;
-        OnInitialize(Vector2Int.zero, roomSize, ref templates, instructions);
+        OnInitialize(Vector2Int.zero, roomSize, ref templates, instructions, houseInstructions);
         OpenAllEntrances(Vector2Int.zero, new Vector2Int(roomSize.x / 20, roomSize.y / 20));
     }
     public void Initialize(Vector2Int location, Vector2Int roomSize, int section_in, ref List<RoomTemplate> templates)
@@ -49,12 +49,12 @@ public class RoomData
         section = section_in;
         OnInitialize(new Vector2Int(location.x / 20, location.y / 20), roomSize, ref templates);
     }
-    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, ref List<RoomTemplate> templates, string instructions = "")
+    void OnInitialize(Vector2Int gridPosition, Vector2Int roomSize, ref List<RoomTemplate> templates, string instructions = "", string houseInstructions = "")
     {
         size = roomSize;
         directions = new Entrances(gridPosition, roomSize / 20, position.ToV2Int());
         Vector2Int absSize = new Vector2Int(Mathf.Abs(size.x), Mathf.Abs(size.y));
-        RoomTemplate template = new RoomTemplate(absSize, instructions);
+        RoomTemplate template = new RoomTemplate(absSize, instructions, houseInstructions);
         templates.Add(template);
     }
     public void OpenAllEntrances(Vector2Int gridPosition, Vector2Int roomSize) //Roomsize in grid space
