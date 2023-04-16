@@ -75,19 +75,172 @@ public partial class MeshMaker: MonoBehaviour
 
         for (int wallIndex = 0; wallIndex < instructions.Count; wallIndex++)
         {
-            List<Vector3> newVertices = new List<Vector3>();
-            List<int> newIndices = new List<int>();
-            List<Vector2> newUVs = new List<Vector2>();
-            //Go through each wall
             WallData currentWall = instructions[wallIndex];
+            if (currentWall.type == TileType.HOUSE_WALL)
+            {
+                OnCreateHouseWall(instructions, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
+            }
+            else
+            {
+                OnCreateOutdoorsWall(instructions, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
+            }
+            if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != instructions[wallIndex-1].elevation))
+            {
+                wallMaterials.TryGetValue(instructions[wallIndex].type, out Material mat);
+                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
+            }
+        }
+        wallMaterials.TryGetValue(instructions[instructions.Count - 1].type, out Material mat2);
+        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
+    }
+    public static void OnCreateOutdoorsWall(List<WallData> instructions, ref Vector2Int currentGridPosition, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, int wallIndex, ref int indexJump, float roundedness, ref List<Vector3> allVertices, ref List<int> allIndices, ref List<Vector2> allUVs)
+    {
+        List<Vector3> newVertices = new List<Vector3>();
+        List<int> newIndices = new List<int>();
+        List<Vector2> newUVs = new List<Vector2>();
+        //Go through each wall
+        WallData currentWall = instructions[wallIndex];
 
-            currentGridPosition = new Vector2Int((int)instructions[wallIndex].actualPosition.x, (int)-instructions[wallIndex].actualPosition.y);
-            Vector2Int upperFloorGridPosition = Vector2Int.zero;
-            Vector2Int doorGridPosition = Vector2Int.zero; //If this is a door, then you want to save the position the door is on, which is in front
+        currentGridPosition = new Vector2Int((int)instructions[wallIndex].actualPosition.x, (int)-instructions[wallIndex].actualPosition.y);
+        Vector2Int upperFloorGridPosition = Vector2Int.zero;
+        Vector2Int doorGridPosition = Vector2Int.zero; //If this is a door, then you want to save the position the door is on, which is in front
 
-            int rotation = instructions[wallIndex].rotation % 360;
+        int rotation = instructions[wallIndex].rotation % 360;
 
-            if (wallIndex > 0 && instructions[wallIndex - 1].rotation == (instructions[wallIndex].rotation - 90) % 360) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
+        if (wallIndex > 0 && instructions[wallIndex - 1].rotation == (instructions[wallIndex].rotation - 90) % 360) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
+        {
+            if (rotation == 0)
+            {
+                currentGridPosition += new Vector2Int(1, 0);
+            }
+            else if (rotation == 90)
+            {
+                currentGridPosition += new Vector2Int(0, -1);
+            }
+            else if (rotation == 180)
+            {
+                currentGridPosition += new Vector2Int(-1, 0);
+            }
+            else if (rotation == 270)
+            {
+                currentGridPosition += new Vector2Int(0, 1);
+            }
+        }
+        if (rotation == 0)
+        {
+            upperFloorGridPosition = currentGridPosition + new Vector2Int(0, -1);
+            doorGridPosition = currentGridPosition + new Vector2Int(0, 1);
+        }
+        else if (rotation == 90)
+        {
+            upperFloorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
+            doorGridPosition = currentGridPosition + new Vector2Int(1, 0);
+        }
+        else if (rotation == 180)
+        {
+            upperFloorGridPosition = currentGridPosition + new Vector2Int(0, 1);
+            doorGridPosition = currentGridPosition + new Vector2Int(0, -1);
+        }
+        else if (rotation == 270)
+        {
+            upperFloorGridPosition = currentGridPosition + new Vector2Int(1, 0);
+            doorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
+        }
+        //Add all vertices on length. We assume the wall is only one tile high
+
+        for (int y = 0; y <= currentWall.divisions.y + 1; y++) //if divisions is 0, we want it to run twice
+        {
+            int limit = (currentWall.divisions.x + 1) * currentWall.length;
+            int limitMinusLastWall = limit - (currentWall.divisions.x + 1);
+            for (int x = 0; x <= limit; x++) //If division is 0, we want to run this at normal length
+            {
+                float x_increment = 1 / ((float)currentWall.divisions.x + 1);
+                float y_increment = 1 / ((float)currentWall.divisions.y + 1);
+
+                Vector3 newVertex = new Vector3(
+                    currentWall.position.x + x * x_increment,
+                    currentWall.position.y,
+                    currentWall.position.z - y * y_increment);
+
+                WallType wallType = Mathf.FloorToInt(x) <= (currentWall.divisions.x + 1) ? WallType.FIRST : Mathf.CeilToInt(x) > limitMinusLastWall ? WallType.LAST : WallType.NONE;
+                if (wallIndex > 0 && wallType != WallType.NONE)
+                {
+                    if (wallType == WallType.FIRST && instructions[wallIndex - 1].angleToTurn == 1)
+                    {
+                        wallType |= WallType.INNER;
+                    }
+                    else if (wallType == WallType.LAST && instructions[wallIndex].angleToTurn == 1)
+                    {
+                        wallType |= WallType.INNER;
+                    }
+                }
+                Vector3 gridPosition = Vector3.zero;
+                if (wallType != WallType.NONE)
+                {
+                    gridPosition = new Vector3(currentWall.position.x + (int)(x * x_increment - x_increment), currentWall.position.y);
+                }
+
+                CreateWall_RoundColumn(ref newVertex, gridPosition, wallType, currentWall.divisions, roundedness);
+
+                newVertices.Add(newVertex);
+            }
+        }
+        CreateWall_Rotate(newVertices, instructions[wallIndex]);
+
+        int[] indexValues = new int[]
+        {
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                1,
+                0,
+
+                1 + (currentWall.divisions.x + 1) * currentWall.length,
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                0
+        };
+        //Add all indices
+        for (int y = 0; y < currentWall.divisions.y + 1; y++) //If divisions is 0, then we want to go through once
+        {
+            for (int x = 0; x < (currentWall.divisions.x + 1) * currentWall.length; x++) //If divisions is 0, then we want to go through all except the end
+            {
+                int i = x + ((currentWall.divisions.x + 1) * currentWall.length + 1) * y; //The width here is the vertex to start from
+                foreach (var indexValue in indexValues)
+                {
+                    newIndices.Add(indexJump + indexValue + i);
+                }
+            }
+        }
+        //Add all UVs
+        for (int y = 0; y <= currentWall.divisions.y + 1; y++)
+        {
+            for (int x = 0; x <= (currentWall.divisions.x + 1) * currentWall.length; x++)
+            {
+                float xIncrement = 1 / ((float)currentWall.divisions.x + 1);
+                float yIncrement = 1 / ((float)currentWall.divisions.y + 1);
+                newUVs.Add(new Vector2(x * xIncrement, y * yIncrement));
+            }
+        }
+        allVertices.AddRange(newVertices);
+        allIndices.AddRange(newIndices);
+        allUVs.AddRange(newUVs);
+        indexJump = allVertices.Count;
+    }
+    public static void OnCreateHouseWall(List<WallData> instructions, ref Vector2Int currentGridPosition, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, int wallIndex, ref int indexJump, float roundedness, ref List<Vector3> allVertices, ref List<int> allIndices, ref List<Vector2> allUVs)
+    {
+        List<Vector3> newVertices = new List<Vector3>();
+        List<int> newIndices = new List<int>();
+        List<Vector2> newUVs = new List<Vector2>();
+        //Go through each wall
+        WallData currentWall = instructions[wallIndex];
+
+        currentGridPosition = new Vector2Int(instructions[wallIndex].actualPosition.x, -instructions[wallIndex].actualPosition.y);
+
+        int rotation = instructions[wallIndex].rotation % 360;
+
+        float[] offset = new float[2] { 0.2f, -0.2f };
+
+        for(int i = 0; i < 2; i++)
+        {
+            if (wallIndex > 0 && instructions[wallIndex - 1].rotation == (instructions[wallIndex].rotation - 90) % 360 && i > 0) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
             {
                 if (rotation == 0)
                 {
@@ -106,26 +259,6 @@ public partial class MeshMaker: MonoBehaviour
                     currentGridPosition += new Vector2Int(0, 1);
                 }
             }
-            if (rotation == 0)
-            {
-                upperFloorGridPosition = currentGridPosition + new Vector2Int(0, -1);
-                doorGridPosition = currentGridPosition + new Vector2Int(0, 1);
-            }
-            else if (rotation == 90)
-            {
-                upperFloorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
-                doorGridPosition = currentGridPosition + new Vector2Int(1, 0);
-            }
-            else if (rotation == 180)
-            {
-                upperFloorGridPosition = currentGridPosition + new Vector2Int(0, 1);
-                doorGridPosition = currentGridPosition + new Vector2Int(0, -1);
-            }
-            else if (rotation == 270)
-            {
-                upperFloorGridPosition = currentGridPosition + new Vector2Int(1, 0);
-                doorGridPosition = currentGridPosition + new Vector2Int(-1, 0);
-            }
             //Add all vertices on length. We assume the wall is only one tile high
 
             for (int y = 0; y <= currentWall.divisions.y + 1; y++) //if divisions is 0, we want it to run twice
@@ -139,53 +272,70 @@ public partial class MeshMaker: MonoBehaviour
 
                     Vector3 newVertex = new Vector3(
                         currentWall.position.x + x * x_increment,
-                        currentWall.position.y,
+                        currentWall.position.y - 0.2f,
                         currentWall.position.z - y * y_increment);
 
                     WallType wallType = Mathf.FloorToInt(x) <= (currentWall.divisions.x + 1) ? WallType.FIRST : Mathf.CeilToInt(x) > limitMinusLastWall ? WallType.LAST : WallType.NONE;
-                    if(wallIndex > 0 && wallType != WallType.NONE)
+                    if (wallIndex > 0 && wallType != WallType.NONE)
                     {
                         if (wallType == WallType.FIRST && instructions[wallIndex - 1].angleToTurn == 1)
                         {
                             wallType |= WallType.INNER;
                         }
-                        else if(wallType == WallType.LAST && instructions[wallIndex].angleToTurn == 1)
+                        else if (wallType == WallType.LAST && instructions[wallIndex].angleToTurn == 1)
                         {
                             wallType |= WallType.INNER;
                         }
                     }
                     Vector3 gridPosition = Vector3.zero;
-                    if(wallType != WallType.NONE)
+                    if (wallType != WallType.NONE)
                     {
                         gridPosition = new Vector3(currentWall.position.x + (int)(x * x_increment - x_increment), currentWall.position.y);
                     }
 
                     CreateWall_RoundColumn(ref newVertex, gridPosition, wallType, currentWall.divisions, roundedness);
-                    
+
                     newVertices.Add(newVertex);
                 }
             }
             CreateWall_Rotate(newVertices, instructions[wallIndex]);
 
-            int[] indexValues = new int[] 
-            { 
-                2 + (currentWall.divisions.x + 1) * currentWall.length, 
-                1, 
+            int[] indexValues;
+            if (i == 0)
+            {
+                indexValues = new int[]
+                {
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                1,
                 0,
 
                 1 + (currentWall.divisions.x + 1) * currentWall.length,
                 2 + (currentWall.divisions.x + 1) * currentWall.length,
                 0
-            };
+                };
+            }
+            else
+            {
+                indexValues = new int[]
+                {
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                1,
+                0,
+
+                1 + (currentWall.divisions.x + 1) * currentWall.length,
+                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                0
+                };
+            }
             //Add all indices
             for (int y = 0; y < currentWall.divisions.y + 1; y++) //If divisions is 0, then we want to go through once
             {
                 for (int x = 0; x < (currentWall.divisions.x + 1) * currentWall.length; x++) //If divisions is 0, then we want to go through all except the end
                 {
-                    int i = x + ((currentWall.divisions.x + 1) * currentWall.length + 1) * y; //The width here is the vertex to start from
-                    foreach(var indexValue in indexValues)
+                    int j = x + ((currentWall.divisions.x + 1) * currentWall.length + 1) * y; //The width here is the vertex to start from
+                    foreach (var indexValue in indexValues)
                     {
-                        newIndices.Add(indexJump + indexValue + i);
+                        newIndices.Add(indexJump + indexValue + j);
                     }
                 }
             }
@@ -203,14 +353,7 @@ public partial class MeshMaker: MonoBehaviour
             allIndices.AddRange(newIndices);
             allUVs.AddRange(newUVs);
             indexJump = allVertices.Count;
-            if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != instructions[wallIndex-1].elevation))
-            {
-                wallMaterials.TryGetValue(instructions[wallIndex].type, out Material mat);
-                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
-            }
         }
-        wallMaterials.TryGetValue(instructions[instructions.Count - 1].type, out Material mat2);
-        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
     }
     static void CreateWall_Finish(GameObject wall, WallData currentWall, ref List<Vector3> allVertices,ref List<int> allIndices, ref List<Vector2> allUVs, Material wallMaterial)
     {

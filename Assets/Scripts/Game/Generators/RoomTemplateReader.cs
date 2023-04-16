@@ -54,6 +54,7 @@ public class RoomTemplateReader
         materials.Add(TileTemplate.TileType.NONE, wallMaterial);
         Material houseMaterial = new Material(wallMaterial);
         houseMaterial.SetColor("_BaseColor",Color.red);
+        materials.Add(TileTemplate.TileType.HOUSE_WALL, houseMaterial);
 
         for (int i = 0; i < data.Count; i++)
         {
@@ -112,6 +113,7 @@ public class RoomTemplateReader
                     //If there are none, rotate the search three times. If there still are none, then there is an error
                     if (positions.IsWithinBounds(new Vector2Int(x, -y + 1)) &&
                         positions[x, y].wall &&
+                        positions[x, y].tileType != TileTemplate.TileType.HOUSE_WALL &&
                         positions[x, y].read == TileTemplate.ReadValue.UNREAD &&
                         positions[x, y - 1].elevation > positions[x, y].elevation && 
                         positions[x, y].elevation <= currentElevation)
@@ -121,12 +123,12 @@ public class RoomTemplateReader
                         OnExtractWalls(ref currentAngle, ref pos, ref data, currentElevation);
                     }
 
-                    if (positions.IsWithinBounds(new Vector2Int(x, -y + 1)) &&
+                    if (
                         positions[x, y].tileType == TileTemplate.TileType.HOUSE_WALL &&
                         positions[x, y].read == TileTemplate.ReadValue.UNREAD)
                     {
                         pos = new Vector2Int(x, -y);
-                        currentAngle = 270;
+                        currentAngle = 0;
                         OnExtractWalls(ref currentAngle, ref pos, ref data, currentElevation);
                     }
                 }
@@ -162,21 +164,21 @@ public class RoomTemplateReader
             startPosition = pos;
             //Follow that direction until its empty
             int steps = 1;
-            if (angleToTurn == -1)
+            if (angleToTurn == -1 && positions[pos].tileType != TileTemplate.TileType.HOUSE_WALL)
             {
                 pos = new Vector2Int(pos.x + neighborDirection.x, pos.y - neighborDirection.y);
             }
             ExtractWalls_GetSteps(ref pos, ref steps, neighborDirection, higherElevationDirection, currentAngle, currentElevation);
 
             int isThisWallFollowingOuterCorner = 0;
-            if (angleToTurn < 0 && wall.Item1.Count > 0)
+            if (angleToTurn < 0 && wall.Item1.Count > 0 && positions[pos].tileType != TileTemplate.TileType.HOUSE_WALL)
             {
                 //If lastWall is less than 0, then this is the following wall after an outer corner, so it must be moved up and shortened
                 isThisWallFollowingOuterCorner = 1;
             }
             HasWallNeighbor(pos, currentAngle, currentElevation, out hasWallNeighbor, out neighborDirection, out higherElevationDirection, out angleToTurn, ref wrap);
 
-            if (angleToTurn < 0 || wrap)
+            if ((angleToTurn < 0 || wrap) && positions[pos].tileType != TileTemplate.TileType.HOUSE_WALL)
             {
                 //If Item3 is less than 0, then this is an outer corner, so the wall shouldn't go the whole way
                 steps--;
@@ -204,30 +206,30 @@ public class RoomTemplateReader
             temp.value = 0;
             curve.AddKey(temp);*/
             //! END OF CURVE
-            float houseWallModifier = positions[pos.x, pos.y].tileType == TileTemplate.TileType.HOUSE_WALL ? 0.2f: 0;
+            float houseWallModifier = positions[pos.x, pos.y].tileType == TileTemplate.TileType.HOUSE_WALL ? 1: 0;
 
             if (currentAngle == 0)
             {
                 Debug.Log("adding 0 degree wall");
-                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y + houseWallModifier, 0), startPosition,
+                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y - houseWallModifier, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 90)
             {
                 Debug.Log("adding 90 degree wall");
-                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
+                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f - houseWallModifier, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 180)
             {
                 Debug.Log("adding 180 degree wall");
-                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1, 0), startPosition,
+                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1 + houseWallModifier, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 270)
             {
                 Debug.Log("adding 270 degree wall");
-                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
+                wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + houseWallModifier, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             //Sometimes it has to decrease by 90, so it has to know what direction the next wall goes in (fuck)
@@ -260,35 +262,30 @@ public class RoomTemplateReader
         bool value = true;
         int rotationDir = 0;
         higherElevationDirection = new Vector2Int(0, 0);
-        if (rotation == 270)
+
+        Vector2Int directionToCheck = (Quaternion.Euler(0, 0, -rotation) * new Vector3(0, -1)).ToV2Int();
+        Vector2Int checkForHigherElevation = (Quaternion.Euler(0, 0, -rotation + 90) * new Vector3(0, -1)).ToV2Int();
+        if (positions[pos].tileType == TileTemplate.TileType.HOUSE_WALL)
         {
-            if (positions.IsWithinBounds(new Vector2Int(pos.x + 1, pos.y)) &&
-                positions[pos.x + 1, pos.y].tileType == positions[pos].tileType &&
-                positions[pos.x + 1, pos.y].wall &&
-                positions[pos.x + 1, pos.y].elevation <= currentElevation &&
-                positions[pos.x, -pos.y - 1].elevation > currentElevation &&
-                positions[pos.x, -pos.y - 1].elevation > positions[pos.x + 1, pos.y].elevation
-                )
+            if (positions.IsWithinBounds(new Vector2Int(pos.x + directionToCheck.x, pos.y + directionToCheck.y)) &&
+                positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].tileType == positions[pos].tileType &&
+                positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].wall)
             {
-                direction = new Vector2Int(1, 0);
+                direction = new Vector2Int(directionToCheck.x, -directionToCheck.y);
                 rotationDir = 1;
-                higherElevationDirection = new Vector2Int(0, -1);
             }
-            else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
-                positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y - 1)) &&
-                positions[pos.x - 1, pos.y].tileType == positions[pos].tileType &&
-                positions[pos.x - 1, pos.y].wall &&
-                positions[pos.x - 1, pos.y - 1].elevation > currentElevation &&
-                positions[pos.x - 1, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
-                )
+            else if (positions.IsWithinBounds(new Vector2Int(pos.x - directionToCheck.x, pos.y - directionToCheck.y)) &&
+                positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].tileType == positions[pos].tileType &&
+                positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].wall)
             {
-                if (positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.UNREAD)
+                if (positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.UNREAD)
                 {
-                    direction = new Vector2Int(-1, 0);
+                    direction = new Vector2Int(-directionToCheck.x, directionToCheck.y);
                     rotationDir = -1;
-                    higherElevationDirection = new Vector2Int(0, 1);
                 }
-                else if (positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.READFIRST || positions[pos.x - 1, pos.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                else if (
+                    positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.READFIRST ||
+                    positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
                 {
                     value = false;
                     wrap = true;
@@ -303,77 +300,38 @@ public class RoomTemplateReader
                 value = false;
             }
         }
-        else if (rotation == 90)
+        else
         {
-            if (positions.IsWithinBounds(new Vector2Int(pos.x + 1, pos.y)) &&
-                positions[pos.x + 1, -pos.y].tileType == positions[pos].tileType &&
-                positions[pos.x + 1, -pos.y].wall &&
-                positions[pos.x + 1, -pos.y - 1].elevation > currentElevation &&
-                positions[pos.x + 1, -pos.y - 1].elevation > positions[pos.x + 1, -pos.y].elevation
+            if (positions.IsWithinBounds(new Vector2Int(pos.x + directionToCheck.x, pos.y + directionToCheck.y)) &&
+                positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].tileType == positions[pos].tileType &&
+                positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].wall &&
+                positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].elevation <= currentElevation &&
+                positions.IsWithinBounds(new Vector2Int(pos.x + checkForHigherElevation.x, pos.y + checkForHigherElevation.y)) &&
+                positions[pos.x + checkForHigherElevation.x, pos.y + checkForHigherElevation.y].elevation > currentElevation &&
+                positions[pos.x + checkForHigherElevation.x, pos.y + checkForHigherElevation.y].elevation > positions[pos.x + directionToCheck.x, pos.y + directionToCheck.y].elevation
                 )
             {
-                if (positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.UNREAD)
-                {
-                    direction = new Vector2Int(1, 0);
-                    rotationDir = -1;
-                    higherElevationDirection = new Vector2Int(0, -1);
-                }
-                else if (positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.READFIRST || positions[pos.x + 1, -pos.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
-                {
-                    value = false;
-                    wrap = true;
-                }
-                else
-                {
-                    value = false;
-                }
-            }
-            else if (positions.IsWithinBounds(new Vector2Int(pos.x - 1, pos.y)) &&
-                positions[pos.x - 1, pos.y].tileType == positions[pos].tileType &&
-                positions[pos.x - 1, pos.y].wall &&
-                positions[pos.x - 1, pos.y].elevation <= currentElevation &&
-                positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
-                positions[pos.x, pos.y - 1].elevation > currentElevation &&
-                positions[pos.x, pos.y - 1].elevation > positions[pos.x - 1, pos.y].elevation
-                )
-            {
-                direction = new Vector2Int(-1, 0);
+                direction = new Vector2Int(directionToCheck.x, -directionToCheck.y);
                 rotationDir = 1;
-                higherElevationDirection = new Vector2Int(0, 1);
+                higherElevationDirection = checkForHigherElevation;
             }
-            else
-            {
-                value = false;
-            }
-        }
-        else if (rotation == 180)
-        {
-            if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
-                positions[pos.x, pos.y + 1].tileType == positions[pos].tileType &&
-                positions[pos.x, pos.y + 1].wall &&
-                positions[pos.x, pos.y + 1].elevation <= currentElevation &&
-                positions[pos.x - 1, pos.y].elevation > currentElevation &&
-                positions[pos.x - 1, pos.y].elevation > positions[pos.x, pos.y + 1].elevation
+            else if (positions.IsWithinBounds(new Vector2Int(pos.x - directionToCheck.x, pos.y - directionToCheck.y)) &&
+                positions.IsWithinBounds(new Vector2Int(pos.x - directionToCheck.x - checkForHigherElevation.x, pos.y - directionToCheck.y - checkForHigherElevation.y)) &&
+                positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].tileType == positions[pos].tileType &&
+                positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].wall &&
+                positions[pos.x - directionToCheck.x - checkForHigherElevation.x, pos.y - directionToCheck.y - checkForHigherElevation.y].elevation > currentElevation &&
+                positions[pos.x - directionToCheck.x - checkForHigherElevation.x, pos.y - directionToCheck.y - checkForHigherElevation.y].elevation > positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].elevation
                 )
             {
-                direction = new Vector2Int(0, -1);
-                rotationDir = 1;
-                higherElevationDirection = new Vector2Int(-1, 0);
-            }
-            else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
-                positions[pos.x, (-pos.y + 1)].tileType == positions[pos].tileType &&
-                positions[pos.x, (-pos.y + 1)].wall &&
-                positions[pos.x + 1, (-pos.y + 1)].elevation > currentElevation &&
-                positions[pos.x + 1, (-pos.y + 1)].elevation > positions[pos.x, (-pos.y - 1)].elevation
-                )
-            {
-                if (positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.UNREAD)
+                if (positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.UNREAD)
                 {
-                    direction = new Vector2Int(0, 1);
+                    direction = new Vector2Int(-directionToCheck.x, directionToCheck.y);
                     rotationDir = -1;
-                    higherElevationDirection = new Vector2Int(1, 0);
+                    higherElevationDirection = -checkForHigherElevation;
                 }
-                else if (positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.READFIRST || positions[pos.x, (-pos.y + 1)].read == TileTemplate.ReadValue.READFIRSTFINISHED)
+                else if (
+                    positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.READFIRST ||
+                    positions[pos.x - directionToCheck.x, pos.y - directionToCheck.y].read == TileTemplate.ReadValue.READFIRSTFINISHED)
                 {
                     value = false;
                     wrap = true;
@@ -388,48 +346,7 @@ public class RoomTemplateReader
                 value = false;
             }
         }
-        else if (rotation == 0)
-        {
-            if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y + 1)) &&
-                positions[pos.x, pos.y + 1].tileType == positions[pos].tileType &&
-                positions[pos.x, pos.y + 1].wall &&
-                positions[pos.x - 1, pos.y + 1].elevation > currentElevation &&
-                positions[pos.x - 1, pos.y + 1].elevation > positions[pos.x, pos.y + 1].elevation
-                )
-            {
-                if(positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.UNREAD)
-                {
-                    direction = new Vector2Int(0, -1);
-                    rotationDir = -1;
-                    higherElevationDirection = new Vector2Int(-1, 0);
-                }
-                else if(positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.READFIRST || positions[pos.x, pos.y + 1].read == TileTemplate.ReadValue.READFIRSTFINISHED)
-                {
-                    value = false;
-                    wrap = true;
-                }
-                else
-                {
-                    value = false;
-                }
-            }
-            else if (positions.IsWithinBounds(new Vector2Int(pos.x, pos.y - 1)) &&
-                positions[pos.x, pos.y - 1].tileType == positions[pos].tileType &&
-                positions[pos.x, pos.y - 1].wall &&
-                positions[pos.x, pos.y - 1].elevation <= currentElevation &&
-                positions[pos.x + 1, pos.y].elevation > currentElevation &&
-                positions[pos.x + 1, pos.y].elevation > positions[pos.x, pos.y].elevation
-                )
-            {
-                direction = new Vector2Int(0, 1);
-                rotationDir = 1;
-                higherElevationDirection = new Vector2Int(1, 0);
-            }
-            else
-            {
-                value = false;
-            }
-        }
+        
         if (!value)
         {
             positions[pos.x, pos.y].error = true;
@@ -449,6 +366,11 @@ public class RoomTemplateReader
         i.read != TileTemplate.ReadValue.FINISHED
         ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
         //Do this between each elevation
+
+        //Reset the houses too
+        positions.items.Where(i => currentElevation < i.elevation &&
+        i.read != TileTemplate.ReadValue.FINISHED && i.tileType == TileTemplate.TileType.HOUSE_WALL
+        ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
     }
 
     void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)
@@ -488,36 +410,72 @@ public class RoomTemplateReader
          * Checking that each step is the same
          * 
          * */
-        while (
+        if (positions[pos].tileType == TileTemplate.TileType.HOUSE_WALL)
+        {
+            while (
             positions.IsWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) &&
             positions[pos.x + direction.x, pos.y - direction.y].wall &&
-            positions[pos.x + direction.x, pos.y - direction.y].elevation <= currentElevation &&
-            positions[pos.x + directionOfHigherElevation.x, pos.y - directionOfHigherElevation.y].elevation > currentElevation &&
             positions[pos.x + direction.x, pos.y - direction.y].tileType == positions[pos.x, pos.y].tileType
             )
-        {
-            steps++;
-            pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
-            // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
-            if (positions[pos].read == TileTemplate.ReadValue.READFIRSTFINISHED ||
-                positions[pos].read == TileTemplate.ReadValue.READFIRST)
             {
-                break;
-            }
-            if (positions[pos.x + directionOfHigherElevation.x, -pos.y + directionOfHigherElevation.y].elevation == currentElevation + 1)
-            {
-                if (positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                steps++;
+                pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
+                // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
+                if (positions[pos].read == TileTemplate.ReadValue.READFIRSTFINISHED ||
+                    positions[pos].read == TileTemplate.ReadValue.READFIRST)
                 {
-                    positions[pos].read = TileTemplate.ReadValue.READFIRSTFINISHED;
+                    break;
+                }
+                if (positions[pos.x, pos.y].elevation == currentElevation + 1)
+                {
+                    if (positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                    {
+                        positions[pos].read = TileTemplate.ReadValue.READFIRSTFINISHED;
+                    }
+                    else
+                    {
+                        positions[pos.x, pos.y].read = TileTemplate.ReadValue.FINISHED;
+                    }
                 }
                 else
                 {
-                    positions[pos.x, -pos.y].read = TileTemplate.ReadValue.FINISHED;
+                    positions[pos.x, pos.y].read = TileTemplate.ReadValue.READ;
                 }
             }
-            else
+        }
+        else
+        {
+            while (
+            positions.IsWithinBounds(new Vector2Int(pos.x + direction.x, pos.y - direction.y)) &&
+            positions[pos.x + direction.x, pos.y - direction.y].wall &&
+            positions[pos.x + direction.x, pos.y - direction.y].elevation <= currentElevation &&
+            positions[pos.x + directionOfHigherElevation.x, pos.y + directionOfHigherElevation.y].elevation > currentElevation &&
+            positions[pos.x + direction.x, pos.y - direction.y].tileType == positions[pos.x, pos.y].tileType
+            )
             {
-                positions[pos.x, -pos.y].read = TileTemplate.ReadValue.READ;
+                steps++;
+                pos = new Vector2Int(pos.x + direction.x, pos.y - direction.y);
+                // Debug.Log("Checking index: " + (pos.x + size.x * -pos.y));
+                if (positions[pos].read == TileTemplate.ReadValue.READFIRSTFINISHED ||
+                    positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                {
+                    break;
+                }
+                if (positions[pos.x + directionOfHigherElevation.x, pos.y + directionOfHigherElevation.y].elevation == currentElevation + 1)
+                {
+                    if (positions[pos].read == TileTemplate.ReadValue.READFIRST)
+                    {
+                        positions[pos].read = TileTemplate.ReadValue.READFIRSTFINISHED;
+                    }
+                    else
+                    {
+                        positions[pos.x, -pos.y].read = TileTemplate.ReadValue.FINISHED;
+                    }
+                }
+                else
+                {
+                    positions[pos.x, -pos.y].read = TileTemplate.ReadValue.READ;
+                }
             }
         }
     }
