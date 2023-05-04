@@ -18,20 +18,35 @@ public class Inventory : MonoBehaviour
     bool list = false;
     [SerializeField] Sprite emptySlot;
     [SerializeField] Transform inventoryGrid;
+    [SerializeField] Transform hotbarGrid;
     public List<InventorySlot> inventorySlots = new List<InventorySlot>();
     List<Item> inventorySlots_Item = new List<Item>();
     [SerializeField] ItemGenerator itemGenerator;
     //Either show them as a continual list with a weight value, or visually as differently sized boxes
 
+    InventorySlot inventorySlotPrefab;
+    [SerializeField] FurnitureDatabase furnitureDatabase;
+
     int selectedSlot = -1;
 
     void Start()
     {
+        inventorySlotPrefab = Resources.Load<InventorySlot>("Inventory Slot");
         inventorySlots_Item.Add(null);
-        for (int i = 0; i < 30-1; i++)
+        for (int i = 0; i < 30; i++) //normal inventory
         {
-            inventorySlots.Add(Instantiate(inventorySlots[0], inventoryGrid));
+            InventorySlot slot = Instantiate(inventorySlotPrefab, inventoryGrid);
+            slot.gameObject.GetComponent<Button>().onClick.AddListener(() => SelectItem(slot));
+            inventorySlots.Add(slot);
             inventorySlots[i].index += i;
+            inventorySlots_Item.Add(null);
+        }
+        for(int i = 0; i < 10; i++) //The hotbar inventory
+        {
+            InventorySlot slot = Instantiate(inventorySlotPrefab, hotbarGrid);
+            slot.gameObject.GetComponent<Button>().onClick.AddListener(() => SelectItem(slot));
+            inventorySlots.Add(slot);
+            inventorySlots[30 + i].index += i + 30;
             inventorySlots_Item.Add(null);
         }
     }
@@ -42,6 +57,19 @@ public class Inventory : MonoBehaviour
             Sprite temp = itemGenerator.GenerateItemSprite();
             if (temp == null) { return; }
             AddItem(GenerateRandomItem(temp));
+        }
+    }
+    public void FillInventoryWithFurniture()
+    {
+        for (int i = 0; i < inventorySlots.Count; i++)
+        {
+            Item temp = new Item();
+            temp.types.Add(Item.ItemType.InventoryItem);
+            FurnitureDatabase.DatabaseEntry entry = furnitureDatabase.GetDatabaseEntry(i);
+            temp.sprite = entry.inventorySprite;
+            temp.name = entry.name;
+            temp.size = 1;
+            AddItem(temp);
         }
     }
     public Item GenerateRandomItem(Sprite sprite)

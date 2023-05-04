@@ -73,7 +73,6 @@ public sealed class AudioManager : MonoBehaviour
         SFX_source[nextSFX_source].clip = sound.clips[UnityEngine.Random.Range(0, sound.clips.Count)];
         SFX_source[nextSFX_source].volume = SFX_volume * global_volume;
         SFX_source[nextSFX_source].Play();
-        Debug.Log("Playing SFX: " + sound.name);
         nextSFX_source++;
         nextSFX_source = nextSFX_source >= 100? 0: nextSFX_source;
     }

@@ -14,10 +14,12 @@ public class Item
         FoodItem = 4,
         PotionItem = 5,
         MaterialItem = 6,
-        KeyItem = 7
+        KeyItem = 7,
+        InventoryItem = 8
     }
     public Sprite sprite;
     public List<ItemType> types = new List<ItemType>(); 
     //Sometimes an item can be both ingredient and material, for example
     public int size; //determines how much space it takes up in the inventory
+    public string name;
 }

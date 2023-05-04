@@ -130,16 +130,16 @@ public class StatusConditionModel : MonoBehaviour
         switch(condition.value)
         {
             case Condition.Burning:
-                statistics.damagesOverTime.Add(new EntityStatistics.DamageOverTime(DealDamage.Element.FIRE, condition.value, 50, 1));
+                statistics.damagesOverTime.Add(new EntityStatistics.DamageOverTime(Element.FIRE, condition.value, 50, 1));
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 3.0f));
                 burning.gameObject.SetActive(true);
             break;
             case Condition.Chilled: 
-                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(DealDamage.Element.FIRE, condition.value, 0.5f));
+                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(Element.FIRE, condition.value, 0.5f));
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0.75f));
             break;
             case Condition.Frozen: 
-                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(DealDamage.Element.FIRE, condition.value, 0));
+                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(Element.FIRE, condition.value, 0));
                 statistics.damageWeaknesses.Add(new EntityStatistics.DamageWeakness(DealDamage.DamageType.BLUDGEONING, condition.value, 2f));
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
             break;
@@ -147,7 +147,7 @@ public class StatusConditionModel : MonoBehaviour
                 statistics.moveTimerMax = UnityEngine.Random.Range(20, 40);
             break;
             case Condition.Wet: 
-                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(DealDamage.Element.FIRE, condition.value, 0.5f));
+                statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(Element.FIRE, condition.value, 0.5f));
             break;
         }
     }
@@ -170,31 +170,35 @@ public class StatusConditionModel : MonoBehaviour
 
     public void ReactToDamage(ref DealDamage.Damage damage)
     {
-        if(damage.element == DealDamage.Element.FIRE && IfHasCondition(Condition.Frozen))
+        if (damage.element == Element.FIRE && IfHasCondition(Condition.Frozen))
         {
-            if(Random.Range(0, 5)==0) //1 in 5 chance for fire to melt ice
+            if (Random.Range(0, 5) == 0) //1 in 5 chance for fire to melt ice
             {
                 RemoveCondition(Condition.Frozen);
                 AddCondition(new StatusCondition(Condition.Chilled));
             }
         }
-        if(damage.element == DealDamage.Element.WATER && IfHasCondition(Condition.Chilled))
+        if (damage.element == Element.WATER && IfHasCondition(Condition.Chilled))
         {
-            damage.element = DealDamage.Element.ICE;
-            if(Random.Range(0, 3) > 0) //High likelihood of being frozen if being chilled. 2 in 3
+            damage.element = Element.ICE;
+            if (Random.Range(0, 3) > 0) //High likelihood of being frozen if being chilled. 2 in 3
             {
                 RemoveCondition(Condition.Chilled);
                 AddCondition(new StatusCondition(Condition.Frozen));
             }
         }
-        if(damage.element == DealDamage.Element.FIRE)
+        if (damage.element == Element.FIRE)
         {
             //Set on fire based on current flammability
             //If wet, flammability is lower
-            if(Random.Range(0, 3) > 0) //High likelihood of being frozen if being chilled. 2 in 3
+            if (Random.Range(0, 3) > 0) //High likelihood of being frozen if being chilled. 2 in 3
             {
                 AddCondition(new StatusCondition(Condition.Burning));
             }
+        }
+        if (damage.element == Element.LIGHTNING)
+        {
+            AddCondition(new StatusCondition(Condition.Jolted));
         }
     }
 }

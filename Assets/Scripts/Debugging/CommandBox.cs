@@ -44,7 +44,19 @@ public class CommandBox : MonoBehaviour
                 FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.BUILD);
             break;
             case "FillInventory" :
-                Party.instance.inventory.FillInventoryWithRandomItems();
+                if (partsOfCommand.Length == 1) { Party.instance.inventory.FillInventoryWithRandomItems(); }
+                else
+                {
+                    if (partsOfCommand[1] == "Furniture")
+                    {
+                        FurnitureDatabase database = Resources.Load<FurnitureDatabase>("FurnitureDatabase");
+                        TextAsset reader = Resources.Load<TextAsset>("FurnitureDatabase");
+                        //Load the info how to make the grass and tulips from a file
+                        //Read the text from directly from the test.txt file
+                        database.Initialise(reader.text);
+                        Party.instance.inventory.FillInventoryWithFurniture();
+                    }
+                }
             break;
             case "Generate":
                 if (partsOfCommand.Length == 1) { return; }

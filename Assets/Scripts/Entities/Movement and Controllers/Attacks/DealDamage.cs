@@ -12,19 +12,6 @@ public class DealDamage : MonoBehaviour
         PIERCING = 3,
         MAGIC = 4
     }
-    public enum Element
-    {
-        NONE = 0,
-        WATER = 1,
-        FIRE = 2,
-        EARTH = 3,
-        AIR = 4,
-        LIGHT = 5,
-        DARK = 6,
-
-        AETHER = 7,
-        ICE = 8
-    }
     [System.Serializable]public struct Damage
     {
         public DamageType type;

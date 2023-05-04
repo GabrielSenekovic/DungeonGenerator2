@@ -226,21 +226,27 @@ public partial class MeshMaker: MonoBehaviour
     }
     public static void OnCreateHouseWall(List<WallData> instructions, ref Vector2Int currentGridPosition, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, int wallIndex, ref int indexJump, float roundedness, ref List<Vector3> allVertices, ref List<int> allIndices, ref List<Vector2> allUVs)
     {
-        List<Vector3> newVertices = new List<Vector3>();
-        List<int> newIndices = new List<int>();
-        List<Vector2> newUVs = new List<Vector2>();
         //Go through each wall
         WallData currentWall = instructions[wallIndex];
 
         currentGridPosition = new Vector2Int(instructions[wallIndex].actualPosition.x, -instructions[wallIndex].actualPosition.y);
 
-        int rotation = instructions[wallIndex].rotation % 360;
+        int rotation = (int)Math.Mod(instructions[wallIndex].rotation, 360);
 
         float[] offset = new float[2] { 0.2f, -0.2f };
 
-        for(int i = 0; i < 2; i++)
+        Vector2Int savedGridPosition = currentGridPosition;
+
+        for (int i = 0; i < 2; i++)
         {
-            if (wallIndex > 0 && instructions[wallIndex - 1].rotation == (instructions[wallIndex].rotation - 90) % 360 && i > 0) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
+            int length = currentWall.length - i * 2;
+            Vector3 wallPosition = currentWall.position;
+            List<Vector3> newVertices = new List<Vector3>();
+            List<int> newIndices = new List<int>();
+            List<Vector2> newUVs = new List<Vector2>();
+            currentGridPosition = savedGridPosition;
+            wallPosition += i * new Vector3Int(1, 0, 0);
+            if (wallIndex > 0 && instructions[wallIndex - 1].rotation == (instructions[wallIndex].rotation - 90) % 360) //! If youre turning after an outer corner, you must push up one step, otherwise it will put a position that has no wall
             {
                 if (rotation == 0)
                 {
@@ -263,7 +269,7 @@ public partial class MeshMaker: MonoBehaviour
 
             for (int y = 0; y <= currentWall.divisions.y + 1; y++) //if divisions is 0, we want it to run twice
             {
-                int limit = (currentWall.divisions.x + 1) * currentWall.length;
+                int limit = (currentWall.divisions.x + 1) * length;
                 int limitMinusLastWall = limit - (currentWall.divisions.x + 1);
                 for (int x = 0; x <= limit; x++) //If division is 0, we want to run this at normal length
                 {
@@ -271,9 +277,9 @@ public partial class MeshMaker: MonoBehaviour
                     float y_increment = 1 / ((float)currentWall.divisions.y + 1);
 
                     Vector3 newVertex = new Vector3(
-                        currentWall.position.x + x * x_increment,
-                        currentWall.position.y - 0.2f,
-                        currentWall.position.z - y * y_increment);
+                        wallPosition.x + x * x_increment,
+                        wallPosition.y - offset[i],
+                        wallPosition.z - y * y_increment);
 
                     WallType wallType = Mathf.FloorToInt(x) <= (currentWall.divisions.x + 1) ? WallType.FIRST : Mathf.CeilToInt(x) > limitMinusLastWall ? WallType.LAST : WallType.NONE;
                     if (wallIndex > 0 && wallType != WallType.NONE)
@@ -290,7 +296,7 @@ public partial class MeshMaker: MonoBehaviour
                     Vector3 gridPosition = Vector3.zero;
                     if (wallType != WallType.NONE)
                     {
-                        gridPosition = new Vector3(currentWall.position.x + (int)(x * x_increment - x_increment), currentWall.position.y);
+                        gridPosition = new Vector3(wallPosition.x + (int)(x * x_increment - x_increment), currentWall.position.y);
                     }
 
                     CreateWall_RoundColumn(ref newVertex, gridPosition, wallType, currentWall.divisions, roundedness);
@@ -305,12 +311,12 @@ public partial class MeshMaker: MonoBehaviour
             {
                 indexValues = new int[]
                 {
-                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                2 + (currentWall.divisions.x + 1) * length,
                 1,
                 0,
 
-                1 + (currentWall.divisions.x + 1) * currentWall.length,
-                2 + (currentWall.divisions.x + 1) * currentWall.length,
+                1 + (currentWall.divisions.x + 1) * length,
+                2 + (currentWall.divisions.x + 1) * length,
                 0
                 };
             }
@@ -318,21 +324,21 @@ public partial class MeshMaker: MonoBehaviour
             {
                 indexValues = new int[]
                 {
-                2 + (currentWall.divisions.x + 1) * currentWall.length,
-                1,
+                2 + (currentWall.divisions.x + 1) * length,
                 0,
+                1,
 
-                1 + (currentWall.divisions.x + 1) * currentWall.length,
-                2 + (currentWall.divisions.x + 1) * currentWall.length,
-                0
+                1 + (currentWall.divisions.x + 1) * length,
+                0,
+                2 + (currentWall.divisions.x + 1) * length
                 };
             }
             //Add all indices
             for (int y = 0; y < currentWall.divisions.y + 1; y++) //If divisions is 0, then we want to go through once
             {
-                for (int x = 0; x < (currentWall.divisions.x + 1) * currentWall.length; x++) //If divisions is 0, then we want to go through all except the end
+                for (int x = 0; x < (currentWall.divisions.x + 1) * length; x++) //If divisions is 0, then we want to go through all except the end
                 {
-                    int j = x + ((currentWall.divisions.x + 1) * currentWall.length + 1) * y; //The width here is the vertex to start from
+                    int j = x + ((currentWall.divisions.x + 1) * length + 1) * y; //The width here is the vertex to start from
                     foreach (var indexValue in indexValues)
                     {
                         newIndices.Add(indexJump + indexValue + j);
@@ -342,7 +348,7 @@ public partial class MeshMaker: MonoBehaviour
             //Add all UVs
             for (int y = 0; y <= currentWall.divisions.y + 1; y++)
             {
-                for (int x = 0; x <= (currentWall.divisions.x + 1) * currentWall.length; x++)
+                for (int x = 0; x <= (currentWall.divisions.x + 1) * length; x++)
                 {
                     float xIncrement = 1 / ((float)currentWall.divisions.x + 1);
                     float yIncrement = 1 / ((float)currentWall.divisions.y + 1);

@@ -1,0 +1,5 @@
+Name: Chair
+Type: Furniture
+
+Name: Streetlight
+Type: Furniture

@@ -40,7 +40,6 @@ public class LevelManager : MonoBehaviour
 
     private void Awake() 
     {
-        Debug.Log("Awake");
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
         //GameData.m_LevelDataSeed = Random.Range(0, int.MaxValue);
         if(DunGenes.Instance.gameData != null)
