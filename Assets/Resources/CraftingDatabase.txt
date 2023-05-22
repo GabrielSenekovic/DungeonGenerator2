@@ -1,0 +1,29 @@
+Name: Bed
+Recipe: 10Wood, 5Cloth
+
+Name: Bread
+Recipe: 1Flour, 1Yeast, 1Water
+
+Name: Chair
+Recipe: 5Wood
+
+Name: Chest
+Recipe: 1IronBar, 5Wood
+
+Name: Cloth
+Recipe: 5String
+
+Name: Earring
+Recipe: 1GoldBar, 1T:Gemstone
+
+Name: Flatbread
+Recipe: 1Flour, 1Water
+
+Name: Pot
+Recipe: 3Clay
+
+Name: Shirt
+Recipe: 3Cloth
+
+Name: Table
+Recipe: 10Wood

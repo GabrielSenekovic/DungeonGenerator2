@@ -18,11 +18,14 @@ public class DunGenes : MonoBehaviour
     public bool isStartArea; //Only for debug
     public int wallCount = 0;
 
+    DayNightCycle dayNightCycle;
+
     private void Awake() 
     {
         if(instance == null)
         {
             instance = this;
+            dayNightCycle = GetComponent<DayNightCycle>();
         }
         else
         {
@@ -42,6 +45,10 @@ public class DunGenes : MonoBehaviour
         {
             FindObjectOfType<LevelGenerator>().GenerateStartArea();
         }*/
+    }
+    public DayNightCycle GetDayNightCycle()
+    {
+        return dayNightCycle;
     }
 }
 [System.Serializable]public class GameData

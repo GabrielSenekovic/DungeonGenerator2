@@ -101,7 +101,7 @@ public class CameraMovement : MonoBehaviour
 
         if(cameraRotationObject.transform.position == newPosition)
         {
-            Party.instance.GetPartyLeader().GetPMM().SetCanMove(true);
+            Party.instance.GetPartyLeader().GetStatusConditionModel().RemoveCondition(Condition.Cutscene);
             movingRoom = false;
             return true;
         }

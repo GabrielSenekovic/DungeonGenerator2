@@ -1,17 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
-public class Chest : InteractableBase
+public class Chest : MonoBehaviour, IInteractable
 {
     public Transform lid;
     float angle = 0;
 
     bool open = false;
+    bool isInteractable = true;
+    bool isInteractedWith = false;
 
-    public override void OnInteract()
+    public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
-        base.OnInteract();
+        isInteractedWith = true;
         open = true;
     }
     void Update()
@@ -28,8 +31,10 @@ public class Chest : InteractableBase
         }
     }
 
-    public override void OnLeaveInteractable()
+    public void OnLeaveInteractable()
     {
         open = false;
     }
+
+    public bool GetIsInteractable() => isInteractable;
 }

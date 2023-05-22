@@ -40,7 +40,7 @@ public class RoomTemplateReader
         }
         else
         {
-            floorMaterial.SetTexture("_BaseMap", Resources.Load<Texture>("Art/Earth"));
+            //floorMaterial.SetTexture("_BaseMap", Resources.Load<Texture>("Art/Earth"));
         }
         CreateWalls(template, wallMaterial, directions);
         CreateFloor(template, floorMaterial);

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NPCInteraction : InteractableBase
+public class NPCInteraction : MonoBehaviour, IInteractable
 {
     Manuscript.Dialog dialog;
     public Manuscript.Dialog tutorialDialog;
+    bool isInteractable = true;
+    bool isInteractedWith = false;
     private void Start() 
     {
         LoadDialog();
@@ -40,11 +42,11 @@ public class NPCInteraction : InteractableBase
             }
         ));
     }
-    public override void OnInteract()
+    public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
         if (isInteractable)
         {
-            //isInteractedWith = true;
+            isInteractedWith = true;
             if(!UIManager.Instance.dialogBox.gameObject.activeSelf)
             {
                 UIManager.StartDialog(tutorialDialog);
@@ -58,5 +60,12 @@ public class NPCInteraction : InteractableBase
                 UIManager.EndDialog();
             }
         }
+    }
+
+    public bool GetIsInteractable() => isInteractable;
+
+    public void OnLeaveInteractable()
+    {
+        return;
     }
 }

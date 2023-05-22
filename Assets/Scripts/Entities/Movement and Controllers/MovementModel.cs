@@ -9,7 +9,6 @@ public class MovementModel : MonoBehaviour
 {
     Vector3 movementDirection;
     Vector2 facingDirection;
-    bool canMove = true;
 
     public Vector2 orbitPoint; //Anything that can move could orbit around something at some point
     public float orbitSpeed;
@@ -19,6 +18,7 @@ public class MovementModel : MonoBehaviour
     Rigidbody body;
 
     EntityStatistics statistics;
+    StatusConditionModel statusConditionModel;
 
     public int moveTimer = 0;
     void Awake()
@@ -27,6 +27,7 @@ public class MovementModel : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
         body = GetComponent<Rigidbody>();
         statistics = GetComponent<EntityStatistics>();
+        statusConditionModel = GetComponent<StatusConditionModel>();
     }
     private void Update() 
     {
@@ -54,7 +55,7 @@ public class MovementModel : MonoBehaviour
             if(moveTimer <= statistics.moveTimerMax)
             {
                 Move();
-                if(GetComponent<StatusConditionModel>().IfHasCondition(Condition.Jolted))
+                if(statusConditionModel.IfHasCondition(Condition.Jolted))
                 {
                     statistics.moveTimerMax = UnityEngine.Random.Range(20, 40);
                 }
@@ -107,10 +108,6 @@ public class MovementModel : MonoBehaviour
             if(body == null){body = GetComponent<Rigidbody>();}
             body.velocity = velocity_in.normalized;
         }
-    }
-    public void SetCanMove(bool value)
-    {
-        canMove = value;
     }
     public Vector2 GetRelativeFacingDirection()
     {

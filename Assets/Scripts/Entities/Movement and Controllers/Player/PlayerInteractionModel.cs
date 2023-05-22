@@ -4,7 +4,13 @@ using System.Collections;
 public class PlayerInteractionModel : MonoBehaviour
 {
     Collider2D collider;
-    [SerializeField]InteractableBase interactable;
+    [SerializeField]IInteractable interactable;
+    StatusConditionModel statusConditionModel;
+
+    private void Start()
+    {
+        statusConditionModel = GetComponent<StatusConditionModel>();
+    }
 
     public void Initialize(Collider2D collider)
     {
@@ -15,20 +21,20 @@ public class PlayerInteractionModel : MonoBehaviour
     {
         if (interactable != null)
         {
-            interactable.OnInteract();
+            interactable.OnInteract(this, statusConditionModel);
         }
     }
 
     public void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.GetComponent<InteractableBase>() && collision.collider.GetComponent<InteractableBase>().GetIsInteractable() == true)
+        if(collision.collider.TryGetComponent(out IInteractable interactable) && interactable.GetIsInteractable())
         {
-            interactable = collision.collider.GetComponent<InteractableBase>();
-        }     
+            this.interactable = interactable;
+        } 
     }
     public void OnCollisionExit(Collision collision)
     {
-        if (collision.collider.GetComponent<InteractableBase>())
+        if (collision.collider.GetComponent<IInteractable>() != null)
         {
             if (interactable != null)
             {

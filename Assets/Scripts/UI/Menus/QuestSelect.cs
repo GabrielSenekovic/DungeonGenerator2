@@ -135,7 +135,8 @@ public class QuestSelect : MonoBehaviour
     }
     public void RevealDetails(int index_in)
     {
-        detailText.text = "Information about the quest: \n";
+        detailText.PlaceSprite(Sprite.Create(levels[index_in].map, new Rect(0, 0, levels[index_in].map.width, levels[index_in].map.height), new Vector2(0.5f, 0.5f), 16));
+        /*detailText.text = "Information about the quest: \n";
         detailText.text += quests[index_in].GetQuestDescription();
         detailText.Write();
         detailText.text = "\nQuestgiver: " + NameDatabase.GetRandomName();
@@ -144,7 +145,7 @@ public class QuestSelect : MonoBehaviour
         detailText.PlaceSprite(Sprite.Create(levels[index_in].map, new Rect(0, 0, levels[index_in].map.width, levels[index_in].map.height), new Vector2(0.5f, 0.5f), 16));
         detailText.text += "\nSeeds: \nData seed: " + seeds[index_in].dataSeed + "\n";
         detailText.text += "Construction seed: " + seeds[index_in].constructionSeed + "\n";
-        detailText.WriteAppend();
+        detailText.WriteAppend();*/
     }
     public void HideDetails()
     {

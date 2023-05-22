@@ -2,19 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unlockable : InteractableBase
+public class Unlockable : MonoBehaviour, IInteractable
 {
     bool locked;
     BoxCollider box;
 
     public Unlockable otherDoor;
+    bool isInteractable = true;
+    bool isInteractedWith = false;
 
     private void Awake() 
     {
         locked = true;
         box = GetComponent<BoxCollider>();
     }
-    public override void OnInteract()
+    public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
         if(Party.Unlock())
         {
@@ -27,5 +29,12 @@ public class Unlockable : InteractableBase
         box.enabled = false;
         otherDoor.locked = false;
         otherDoor.box.enabled = false;
+    }
+
+    public bool GetIsInteractable() => isInteractable;
+
+    public void OnLeaveInteractable()
+    {
+        return;
     }
 }

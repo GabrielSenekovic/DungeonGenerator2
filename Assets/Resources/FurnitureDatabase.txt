@@ -1,5 +1,17 @@
+Name: Bed
+Type: Sleepable
+
+Name: Bench
+Type: Sittable, Sleepable
+
 Name: Chair
-Type: Furniture
+Type: Sittable
+
+Name: Plate
+Type: Dining
 
 Name: Streetlight
-Type: Furniture
+Type: Lighting
+
+Name: Table
+Type: Surface

@@ -82,7 +82,7 @@ public class LevelManager : MonoBehaviour
         }
         if(CheckIfChangeRoom())
         {
-            party.GetPartyLeader().GetPMM().SetCanMove(false);
+            Party.instance.GetPartyLeader().GetStatusConditionModel().AddCondition(new StatusConditionModel.StatusCondition(Condition.Cutscene));
             CameraMovement.SetMovingRoom(true);
         }
         if(currentRoom.grass != null)
@@ -100,8 +100,7 @@ public class LevelManager : MonoBehaviour
             if (CameraMovement.Instance.MoveCamera(new Vector3(newPos.x, newPos.y, CameraMovement.GetRotationObject().transform.position.z), prevPos.ToV3()))
             {
                 CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x,currentRoom.transform.position.x + Mathf.Abs(currentRoom.roomData.size.x) - 20) , 
-                new Vector2(currentRoom.transform.position.y - Mathf.Abs(currentRoom.roomData.size.y) + 20, currentRoom.transform.position.y));
-               // previousRoom.gameObject.SetActive(false);
+                new Vector2(-currentRoom.transform.position.y, -(currentRoom.transform.position.y - Mathf.Abs(currentRoom.roomData.size.y) + 20)));
                 UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
             }
         }
@@ -110,28 +109,31 @@ public class LevelManager : MonoBehaviour
     bool CheckIfChangeRoom()
     {
         Vector2Int playerGridPos = (party.GetPartyLeader().transform.position / 20f).ToV2Int();
-        if(party.GetPartyLeader().transform.position.x > currentRoom.transform.position.x + (Mathf.Abs(currentRoom.roomData.size.x) - 10))
+        playerGridPos *= new Vector2Int(1, -1);
+        Vector2 playerPos = party.GetPartyLeader().transform.position * new Vector2(1, -1);
+
+        if (playerPos.x > currentRoom.transform.position.x + (Mathf.Abs(currentRoom.roomData.size.x) - 10))
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if(party.GetPartyLeader().transform.position.x < currentRoom.transform.position.x - 10)
+        else if(playerPos.x < currentRoom.transform.position.x - 10)
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if (party.GetPartyLeader().transform.position.y > currentRoom.transform.position.y + 10)
+        else if (playerPos.y > currentRoom.transform.position.y + 10)
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);
             currentRoom.gameObject.SetActive(true);
             return true;
         }
-        else if (party.GetPartyLeader().transform.position.y < currentRoom.transform.position.y - (Mathf.Abs(currentRoom.roomData.size.y) - 10))
+        else if (playerPos.y < currentRoom.transform.position.y - (Mathf.Abs(currentRoom.roomData.size.y) - 10))
         {
             previousRoom = currentRoom;
             currentRoom = generator.FindRoomOfPosition(playerGridPos, DunGenes.Instance.gameData.CurrentLevel);

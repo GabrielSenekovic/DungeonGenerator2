@@ -6,8 +6,8 @@ public class PlayableCharacter : MonoBehaviour
 {
     [SerializeField] Collider2D m_collider;
 
-    MovementModel m_PMM;
-    PlayerInteractionModel m_PIM;
+    MovementModel movementModel;
+    PlayerInteractionModel interactionModel;
 
     StatusConditionModel CM;
 
@@ -15,23 +15,23 @@ public class PlayableCharacter : MonoBehaviour
 
     private void Awake()
     {
-        m_PMM = GetComponent<MovementModel>();
-        m_PIM = GetComponent<PlayerInteractionModel>();
+        movementModel = GetComponent<MovementModel>();
+        interactionModel = GetComponent<PlayerInteractionModel>();
         CM = GetComponent<StatusConditionModel>();
     }
 
     private void Start()
     {
-        m_PIM.Initialize(m_collider);
+        interactionModel.Initialize(m_collider);
     }
 
     public MovementModel GetPMM()
     {
-        return m_PMM;
+        return movementModel;
     }
     public PlayerInteractionModel GetPIM()
     {
-        return m_PIM;
+        return interactionModel;
     }
     public StatusConditionModel GetStatusConditionModel()
     {

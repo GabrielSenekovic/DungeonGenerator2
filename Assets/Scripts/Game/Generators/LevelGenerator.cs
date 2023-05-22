@@ -32,8 +32,8 @@ public partial class LevelGenerator : MonoBehaviour
 
     public bool levelGenerated = false;
 
-    public InteractableBase endOfLevel; //Debugging object for Recovery Quest
-    [System.NonSerialized]public InteractableBase spawnedEndOfLevel; // spawned version
+    public IInteractable endOfLevel; //Debugging object for Recovery Quest
+    [System.NonSerialized]public IInteractable spawnedEndOfLevel; // spawned version
 
     public Texture2D map;
 
@@ -139,9 +139,9 @@ public partial class LevelGenerator : MonoBehaviour
                 RoomTemplate template = templates[count];
                 int kStart = (int)data.sectionData[i].rooms[j].position.x + Mathf.Abs(leftestPoint * 20);
                 int lStart = (int)data.sectionData[i].rooms[j].position.y + Mathf.Abs((southestPoint - 1) * 20) - 1; //Why the fuck do i have to subtract 1, what (oh maybe cuz southestpoint is 19 off not 20)
-                for (int k = 0; k < template.size.x; k++)
+                for (int l = 0; l < template.size.y; l++)
                 {
-                    for (int l = 0; l < template.size.y; l++)
+                    for (int k = 0; k < template.size.x; k++)
                     {
                         //Debug.Log("x: " + (k + kStart) + " and y: " + (l + lStart) + " Width: " + bigTemplate.size.x + " Count is: " + bigTemplate.positions.Count());
                         //Debug.Log("x: " + k + " and y: " + l + "Width: " + template.size.x + " Count is: " + template.positions.Count());

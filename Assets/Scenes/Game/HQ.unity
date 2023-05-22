@@ -652,6 +652,10 @@ PrefabInstance:
       propertyPath: TimeOfDay
       value: 13.2
       objectReference: {fileID: 0}
+    - target: {fileID: 621374489, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
+      propertyPath: timeSpeed
+      value: 0.01
+      objectReference: {fileID: 0}
     - target: {fileID: 708863037, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
       propertyPath: text
       value: 
@@ -809,6 +813,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 91308448228877441, guid: bfe3b47843c9e2a4f99335c023db45a3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 91308448228877444, guid: bfe3b47843c9e2a4f99335c023db45a3,
         type: 3}

@@ -8,6 +8,7 @@ public class DayNightCycle : MonoBehaviour
     [SerializeField] Light DirectionalLight;
     [SerializeField] LightingPreset Preset;
     [SerializeField, Range(0, 24)] float TimeOfDay;
+    [SerializeField] float timeSpeed;
 
     void Update() 
     {
@@ -18,8 +19,7 @@ public class DayNightCycle : MonoBehaviour
 
         if(Application.isPlaying)
         {
-            TimeOfDay += Time.deltaTime * 0.01f;
-          // TimeOfDay = 1;
+            TimeOfDay += Time.deltaTime * timeSpeed;
             TimeOfDay %= 24;
             UpdateLighting(TimeOfDay / 24f);
         }
@@ -35,6 +35,11 @@ public class DayNightCycle : MonoBehaviour
             DirectionalLight.color = Preset.DirectionalColor.Evaluate(timePercent);
             DirectionalLight.transform.localRotation = Quaternion.Euler(new Vector3((timePercent * 360f) -90f, 170f, 0));
         }
+    }
+    public void Sleep()
+    {
+        TimeOfDay = 7;
+        UpdateLighting(TimeOfDay / 24f);
     }
 
     void OnValidate() 

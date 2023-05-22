@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 
-public class BulletinBoard : InteractableBase
+public class BulletinBoard : MonoBehaviour, IInteractable
 {
     [SerializeField]CanvasGroup questScreen;
     int[] seeds = new int[5];
-    bool m_active = true;
+    bool active = true;
+    bool isInteractable = true;
+    bool isInteractedWith = false;
 
     Tuple<int[], int[], int[]> GenerateNewSeeds() //here temporarily
     {
@@ -19,7 +21,7 @@ public class BulletinBoard : InteractableBase
         );
     }
 
-    public override void OnInteract()
+    public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
         if(isInteractable)
         {
@@ -35,5 +37,12 @@ public class BulletinBoard : InteractableBase
         isInteractable = true;
         UIManager.OpenOrClose(questScreen);
         UIManager.ToggleHUD();
+    }
+
+    public bool GetIsInteractable() => isInteractable;
+
+    public void OnLeaveInteractable()
+    {
+        return;
     }
 }

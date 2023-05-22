@@ -105,6 +105,9 @@ public class CommandBox : MonoBehaviour
                     break;
                 }
             break;
+            case "Sleep":
+                DunGenes.Instance.GetDayNightCycle().Sleep();
+            break;
             case "Spawn" :
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])

@@ -12,7 +12,10 @@ public enum Condition
     Frozen,
     Jolted,
     Rigid,
-    Wet
+    Wet,
+
+    Sitting = 5000,
+    Cutscene = 5001
 }
 public class StatusConditionModel : MonoBehaviour
 {
@@ -24,7 +27,7 @@ public class StatusConditionModel : MonoBehaviour
         public StatusCondition(Condition value_in)
         {
             value = value_in;
-            duration = 100f;
+            duration = Mathf.Infinity;
         }
         public StatusCondition(Condition value_in, float duration_in)
         {
@@ -48,15 +51,15 @@ public class StatusConditionModel : MonoBehaviour
             {
                 condition = condition_in;
 
+                Sprite sprite = Resources.Load<Sprite>("Art/ConditionIcons/" + condition.ToString());
+
                 GameObject temp = new GameObject(condition.ToString()); temp.transform.parent = trans;
 
                 RectTransform rect = temp.AddComponent<RectTransform>();
-                rect.localScale = new Vector3(1,1, 1);
+                rect.localScale = new Vector3(1, 1, 1);
                 image = temp.AddComponent<Image>();
 
-                Debug.Log("Art/ConditionIcons/" + condition.ToString());
-
-                image.sprite = Resources.Load<Sprite>("Art/ConditionIcons/" + condition.ToString());
+                image.sprite = sprite;
             }
         }
         public Transform trans;
@@ -125,7 +128,10 @@ public class StatusConditionModel : MonoBehaviour
     public void AddCondition(StatusCondition condition)
     {
         conditions.Add(condition);
-        HUD.AddCondition(condition.value);
+        if(((int)condition.value) < 5000)
+        {
+            HUD.AddCondition(condition.value);
+        }
 
         switch(condition.value)
         {
@@ -148,6 +154,12 @@ public class StatusConditionModel : MonoBehaviour
             break;
             case Condition.Wet: 
                 statistics.elementWeaknesses.Add(new EntityStatistics.ElementWeakness(Element.FIRE, condition.value, 0.5f));
+            break;
+            case Condition.Sitting:
+                statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
+            break;
+            case Condition.Cutscene:
+                statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
             break;
         }
     }
