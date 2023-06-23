@@ -15,7 +15,7 @@ public class Menu : MonoBehaviour
 
         public string tooltip;
 
-        public UnityEngine.CanvasGroup canvas;
+        public CanvasGroup canvas;
     }
     [System.Serializable]struct ButtonLayout
     {
@@ -69,12 +69,12 @@ public class Menu : MonoBehaviour
                 buttons[j].GetComponent<Image>().raycastTarget = true;
                 int index_1 = i; int index_2 = j;
                 buttons[j].GetComponentInChildren<SpriteText>().Write(buttonLayouts[i].buttons[j].name);
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
+                buttons[j].GetComponent<Button>().onClick.RemoveAllListeners();
 
                 if(buttonLayouts[index_1].buttons[index_2].destination >= 0)
                 {
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => SwitchMenu(buttonLayouts[index_1].buttons[index_2].destination) );
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => MenuTooltip.UpdateUpperTooltip(" "));
+                    buttons[j].GetComponent<Button>().onClick.AddListener(() => SwitchMenu(buttonLayouts[index_1].buttons[index_2].destination) );
+                    buttons[j].GetComponent<Button>().onClick.AddListener(() => MenuTooltip.UpdateUpperTooltip(" "));
                     
                     entry.callback.AddListener( (data) => MenuTooltip.UpdateUpperTooltip(buttonLayouts[index_1].buttons[index_2].tooltip));
 
@@ -85,19 +85,19 @@ public class Menu : MonoBehaviour
                 }
                 else if(buttonLayouts[index_1].buttons[index_2].destination == -1)
                 {
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => SceneManager.LoadScene(1));
+                    buttons[j].GetComponent<Button>().onClick.AddListener(() => SceneManager.LoadScene(1));
                 }
                 else
                 {
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {Application.Quit(); Debug.Log("Quit the game from Menu");});
+                    buttons[j].GetComponent<Button>().onClick.AddListener(() => {Application.Quit(); Debug.Log("Quit the game from Menu");});
                 }
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_click"));
+                buttons[j].GetComponent<Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_click"));
                 if(buttonLayouts[i].buttons[j].canvas != null)
                 {
                     UnityEngine.Events.UnityAction temp = () => UIManager.OpenOrClose(buttonLayouts[index_1].buttons[index_2].canvas);
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(temp);
+                    buttons[j].GetComponent<Button>().onClick.AddListener(temp);
                     temp = () => UI.AddMenu(buttonLayouts[index_1].buttons[index_2].canvas);
-                    buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(temp);
+                    buttons[j].GetComponent<Button>().onClick.AddListener(temp);
                 }
             }
             else if(j < buttons.Length - 1 || buttonLayouts[i].parentMenu < 0)
@@ -112,10 +112,10 @@ public class Menu : MonoBehaviour
                 buttons[j].GetComponent<Image>().color = UIManager.Instance.UIColor.primary;
                 buttons[j].GetComponent<Image>().raycastTarget = true;
                 buttons[j].GetComponentInChildren<SpriteText>().Write("Return");
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.RemoveAllListeners();
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => SwitchMenu(buttonLayouts[i].parentMenu) );
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_return"));
-                buttons[j].GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => UI.EmptyMenus());
+                buttons[j].GetComponent<Button>().onClick.RemoveAllListeners();
+                buttons[j].GetComponent<Button>().onClick.AddListener(() => SwitchMenu(buttonLayouts[i].parentMenu) );
+                buttons[j].GetComponent<Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_return"));
+                buttons[j].GetComponent<Button>().onClick.AddListener(() => UI.EmptyMenus());
                 entry.callback.AddListener( (data) => MenuTooltip.UpdateUpperTooltip("return"));
                 EventTrigger.Entry exit_entry = new EventTrigger.Entry();
                 exit_entry.eventID = EventTriggerType.PointerExit;
@@ -158,10 +158,10 @@ public class Menu : MonoBehaviour
             buttons[i] = new GameObject("Button: " + (i+1)); buttons[i].transform.parent = buttonTransform.transform; 
             buttons[i].AddComponent<RectTransform>();
             buttons[i].GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
-            buttons[i].AddComponent<UnityEngine.UI.Image>();
-            buttons[i].GetComponent<UnityEngine.UI.Image>().sprite = buttonSprite;
-            buttons[i].AddComponent<UnityEngine.UI.Button>();
-            buttons[i].GetComponent<UnityEngine.UI.Button>().image = buttons[i].GetComponent<UnityEngine.UI.Image>();
+            buttons[i].AddComponent<Image>();
+            buttons[i].GetComponent<Image>().sprite = buttonSprite;
+            buttons[i].AddComponent<Button>();
+            buttons[i].GetComponent<Button>().image = buttons[i].GetComponent<Image>();
             buttons[i].AddComponent<EventTrigger>();
 
             GameObject textObject = new GameObject("Text"); textObject.transform.parent = buttons[i].transform;
@@ -191,7 +191,7 @@ public class Menu : MonoBehaviour
     {
         for(int i = 0; i < buttons.Length; i++)
         {
-            buttons[i].GetComponent<UnityEngine.UI.Image>().color = new Color(newColor.r, newColor.g, newColor.b, buttons[i].GetComponent<UnityEngine.UI.Image>().color.a);
+            buttons[i].GetComponent<Image>().color = new Color(newColor.r, newColor.g, newColor.b, buttons[i].GetComponent<Image>().color.a);
         }
         frame_Image.color = newColor;
         background_Image.color = newColor;

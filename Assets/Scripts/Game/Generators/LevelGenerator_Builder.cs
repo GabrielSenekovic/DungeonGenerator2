@@ -12,11 +12,12 @@ using Entrances = Room.Entrances;
 
 public partial class LevelGenerator : MonoBehaviour
 {
-    public void GenerateLevel(LevelManager level, ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate)
+    [SerializeField] MaterialDatabase materialDatabase;
+    public void GenerateLevel(LevelManager level, ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
     {
         DateTime before = DateTime.Now;
         //GenerateSurroundings(ref templates, DunGenes.Instance.gameData.CurrentLevel);
-        BuildRooms(ref templates, ref bigTemplate);
+        BuildRooms(ref templates, ref bigTemplate, settlementData);
 
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
         level.firstRoom = currentLevel.sections[0].rooms[0];
@@ -44,7 +45,7 @@ public partial class LevelGenerator : MonoBehaviour
             }
         }*/
     }
-    void BuildRooms(ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate)
+    void BuildRooms(ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
     {
         //Now that all entrances have been set, you can put the entrances down on each room template and adjust the templates to make sure there is always space to get to each door
         //Then build the rooms
@@ -54,7 +55,7 @@ public partial class LevelGenerator : MonoBehaviour
         GameObject levelMesh = new GameObject("Level Mesh");
         RoomTemplateReader reader = new RoomTemplateReader(bigTemplate, levelMesh.transform);
         levelMesh.transform.position = new Vector2(leftestPoint * 20, -southestPoint * 20);
-        reader.CreateLevel(ref bigTemplate, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"));
+        reader.CreateLevel(ref bigTemplate, Resources.Load<Material>("Materials/Ground"), materialDatabase, settlementData);
         for (int i = 0; i < currentLevel.sectionData.Count; i++)
         {
             currentLevel.sections.Add(new Section());
@@ -72,12 +73,12 @@ public partial class LevelGenerator : MonoBehaviour
                 List<LevelData.RoomGridEntry> entries = currentLevel.roomGrid.Where(e => e.roomData.originalPosition == roomData.originalPosition).ToList();
                 entries.ForEach(e => e.SetRoom(newRoom));
                 RoomTemplate template = templates[count];
-                newRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
+                newRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"), furnitureDatabase);
                 count++;
                 DebugLog.PublishMessage();
             }
         }
-        //PlantFlora(ref templates);
+        PlantFlora(ref templates);
     }
    /* void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin, LevelData data)
     {

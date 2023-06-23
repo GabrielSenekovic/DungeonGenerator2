@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
-using UnityEngine.WSA;
 
 public partial class MeshMaker : MonoBehaviour
 {
@@ -597,7 +596,7 @@ public partial class MeshMaker : MonoBehaviour
         {
             float secondAngle = 1.5f * Mathf.Asin((grassWidth / 2) / (radius / Mathf.Sin(Mathf.Deg2Rad * 90))); //Law of Sines of half of the isosceles triangle to figure out the inner angle
 
-            float height = 1.0f - curve.Evaluate(1.0f / amountOfStraws * i) - UnityEngine.Random.Range(-0.5f, 0.5f);
+            float height = 1.0f - curve.Evaluate(1.0f / amountOfStraws * i);// - UnityEngine.Random.Range(-0.5f, 0.5f);
 
             float horizontalityForThisStraw = 0.25f * UnityEngine.Random.Range(0, 5);
 
@@ -605,17 +604,29 @@ public partial class MeshMaker : MonoBehaviour
             {
                 //Debug.Log(-(1.0f / height * k));
                 //Go up the straw
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle), -(height / quadsPerGrass * k)));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle), -(height / quadsPerGrass * k)));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle), -(height / quadsPerGrass * (k + 1))));
-                newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle), -(height / quadsPerGrass * (k + 1))));
+                if(k == 0)
+                {
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle), -(height / quadsPerGrass * k)));
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle), -(height / quadsPerGrass * k)));
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle), -(height / quadsPerGrass * (k + 1))));
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle), -(height / quadsPerGrass * (k + 1))));
+                    
 
-                newUV.Add(new Vector2(horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * k));     //1,0
-                newUV.Add(new Vector2(horizontalityForThisStraw, 1.0f / quadsPerGrass * k));     //0,0
-                newUV.Add(new Vector2(horizontalityForThisStraw, 1.0f / quadsPerGrass * (k + 1))); //0,1
-                newUV.Add(new Vector2(horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * (k + 1))); //1,1
+                    newUV.Add(new Vector2(horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * k));     //1,0
+                    newUV.Add(new Vector2(horizontalityForThisStraw, 1.0f / quadsPerGrass * k));     //0,0
+                    newUV.Add(new Vector2(horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * (k + 1))); //1,1
+                    newUV.Add(new Vector2(horizontalityForThisStraw, 1.0f / quadsPerGrass * (k + 1))); //0,1
+                }
+                else
+                {
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle), radius * Mathf.Cos(angle), -(height / quadsPerGrass * (k + 1))));
+                    newVertices.Add(new Vector3(radius * Mathf.Sin(angle + secondAngle), radius * Mathf.Cos(angle + secondAngle), -(height / quadsPerGrass * (k + 1))));
 
-                int[] indexValue = new int[] { 0, 1, 3, 1, 2, 3 };
+                    newUV.Add(new Vector2(horizontalityForThisStraw + 0.25f, 1.0f / quadsPerGrass * (k + 1))); //1,1
+                    newUV.Add(new Vector2(horizontalityForThisStraw, 1.0f / quadsPerGrass * (k + 1))); //0,1
+                }
+
+                int[] indexValue = new int[] { 0, 1, 3, 0, 3, 2 };
 
                 int temp = newVertices.Count - 4;
 
@@ -642,6 +653,7 @@ public partial class MeshMaker : MonoBehaviour
     public static GameObject CreateVase(Material material)
     {
         GameObject vase = new GameObject("Vase");
+        vase.gameObject.SetActive(false);
         vase.AddComponent<MeshFilter>();
         AnimationCurve curve = CreateVase_GetCurve();
 

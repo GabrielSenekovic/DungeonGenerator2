@@ -17,7 +17,7 @@ public class LevelManager : MonoBehaviour
     public Room currentRoom;
     public Room previousRoom = null;
 
-    public Party party;
+    Party party;
 
     LevelGenerator generator;
 
@@ -28,6 +28,8 @@ public class LevelManager : MonoBehaviour
 
     public PlacementRenderMode placementRenderMode;
 
+    public SettlementData settlementData;
+
     public enum PlacementRenderMode
     {
         NONE,
@@ -36,17 +38,13 @@ public class LevelManager : MonoBehaviour
     }
 
     EntityManager entityManager;
-    public MeshBatchRenderer meshBatchRenderer;
+    MeshBatchRenderer meshBatchRenderer;
 
     private void Awake() 
     {
         //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
         //GameData.m_LevelDataSeed = Random.Range(0, int.MaxValue);
-        if(DunGenes.Instance.gameData != null)
-        {
-            Party.instance.GetPartyLeader().transform.position = Vector2.zero;
-           // DunGenes.Instance.gameData.SetPlayerPosition(new Vector2(-RoomSize.x/2, -RoomSize.y/2));
-        }
+        meshBatchRenderer = GetComponent<MeshBatchRenderer>();
         renderGrassChunks = true;
         placementQuad = MeshMaker.GetQuad();
         placementMat = Resources.Load<Material>("Materials/Placement");
@@ -55,18 +53,20 @@ public class LevelManager : MonoBehaviour
     }
     private void Start() 
     {
-        Debug.Log("Start");
+        if (DunGenes.Instance.gameData != null)
+        {
+            Party.instance.GetPartyLeader().transform.position = Vector2.zero;
+            // DunGenes.Instance.gameData.SetPlayerPosition(new Vector2(-RoomSize.x/2, -RoomSize.y/2));
+        }
         party = Party.instance;
         levelData = DunGenes.Instance.gameData.GetCurrentLevelData();
         questData = DunGenes.Instance.gameData.GetCurrentQuestData();
         generator = FindObjectOfType<LevelGenerator>();
 
         meshBatchRenderer.Initialise();
-        generator.GenerateLevel(this, ref levelData.templates, ref levelData.bigTemplate);
-        generator.PutDownQuestObjects(this, questData);
 
-        currentRoom = firstRoom; UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
-        CameraMovement.SetCameraAnchor(new Vector2(firstRoom.transform.position.x,firstRoom.transform.position.x + firstRoom.roomData.size.x - 20) , new Vector2(firstRoom.transform.position.y - firstRoom.roomData.size.y + 20, firstRoom.transform.position.y));
+        UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
+        CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x, currentRoom.transform.position.x + currentRoom.roomData.size.x - 20) , new Vector2(currentRoom.transform.position.y - currentRoom.roomData.size.y + 20, currentRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
 
@@ -153,6 +153,7 @@ public class LevelManager : MonoBehaviour
 
     private void OnRenderObject() 
     {
+        if(currentRoom == null) { return; }
         if(renderGrassChunks && currentRoom.grass != null)
         {
             currentRoom.grass.RenderGrassChunkCenters(transform);

@@ -11,7 +11,15 @@ public class CommandBox : MonoBehaviour
     // Start is called before the first frame update
     public List<string> commandLog = new List<string>();
 
-    public InputField field;
+    [SerializeField] InputField field;
+    [SerializeField] LevelGenerator_Debugger levelGeneration_Debugger;
+    [SerializeField] NPCGenerator_Debugger npcGeneration_Debugger;
+    [SerializeField] EntityGenerator entityGenerator;
+
+    public void OpenBox()
+    {
+        field.Select();
+    }
 
     public void RunCommand()
     {
@@ -40,6 +48,13 @@ public class CommandBox : MonoBehaviour
                     Party.instance.GetPartyLeader().GetStatusConditionModel().AddCondition(new StatusConditionModel.StatusCondition((Condition)Enum.Parse(typeof(Condition), partsOfCommand[1]), float.Parse(partsOfCommand[2], CultureInfo.InvariantCulture.NumberFormat)));
                 }
             break;
+            case "Build":
+                if (partsOfCommand.Length == 1) { return; }
+                if (partsOfCommand[1] == "House")
+                {
+                    levelGeneration_Debugger.GenerateHouse();
+                }
+            break;
             case "Buildmode" :
                 FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.BUILD);
             break;
@@ -61,7 +76,11 @@ public class CommandBox : MonoBehaviour
             case "Generate":
                 if (partsOfCommand.Length == 1) { return; }
                 int.TryParse(partsOfCommand[1], out int result);
-                FindObjectOfType<LevelGenerator>().GenerateFromCommand(result);
+                levelGeneration_Debugger.GenerateFromCommand(result);
+                if(result == 100)
+                {
+                    npcGeneration_Debugger.GenerateProfessions();
+                }
             break;
             case "Give" :
                 if(partsOfCommand.Length == 1){return;}
@@ -112,7 +131,23 @@ public class CommandBox : MonoBehaviour
                 if(partsOfCommand.Length == 1){return;}
                 switch(partsOfCommand[1])
                 {
-                    case "Entity": EntityGenerator.SpawnRandomEntity();
+                    case "Entity":
+                        if (partsOfCommand.Length == 2)
+                        {
+                            entityGenerator.SpawnRandomEntity();
+                        }
+                        else
+                        {
+                            switch(partsOfCommand[2])
+                            {
+                                case "Flying":
+                                    entityGenerator.SpawnFlyingEntity();
+                                    break;
+                                case "Meelee":
+                                    entityGenerator.SpawnMeeleeEntity();
+                                    break;
+                            }
+                        }
                     break;
                 }
             break;

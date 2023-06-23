@@ -58,7 +58,6 @@ public class EntityManager : MonoBehaviour
             projectiles[i].ID--;
             projectiles[i].projectileController.ID--;
         }
-        Debug.Log("Removing " + ID +  " out of " + projectiles.Count);
         projectiles.RemoveAt(ID);
     }
 

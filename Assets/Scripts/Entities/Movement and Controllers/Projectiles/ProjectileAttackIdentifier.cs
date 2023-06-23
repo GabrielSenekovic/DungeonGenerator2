@@ -37,7 +37,6 @@ public class ProjectileAttackIdentifier : AttackIdentifier
         if(UpdateCasting()) //If this attack is not done yet
         {
             waveFrequencyTimer++;
-            Debug.Log("Index: " + waveIndex + "Data count: " + waveData.Count);
             if (waveFrequencyTimer >= waveFrequency_Limit && waveIndex < waveData.Count)
             {
                 WaveData w = waveData[waveIndex];
@@ -102,7 +101,6 @@ public class ProjectileAttackIdentifier : AttackIdentifier
         float dot = Vector2.Dot(direction, Vector2.up);
         float angle = Mathf.Asin(direction.x) * Mathf.Rad2Deg;
         angle = dot > 0 ? -(angle + 180) : angle;
-        Debug.Log(angle);
         projectile.transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
     }
 }

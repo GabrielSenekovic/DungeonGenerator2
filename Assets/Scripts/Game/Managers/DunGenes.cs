@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DunGenes : MonoBehaviour
+public class DunGenes
+    : MonoBehaviour
 {
     static DunGenes instance;
 
@@ -20,12 +21,18 @@ public class DunGenes : MonoBehaviour
 
     DayNightCycle dayNightCycle;
 
+    FurnitureDatabase furnitureDatabase;
+    public LevelManager levelManager;
+
     private void Awake() 
     {
         if(instance == null)
         {
             instance = this;
             dayNightCycle = GetComponent<DayNightCycle>();
+            furnitureDatabase = Resources.Load<FurnitureDatabase>("FurnitureDatabase");
+            TextAsset reader = Resources.Load<TextAsset>("FurnitureDatabase");
+            furnitureDatabase.Initialise(reader.text);
         }
         else
         {
@@ -35,7 +42,7 @@ public class DunGenes : MonoBehaviour
         }
         if(isStartArea)
         {
-            FindObjectOfType<LevelGenerator>().GenerateStartArea();
+            FindObjectOfType<LevelGenerator>().GenerateStartArea(levelManager.settlementData);
         }
     }
 

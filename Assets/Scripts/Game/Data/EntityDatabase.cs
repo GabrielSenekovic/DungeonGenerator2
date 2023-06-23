@@ -79,7 +79,6 @@ public class EntityDatabase :ScriptableObject
                     int variety = 0;
                     for(int j = 3; j < allData[i].Count; j++)
                     {
-                        Debug.Log("j:" + j);
                         switch(allData[i][j])
                         {
                             case "Amount:":
@@ -87,7 +86,6 @@ public class EntityDatabase :ScriptableObject
                             case "Variety:":
                                     flowerEntries.Add(new DatabaseEntry(allData[i][1], "Flower"));
                                     flowerEntries[variety].variety = allData[i][j + 1]; variety++;
-                                    Debug.Log("Variety: " + flowerEntries[variety-1].variety);
                                     break;
                             case "Height:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out height); break;
                             case "Bulb:": float.TryParse(allData[i][j+1],NumberStyles.Any, CultureInfo.InvariantCulture, out bulbHeight); break;
@@ -146,11 +144,9 @@ public class EntityDatabase :ScriptableObject
                     //Debug.Log("Creating a flower with: " + "height: " + height + " bulb: " + bulbHeight + " whorls: " + whorls + " merosity: " + merosity + " openness: " + openness);
                     if(curve == null)
                     {
-                        Debug.Log("Curve is null");
                     }
                     for(int j = 0; j < variety; j++)
                     {
-                        Debug.Log("Variety: " + variety + " j: " + j);
                         Material flowerMaterial = new Material(defaultMaterial);
                         flowerMaterial.SetFloat("_Gravity", 0);
                         flowerMaterial.SetColor("_Color", Color.white);
@@ -186,7 +182,6 @@ public class EntityDatabase :ScriptableObject
                                 float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out renderDistance); 
                                 renderDistance = renderDistance == -1 ? Mathf.Infinity : renderDistance;
                                 MeshMaker.CreateTuft(tuftMesh, quads, straws, (float)width);
-                                Debug.Log("Creating a Tuft with amount: " + amount + " RenderDistance: " + renderDistance + " Quads: " + quads + " Straws: " + straws + " Width: " + width);
                                 DatabaseEntry.MeshLOD tempTuft = new DatabaseEntry.MeshLOD(tuftMesh, (float)renderDistance);
                                 tuftEntry.AddMesh(tempTuft);
                                 tuftMesh = new Mesh();
@@ -194,7 +189,6 @@ public class EntityDatabase :ScriptableObject
                             case "Quads:": int.TryParse(allData[i][j+1], out quads); break;
                             case "Straws:":int.TryParse(allData[i][j+1], out straws); break;
                             case "Width:": float.TryParse(allData[i][j+1], NumberStyles.Any, CultureInfo.InvariantCulture, out width); 
-                                    Debug.Log("Width: " + allData[i][j+1] + " and " + width);
                             break;
                         }
                     }
@@ -224,8 +218,9 @@ public class EntityDatabase :ScriptableObject
         return mat;
     }
 
-    public Mesh GetMesh(string value, string variety, float distance, ref bool billBoard)
+    public Mesh GetMesh(string value, string variety, float distance, out bool billBoard)
     {
+        billBoard = false;
         DatabaseEntry entry = GetDatabaseEntry(value, variety); //Get the mesh collection of this name
         if(entry != null) //If it was found
         {

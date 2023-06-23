@@ -8,7 +8,7 @@ public class LevelData
     List<AudioClip> melody = new List<AudioClip>();
     List<AudioClip> baseLine = new List<AudioClip>();
 
-    public Vector2Int amountOfRoomsCap = new Vector2Int(450, 500);
+    public Vector2Int amountOfRoomsCap = new Vector2Int(10, 20);
     public Vector2Int amountOfSections = new Vector2Int(1, 1);
 
     public List<Room.RoomTemplate> templates;

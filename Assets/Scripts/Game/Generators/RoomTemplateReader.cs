@@ -17,6 +17,8 @@ public class RoomTemplateReader
     public int highestElevation;
     public Transform roomTransform;
 
+    Dictionary<string, GameObject> structures = new Dictionary<string, GameObject>();
+
     public RoomTemplateReader(RoomTemplate template, Transform roomTransform)
     {
         this.template = template;
@@ -24,43 +26,61 @@ public class RoomTemplateReader
         highestElevation = template.highestElevation;
         this.roomTransform = roomTransform;
     }
-    public void CreateLevel(ref RoomTemplate template, Material wallMaterial_in, Material floorMaterial_in, Entrances directions = null)
+    public void CreateLevel(ref RoomTemplate template, Material floorMaterial_in, MaterialDatabase materialDatabase, SettlementData settlementData, Entrances directions = null)
     {
         Color color = new Color32((byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), (byte)UnityEngine.Random.Range(125, 220), 255);
         template.IdentifyWalls();
-        Material wallMaterial = new Material(wallMaterial_in.shader);
-        wallMaterial.CopyPropertiesFromMaterial(wallMaterial_in);
         Material floorMaterial = new Material(floorMaterial_in.shader);
         floorMaterial.CopyPropertiesFromMaterial(floorMaterial_in);
         if (template.indoors)
         {
-            wallMaterial.mainTexture = floorMaterial_in.mainTexture;
-            wallMaterial.color = color + Color.white / 10;
             floorMaterial.color = color;
         }
         else
         {
             //floorMaterial.SetTexture("_BaseMap", Resources.Load<Texture>("Art/Earth"));
         }
-        CreateWalls(template, wallMaterial, directions);
+        CreateWalls(template, directions, materialDatabase, settlementData);
         CreateFloor(template, floorMaterial);
     }
-    void CreateWalls(RoomTemplate template, Material wallMaterial, Entrances directions)
+    void CreateWalls(RoomTemplate template, Entrances directions, MaterialDatabase materialDatabase, SettlementData settlementData)
     {
         DebugLog.AddToMessage("Substep", "Creating walls");
-        List<Tuple<List<MeshMaker.WallData>, bool>> data = ExtractWalls(directions); //These directions will be the ones that connect with other levels
-
-        Dictionary<TileTemplate.TileType, Material> materials = new Dictionary<TileTemplate.TileType, Material>();
-        materials.Add(TileTemplate.TileType.NONE, wallMaterial);
-        Material houseMaterial = new Material(wallMaterial);
-        houseMaterial.SetColor("_BaseColor",Color.red);
-        materials.Add(TileTemplate.TileType.HOUSE_WALL, houseMaterial);
+        List<Tuple<WallInstructions, bool>> data = ExtractWalls(directions); //These directions will be the ones that connect with other levels
 
         for (int i = 0; i < data.Count; i++)
         {
-            GameObject wallObject = new GameObject("Wall");
-            wallObject.transform.parent = roomTransform;
-            MeshMaker.CreateWall(wallObject, materials, data[i].Item1, data[i].Item2, positions, template.roundedness);
+            GameObject wallObject;
+            if (data[i].Item1.Count > 0)
+            {
+                if(!structures.ContainsKey(data[i].Item1.ID))
+                {
+                    GameObject newStructure = new GameObject(data[i].Item1.ID);
+                    structures.Add(data[i].Item1.ID, newStructure);
+                    newStructure.transform.parent = roomTransform;
+                    if(settlementData == null)
+                    {
+                        settlementData = new SettlementData("Springfield");
+                    }
+                    settlementData.Add(newStructure);
+                }
+                wallObject = new GameObject(data[i].Item1.ID + " wall");
+                structures.TryGetValue(data[i].Item1.ID, out GameObject structure);
+                wallObject.transform.parent = structure.transform;
+            }
+            else
+            {
+                if (!structures.ContainsKey("ERROR"))
+                {
+                    GameObject newStructure = new GameObject("ERRORS");
+                    structures.Add("ERROR", newStructure);
+                    newStructure.transform.parent = roomTransform;
+                }
+                wallObject = new GameObject("ERROR");
+                structures.TryGetValue("ERROR", out GameObject structure);
+                wallObject.transform.parent = structure.transform;
+            }
+            MeshMaker.CreateWall(wallObject, materialDatabase, data[i].Item1, data[i].Item2, positions, template.roundedness);
             wallObject.transform.localPosition = new Vector3(-9.5f, 10, 0);
         }
     }
@@ -80,9 +100,9 @@ public class RoomTemplateReader
         MeshMaker.CreateSurface(ExtractFloor(), floorObject.transform, materials);
         floorObject.transform.localPosition = new Vector3(-10, 10, 0);
     }
-    public List<Tuple<List<MeshMaker.WallData>, bool>> ExtractWalls(Entrances entrances)
+    public List<Tuple<WallInstructions, bool>> ExtractWalls(Entrances entrances)
     {
-        List<Tuple<List<MeshMaker.WallData>, bool>> data = new List<Tuple<List<MeshMaker.WallData>, bool>>();
+        List<Tuple<WallInstructions, bool>> data = new List<Tuple<WallInstructions, bool>>();
         Vector2Int pos = new Vector2Int(-1, -1);
         int currentAngle = 0;
         int currentElevation = 0;
@@ -136,17 +156,17 @@ public class RoomTemplateReader
             currentElevation++;
             ResetReadValue(currentElevation);
         }
-
+        ResetReadValue();
         return data;
     }
-    void OnExtractWalls(ref int currentAngle, ref Vector2Int pos, ref List<Tuple<List<MeshMaker.WallData>, bool>> data, int currentElevation)
+    void OnExtractWalls(ref int currentAngle, ref Vector2Int pos, ref List<Tuple<WallInstructions, bool>> data, int currentElevation)
     {
         //Find direction to follow
-        Tuple<List<MeshMaker.WallData>, bool> wall = new Tuple<List<MeshMaker.WallData>, bool>(new List<MeshMaker.WallData>(), false);
-
+        string materialName = positions[pos.x, pos.y].tileType == TileTemplate.TileType.HOUSE_WALL ? "PaintedPlanks" : "Ground";
+        string ID = positions[pos.x, pos.y].ID;
+        Tuple<WallInstructions, bool> wall = new Tuple<WallInstructions, bool>(new WallInstructions(materialName, ID), false);
         bool wrap = false;
         HasWallNeighbor(pos, currentAngle, currentElevation, out bool hasWallNeighbor, out Vector2Int neighborDirection, out Vector2Int higherElevationDirection, out int angleToTurn, ref wrap); //Item2 is the direction to go to
-        Debug.Log("Did I find wall neighbor? " + hasWallNeighbor);
         currentAngle += 90 * angleToTurn;
         currentAngle = (int)Math.Mod(currentAngle, 360);
         positions[pos.x, pos.y].read = TileTemplate.ReadValue.READFIRST;
@@ -207,28 +227,25 @@ public class RoomTemplateReader
             curve.AddKey(temp);*/
             //! END OF CURVE
             float houseWallModifier = positions[pos.x, pos.y].tileType == TileTemplate.TileType.HOUSE_WALL ? 1: 0;
+            
 
             if (currentAngle == 0)
             {
-                Debug.Log("adding 0 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + isThisWallFollowingOuterCorner, startPosition.y - houseWallModifier, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 90)
             {
-                Debug.Log("adding 90 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x + 0.5f - houseWallModifier, startPosition.y - isThisWallFollowingOuterCorner, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 180)
             {
-                Debug.Log("adding 180 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - isThisWallFollowingOuterCorner + 0.5f, startPosition.y - 1 + houseWallModifier, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
             if (currentAngle == 270)
             {
-                Debug.Log("adding 270 degree wall");
                 wall.Item1.Add(new MeshMaker.WallData(new Vector3(startPosition.x - 0.5f + houseWallModifier, startPosition.y - 1 + isThisWallFollowingOuterCorner, 0), startPosition,
                 -currentAngle, steps, currentElevation, 0, positions[pos].divisions, curve, angleToTurn, positions[pos.x, pos.y].tileType));
             }
@@ -240,7 +257,7 @@ public class RoomTemplateReader
             { break; }
         }
         // Debug.Log("There is this amount of walls: " + wall.Item1.Count);
-        wall = new Tuple<List<MeshMaker.WallData>, bool>(wall.Item1, wrap);
+        wall = new Tuple<WallInstructions, bool>(wall.Item1, wrap);
         data.Add(wall);
         //if(wall.Item1.Count == 0){DebugLog.WarningMessage("Couldn't create any walls");}
     }
@@ -371,6 +388,10 @@ public class RoomTemplateReader
         positions.items.Where(i => currentElevation < i.elevation &&
         i.read != TileTemplate.ReadValue.FINISHED && i.tileType == TileTemplate.TileType.HOUSE_WALL
         ).ToList().ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
+    }
+    void ResetReadValue()
+    {
+        positions.items.ForEach(i => i.read = TileTemplate.ReadValue.UNREAD);
     }
 
     void ExtractWalls_GetStartPosition(ref Vector2Int pos, ref int currentAngle, Entrances.Entrance entrance)

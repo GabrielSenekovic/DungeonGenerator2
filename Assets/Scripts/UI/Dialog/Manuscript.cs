@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
 public class Manuscript
 {
-    public struct Dialog
+    public class Dialog
     {
-        public struct DialogNode //Each node on the dialog tree is a DialogNode that contains a set amount of lines and usually ends in some kind of prompt
+        public class DialogNode //Each node on the dialog tree is a DialogNode that contains a set amount of lines and usually ends in some kind of prompt
         {
-            public struct Line
+            public class Line
             {
                 public class CharacterIdentity
                 {
@@ -30,19 +30,35 @@ public class Manuscript
                 public string myLine;
                 public CharacterIdentity myIdentity;
             }
-            public struct PromptOption
+            public class PromptOption
             {
                 public string promptName;
                 public DialogNode destinationDialog;
+                public Action action;
 
                 public PromptOption(string promptName_in, DialogNode destinationDialog_in)
                 {
                     promptName = promptName_in;
                     destinationDialog = destinationDialog_in;
                 }
+                public PromptOption(string promptName_in, Action action)
+                {
+                    promptName = promptName_in;
+                    destinationDialog = null;
+                    this.action = action;
+                }
             }
-            public List<Line> lines;
-            public List<PromptOption> options;
+            public List<Line> lines = new List<Line>() { };
+            public List<PromptOption> options = new List<PromptOption>() { };
+            
+            public DialogNode()
+            {
+
+            }
+            public DialogNode(string line, string identity)
+            {
+                lines.Add(new Line(line, new Line.CharacterIdentity(identity)));
+            }
             public DialogNode(List<Line> lines_in, List<PromptOption> options_in)
             {
                 lines = lines_in;
@@ -51,10 +67,23 @@ public class Manuscript
         }
         DialogNode startNode;
         public DialogNode currentNode;
+        public Dialog()
+        {
+            startNode = new DialogNode();
+            currentNode = startNode;
+        }
         public Dialog(DialogNode startNode_in)
         {
             startNode = startNode_in;
             currentNode = startNode_in;
+        }
+        public void Add(string text, string identity)
+        {
+            startNode.lines.Add(new DialogNode.Line(text, new DialogNode.Line.CharacterIdentity(identity)));
+        }
+        public void Add(DialogNode.PromptOption promptOption)
+        {
+            startNode.options.Add(promptOption);
         }
     }
 }

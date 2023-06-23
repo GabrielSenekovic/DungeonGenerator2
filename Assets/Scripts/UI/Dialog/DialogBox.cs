@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 public class DialogBox : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class DialogBox : MonoBehaviour
     SpriteText dialogText;
     SpriteText nameText;
 
-    private void Awake() 
+    private void Start() 
     {
         GridLayoutGroup gridLayout = promptButtonTransform.gameObject.AddComponent<GridLayoutGroup>();
         Sprite buttonSprite = Resources.Load<Sprite>("Art/UI/MenuButton");
@@ -42,9 +43,9 @@ public class DialogBox : MonoBehaviour
         dialogTextObj.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
         dialogTextObj.GetComponent<RectTransform>().localPosition = new Vector3(-270, 70, 0);
         dialogText = dialogTextObj.AddComponent<SpriteText>();
-        dialogText.GetComponent<SpriteText>().Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
-        dialogText.GetComponent<SpriteText>().spaceSize = 8;
-        dialogText.GetComponent<SpriteText>().Write("");
+        dialogText.Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
+        dialogText.spaceSize = 8;
+        dialogText.Write("");
 
         GameObject nameTextObj = new GameObject("Name");
         nameTextObj.transform.parent = transform;
@@ -52,9 +53,9 @@ public class DialogBox : MonoBehaviour
         nameTextObj.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
         nameTextObj.GetComponent<RectTransform>().localPosition = new Vector3(-290, 90, 0);
         nameText = nameTextObj.AddComponent<SpriteText>();
-        nameText.GetComponent<SpriteText>().Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
-        nameText.GetComponent<SpriteText>().spaceSize = 8;
-        nameText.GetComponent<SpriteText>().Write("");
+        nameText.Initialize(UIManager.Instance.graphemeDatabase.fonts[0], false);
+        nameText.spaceSize = 8;
+        nameText.Write("");
 
         gameObject.SetActive(false);
     }
@@ -86,6 +87,7 @@ public class DialogBox : MonoBehaviour
 
     public void ContinueDialog()
     {
+        if(promptWindow.alpha == 1) { return; }
         if(messageDone)
         {
             dialogText.Write("");
@@ -102,25 +104,43 @@ public class DialogBox : MonoBehaviour
                     for(int i = 0; i < currentDialog.currentNode.options.Count; i++)
                     {
                         GameObject button = new GameObject("Button: " + currentDialog.currentNode.options[i].promptName); button.transform.parent = promptButtonTransform; 
-                        button.AddComponent<UnityEngine.UI.Button>();
+                        button.AddComponent<Button>();
                         button.AddComponent<EventTrigger>();
                         button.AddComponent<RectTransform>();
                         button.GetComponent<RectTransform>().localScale = new Vector3(1,1,1);
 
-                        button.AddComponent<UnityEngine.UI.Image>();
-                        button.GetComponent<UnityEngine.UI.Image>().sprite = Resources.Load<Sprite>("Art/UI/MenuButton");
+                        button.AddComponent<Image>();
+                        button.GetComponent<Image>().sprite = Resources.Load<Sprite>("Art/UI/MenuButton");
 
-                        button.GetComponent<UnityEngine.UI.Button>().image = button.GetComponent<UnityEngine.UI.Image>();
+                        button.GetComponent<Button>().image = button.GetComponent<Image>();
 
                         EventTrigger.Entry entry = new EventTrigger.Entry();
                         entry.eventID = EventTriggerType.PointerEnter;
                         entry.callback.AddListener( (data) => AudioManager.PlaySFX("button_hover") );
 
                         Manuscript.Dialog.DialogNode node = currentDialog.currentNode.options[i].destinationDialog;
+                        Action action = currentDialog.currentNode.options[i].action;
 
-                        button.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => {currentDialog.currentNode = node; InitiateDialog(currentDialog);});
-                        button.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => promptWindow.alpha = 0);
-                        button.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => Destroy(button));
+                        button.GetComponent<Button>().onClick.AddListener(() => promptWindow.alpha = 0);
+                        if (node != null)
+                        {
+                            button.GetComponent<Button>().onClick.AddListener(() => { currentDialog.currentNode = node; InitiateDialog(currentDialog); });
+                        }
+                        else
+                        {
+                            button.GetComponent<Button>().onClick.AddListener(() =>
+                            {
+                                UIManager.ToggleHUD();
+                                gameObject.SetActive(false);
+                                Time.timeScale = 1;
+                            });
+                        }
+                        if(action != null)
+                        {
+                            button.GetComponent<Button>().onClick.AddListener(() => action());
+                        }
+                        
+                        button.GetComponent<Button>().onClick.AddListener(() => DestroyPromptButtons());
 
                         GameObject textObject = new GameObject("Text"); textObject.transform.parent = button.transform;
                         textObject.AddComponent<RectTransform>();
@@ -137,6 +157,17 @@ public class DialogBox : MonoBehaviour
                     dialogDone = true;
                 }
             }
+        }
+        else
+        {
+            breakPrint = true;
+        }
+    }
+    void DestroyPromptButtons()
+    {
+        for(int i = promptButtonTransform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(promptButtonTransform.GetChild(i).gameObject);
         }
     }
     public IEnumerator PrintMessage(string text)

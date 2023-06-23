@@ -9,6 +9,11 @@ public class Sittable : MonoBehaviour, IInteractable
     [SerializeField]Transform sittingPosition;
     public bool GetIsInteractable() => isInteractable;
 
+    public void OnCreate(LevelManager levelManager,FurnitureDatabase furnitureDatabase)
+    {
+        
+    }
+
     public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
         if(statusConditionModel.IfHasCondition(Condition.Sitting))

@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using TreeEditor;
 
 public partial class Room:MonoBehaviour
 {
@@ -34,6 +33,7 @@ public partial class Room:MonoBehaviour
             public ReadValue read;
             public TileType tileType;
             public bool error;
+            public string ID;
 
             public Vector2Int divisions; //This also only does something if the identity is a wall
                                          //If divide into multiple parts, like, three by three quads on one wall tile on outdoor walls for instance. Usually, on indoor walls, its completely flat
@@ -65,6 +65,11 @@ public partial class Room:MonoBehaviour
                 wall = false;
                 door = false;
                 sidesWhereThereIsWall = new List<TileSides>() { new TileSides(Vector2Int.up), new TileSides(Vector2Int.down), new TileSides(Vector2Int.left), new TileSides(Vector2Int.right) };
+                ID = "";
+            }
+            public void SetID(string ID)
+            {
+                this.ID = ID;
             }
             public void SetElevation(int newElevation)
             {
@@ -94,8 +99,8 @@ public partial class Room:MonoBehaviour
                 {
                     for (int x = 0; x < size.x; x++)
                     {
-                        Vector2Int divisions = new Vector2Int(1, 1); //1,1
-                        if (!indoors) { divisions = new Vector2Int(2, 2); }
+                        Vector2Int divisions = new Vector2Int(0, 0); //1,1
+                        if (!indoors) { divisions = new Vector2Int(0, 0); }
                         int elevation = 0;
                         positions.Add(new TileTemplate(elevation, divisions));
                         CreateRoomTemplate_Square(new Vector2(4, 4), x, y, 1); //?Basic thickness. Can't be thinner than 2
@@ -115,6 +120,15 @@ public partial class Room:MonoBehaviour
                 ParseHouseInstructions(houseInstructions);
             }
             //SmoothenOut();
+        }
+        public bool AddHouse(string houseInstructions)
+        {
+            if (houseInstructions != "")
+            {
+                ParseHouseInstructions(houseInstructions);
+            }
+            return true;
+            //Return false if it was impossible to place the house anywhere
         }
         void ParseOutsideInstructions(string instructions)
         {
@@ -199,8 +213,8 @@ public partial class Room:MonoBehaviour
         {
             int width = 0;
             int depth = 0;
-            int x = 0;
-            int y = 0;
+            int? x = null;
+            int? y = null;
             for (int i = 0; i < instructions.Length; i++)
             {
                 switch (instructions[i])
@@ -221,25 +235,49 @@ public partial class Room:MonoBehaviour
                         break;
                 }
             }
+            if(x == null || y == null)
+            {
+                if(!FindFreeHouseLocation(out x, out y, width, depth))
+                {
+                    return;
+                }
+            }
+            PlaceHouse(width, depth, x.Value, y.Value);
+        }
+        string GetNewHouseID()
+        {
+            return "House" + UnityEngine.Random.Range(0, int.MaxValue);
+        }
+        void PlaceHouse(int width, int depth, int x, int y)
+        {
             if (width == 0 || depth == 0) { return; }
             //Make box
+            string ID = GetNewHouseID();
             for (int i = x; i < width + x; i++)
             {
                 positions[i, y].tileType = TileTemplate.TileType.HOUSE_WALL;
                 positions[i, y].elevation = 4;
                 positions[i, y].wall = true;
+                positions[i, y].divisions = new Vector2Int(0, 0);
+                positions[i, y].SetID(ID);
                 positions[i, y + depth - 1].tileType = TileTemplate.TileType.HOUSE_WALL;
                 positions[i, y + depth - 1].elevation = 4;
                 positions[i, y + depth - 1].wall = true;
+                positions[i, y + depth - 1].divisions = new Vector2Int(0, 0);
+                positions[i, y + depth - 1].SetID(ID);
             }
             for (int i = y; i < depth + y; i++)
             {
                 positions[x, i].tileType = TileTemplate.TileType.HOUSE_WALL;
                 positions[x, i].elevation = 4;
                 positions[x, i].wall = true;
+                positions[x, i].divisions = new Vector2Int(0, 0);
+                positions[x, i].SetID(ID);
                 positions[x + width - 1, i].tileType = TileTemplate.TileType.HOUSE_WALL;
                 positions[x + width - 1, i].elevation = 4;
                 positions[x + width - 1, i].wall = true;
+                positions[x + width - 1, i].divisions = new Vector2Int(0, 0);
+                positions[x + width - 1, i].SetID(ID);
             }
             //Fill it in
             for (int i = x + 1; i < width + x - 1; i++)
@@ -248,9 +286,50 @@ public partial class Room:MonoBehaviour
                 {
                     positions[i, j].elevation = 0;
                     positions[i, j].tileType = TileTemplate.TileType.HOUSE_FLOOR;
+                    positions[i, j].SetID(ID);
                 }
             }
             highestElevation = Mathf.Max(highestElevation, 4);
+        }
+        bool FindFreeHouseLocation(out int? x, out int? y, int width, int depth)
+        {
+            List<Vector2Int> possiblePositions = new List<Vector2Int>();
+            for (int i = 0; i < size.y; i++)
+            {
+                for (int j = 0; j < size.x; j++)
+                {
+                    possiblePositions.Add(new Vector2Int(j, i));
+                }
+            }
+            bool fits = false;
+            while(!fits)
+            {
+                fits = true;
+                Vector2Int checkingPosition = possiblePositions.RemoveRandom();
+                int checkingElevation = positions[checkingPosition].elevation;
+                for (int k = checkingPosition.y - 1; k < depth + 1; k++)
+                {
+                    for (int l = checkingPosition.x - 1; l < width + 1; l++)
+                    {
+                        if (positions[checkingPosition.x + l, checkingPosition.y + k].elevation != checkingElevation || !positions.IsWithinBounds(new Vector2Int(checkingPosition.x + l, -(checkingPosition.y + k))))
+                        {
+                            fits = false;
+                            break;
+                        }
+                    }
+                    if (fits == false)
+                    { break; }
+                }
+                if (fits == true)
+                {
+                    x = checkingPosition.x;
+                    y = checkingPosition.y;
+                    return true;
+                }
+            }
+            x = null;
+            y = null;
+            return false;
         }
         int ParseNumber(string instructions, ref int index)
         {

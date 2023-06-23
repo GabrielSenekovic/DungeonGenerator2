@@ -59,10 +59,13 @@ public class ProjectileController : MovementModel
     }
     new private void FixedUpdate() 
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
-        for(int i = 0; i < hits.Length; i++)
+        if(explode)
         {
-            OnAttackStay(hits[i].gameObject);
+            Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                OnAttackStay(hits[i].gameObject);
+            }
         }
 
         lifeTimer++;

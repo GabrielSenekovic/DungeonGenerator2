@@ -37,4 +37,8 @@ public class Unlockable : MonoBehaviour, IInteractable
     {
         return;
     }
+
+    public void OnCreate(LevelManager levelManager, FurnitureDatabase furnitureDatabase)
+    {
+    }
 }

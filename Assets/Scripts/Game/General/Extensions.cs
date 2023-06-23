@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System;
+using Random = UnityEngine.Random;
 public static class Extensions
 {
 
@@ -10,9 +11,38 @@ public static class Extensions
     {
         return list[list.GetRandomIndex()];
     }
+    public static T RemoveRandom<T>(this IList<T> list)
+    {
+        int index = list.GetRandomIndex();
+        T value = list[list.GetRandomIndex()];
+        list.RemoveAt(index);
+        return value;
+    }
     public static int GetRandomIndex<T>(this IList<T> list)
     {
         return Random.Range(0, list.Count);
+    }
+    public static void For<T>(this IList<T> list, Action<int> Execute, Action<int> AtEnd)
+    {
+        int i = 0;
+        for(i = 0; i < list.Count; i++)
+        {
+            Execute(i);
+        }
+        AtEnd(i-1); //Because i will overshoot
+    }
+    public static void For<T>(this IList<T> list, Action<int> Execute, Action AtStart, Action<int> AtEnd)
+    {
+        AtStart();
+        list.For(Execute, AtEnd);
+    }
+    public static void ForStart<T>(this IList<T> list, Action<int> Execute, Action AtStart)
+    {
+        AtStart();
+        for (int i = 0; i < list.Count; i++)
+        {
+            Execute(i);
+        }
     }
     //!Mesh
     public static void Init(this Mesh mesh, Vector3[] vertices, int[] indices, Vector2[] UVs)

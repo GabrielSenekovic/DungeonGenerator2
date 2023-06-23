@@ -34,6 +34,7 @@ public class QuestSelect : MonoBehaviour
     [SerializeField]Button buttonPrefab;
     [SerializeField]Transform buttonParent;
     [SerializeField]SpriteText detailText;
+    [SerializeField] MapMenu mapMenu;
 
     [SerializeField]GraphemeDatabase graphemeDatabase; //Remove later
 
@@ -83,6 +84,7 @@ public class QuestSelect : MonoBehaviour
         SceneManager.LoadSceneAsync("Level");
         OnClose();
         Time.timeScale = 1;
+        mapMenu.AddMap(new MapContainer(Sprite.Create(levels[index].map, new Rect(0, 0, levels[index].map.width, levels[index].map.height), new Vector2(0.5f, 0.5f), 16)));
     }
 
     private void Update() 
@@ -135,6 +137,8 @@ public class QuestSelect : MonoBehaviour
     }
     public void RevealDetails(int index_in)
     {
+        detailText.text = "";
+        detailText.Write();
         detailText.PlaceSprite(Sprite.Create(levels[index_in].map, new Rect(0, 0, levels[index_in].map.width, levels[index_in].map.height), new Vector2(0.5f, 0.5f), 16));
         /*detailText.text = "Information about the quest: \n";
         detailText.text += quests[index_in].GetQuestDescription();

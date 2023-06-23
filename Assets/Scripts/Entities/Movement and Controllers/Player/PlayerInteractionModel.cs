@@ -5,6 +5,7 @@ public class PlayerInteractionModel : MonoBehaviour
 {
     Collider2D collider;
     [SerializeField]IInteractable interactable;
+    Carryable carryable;
     StatusConditionModel statusConditionModel;
 
     private void Start()
@@ -19,10 +20,24 @@ public class PlayerInteractionModel : MonoBehaviour
 
     public void OnInteract()
     {
-        if (interactable != null)
+        if (interactable != null && carryable == null)
         {
             interactable.OnInteract(this, statusConditionModel);
         }
+        else if(carryable != null)
+        {
+            carryable.OnInteract(this, statusConditionModel);
+            carryable = null;
+        }
+    }
+    public void Release()
+    {
+        interactable.OnLeaveInteractable();
+        interactable = null;
+    }
+    public void Carry(Carryable carryable)
+    {
+        this.carryable = carryable;
     }
 
     public void OnCollisionEnter(Collision collision)
@@ -38,8 +53,7 @@ public class PlayerInteractionModel : MonoBehaviour
         {
             if (interactable != null)
             {
-                interactable.OnLeaveInteractable();
-                interactable = null;
+                Release();
             }
         }
     }

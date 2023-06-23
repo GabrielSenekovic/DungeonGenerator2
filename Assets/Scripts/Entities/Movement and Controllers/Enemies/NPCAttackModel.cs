@@ -11,7 +11,10 @@ public class NPCAttackModel : AttackModel
 
     private void Start() 
     {
-        currentAttack = attacks[0];
+        if(attacks.Length > 0)
+        {
+            currentAttack = attacks[0];
+        }
     }
 
     public void Attack(Vector2 direction)

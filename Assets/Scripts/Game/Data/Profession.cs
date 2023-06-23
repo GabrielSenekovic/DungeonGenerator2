@@ -23,11 +23,16 @@ public enum ProfessionType
 public class Profession
 {
     Stack<Activity> dailyMission = new Stack<Activity>();
-    ProfessionType professionType;
+    [SerializeField] ProfessionType professionType;
+    public ProfessionType GetProfession() => professionType;
     public Profession(ProfessionType professionType)
     {
         this.professionType = professionType;
         CreateDailyMission();
+    }
+    public void SwitchProfession(ProfessionType newProfession)
+    {
+        professionType = newProfession;
     }
     void CreateDailyMission()
     {

@@ -43,10 +43,10 @@ public class UIManager : MonoBehaviour
     public CommandBox commandBox;
     public GameObject saveLocationNameBox;
     public MiniMap miniMap;
-    public DialogBox dialogBox;
 
     public SavedLocations savedLocations;
     [SerializeField] Text FPS;
+    public MapMenu mapMenu;
 
     [System.Serializable]public class UIColorManager
     {
@@ -91,6 +91,7 @@ public class UIManager : MonoBehaviour
     public void OpenCommandBox()
     {
         commandBox.gameObject.SetActive(true);
+        commandBox.OpenBox();
         Time.timeScale = 0;
     }
     public bool CloseCommandBox()
@@ -160,20 +161,6 @@ public class UIManager : MonoBehaviour
         instance.volume.profile.TryGet<DepthOfField>(out depthOfField);
         depthOfField.focusDistance.value = instance.HUD.activeSelf ? 1.8f : 4.5f;
         depthOfField.focalLength.value = instance.HUD.activeSelf ? 50 : 300;
-    }
-
-    static public void StartDialog(Manuscript.Dialog dialog)
-    {
-        ToggleHUD();
-        instance.dialogBox.gameObject.SetActive(true);
-        instance.dialogBox.InitiateDialog(dialog);
-        Time.timeScale = 0;
-    }
-    static public void EndDialog()
-    {
-        ToggleHUD();
-        instance.dialogBox.gameObject.SetActive(false);
-        Time.timeScale = 1;
     }
 
     public void AddMenu(CanvasGroup menu)

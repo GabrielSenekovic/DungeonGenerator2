@@ -18,8 +18,6 @@ public class ObjectRasterizer : MonoBehaviour
         go = true;
         furnitureDatabase = Resources.Load<FurnitureDatabase>("FurnitureDatabase");
         TextAsset reader = Resources.Load<TextAsset>("FurnitureDatabase");
-        //Load the info how to make the grass and tulips from a file
-        //Read the text from directly from the test.txt file
         furnitureDatabase.Initialise(reader.text);
     }
     private void Update()

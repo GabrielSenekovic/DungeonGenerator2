@@ -13,5 +13,5 @@ Type: Dining
 Name: Streetlight
 Type: Lighting
 
-Name: Table
+Name: TableX2Y1
 Type: Surface

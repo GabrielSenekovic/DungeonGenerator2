@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class EnemyHPBar : MonoBehaviour
 {
-  public HealthModel HP = null;
-    [SerializeField] SpriteRenderer HealthBar = null;
+    HealthModel HP;
+    [SerializeField] SpriteRenderer HealthBar;
     public float currentFill;
     public float BarChangeSpeed;
 
     public float buffer;
+
+    void Awake()
+    {
+        HP = GetComponent<HealthModel>();
+    }
 
     private void FixedUpdate()
     {

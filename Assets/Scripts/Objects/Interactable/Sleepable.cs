@@ -8,6 +8,11 @@ public class Sleepable : MonoBehaviour, IInteractable
     bool isInteractedWith = false;
     public bool GetIsInteractable() => isInteractable;
 
+    public void OnCreate(LevelManager levelManager, FurnitureDatabase furnitureDatabase)
+    {
+        
+    }
+
     public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
     {
         DunGenes.Instance.GetDayNightCycle().Sleep();

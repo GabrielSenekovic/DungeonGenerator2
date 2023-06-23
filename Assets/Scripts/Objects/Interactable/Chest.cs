@@ -37,4 +37,8 @@ public class Chest : MonoBehaviour, IInteractable
     }
 
     public bool GetIsInteractable() => isInteractable;
+
+    public void OnCreate(LevelManager levelManager, FurnitureDatabase furnitureDatabase)
+    {
+    }
 }

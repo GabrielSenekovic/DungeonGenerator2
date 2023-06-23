@@ -13,9 +13,82 @@ MonoBehaviour:
   m_Name: FurnitureDatabase
   m_EditorClassIdentifier: 
   database:
+  - name: Bed
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
+  - name: Bench
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
   - name: Chair
     type: Furniture
-    prefab: {fileID: 919132149155446097, guid: 7ba162262cecedf4e836c312fa1eded2, type: 3}
+    prefab: {fileID: 3963332260788419690, guid: 828b20c2f90e14f48bdada0ce24bf05b,
+      type: 3}
+    mesh: {fileID: 0}
     inventorySprite: {fileID: 0}
-    inventoryTexture: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
+  - name: Plate
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
+  - name: Streetlight
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 21300000, guid: 18814a7bc0df6fe41b5a786bd0e94a6d, type: 3}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
+  - name: TableX2Y1
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 90, z: -90}
+  - name: Vase 0
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 0, z: 0}
+  - name: Vase 1
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 0, z: 0}
+  - name: Vase 2
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 0, z: 0}
+  - name: Vase 3
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 0, z: 0}
+  - name: Vase 4
+    type: Furniture
+    prefab: {fileID: 0}
+    mesh: {fileID: 0}
+    inventorySprite: {fileID: 0}
+    dimensions: {x: 2, y: 2}
+    rotation: {x: 0, y: 0, z: 0}
   baseMaterial: {fileID: 2100000, guid: 45641a2fdfea009428a0dad42b75aa4a, type: 2}

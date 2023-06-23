@@ -13,12 +13,6 @@ using Color = UnityEngine.Color;
 
 public partial class LevelGenerator : MonoBehaviour
 {
-    [System.Serializable]public class debugroomposition
-    {
-        public Vector2Int pos;
-        public string name;
-    }
-    public List<debugroomposition> roomPositions = new List<debugroomposition>(); //! only for debugging
     List<Tuple<Vector2Int, Room>> surroundingPositions = new List<Tuple<Vector2Int, Room>>();
     [SerializeField]protected Room RoomPrefab;
 
@@ -32,9 +26,6 @@ public partial class LevelGenerator : MonoBehaviour
 
     public bool levelGenerated = false;
 
-    public IInteractable endOfLevel; //Debugging object for Recovery Quest
-    [System.NonSerialized]public IInteractable spawnedEndOfLevel; // spawned version
-
     public Texture2D map;
 
     public int leftestPoint = 0;
@@ -43,36 +34,11 @@ public partial class LevelGenerator : MonoBehaviour
     public int southestPoint = 0;
     public Vector2Int sizeOfMap = Vector2Int.zero;
 
-    public void GenerateFromCommand(int value)
-    {
-        string outsideInstructions = "";
-        string houseInstructions = "";
-        switch (value)
-        {
-            case 0: break;
-            case 1: break;
-            case 2: outsideInstructions = "S[4,2], R[100]"; break;//Test inner corner
-            case 3: outsideInstructions = "S[2,1], C[4,1], R[100]"; break; //Test both inner and outer corner, without doors
-            case 4: outsideInstructions = "S[4,1], S[2,2]"; break; //Test multiple altitudes, with 2 steps apart
-            case 5: outsideInstructions = "S[3,2], S[2,4]"; break; //Test multiple altitudes, with 1 step apart
-            case 6: outsideInstructions = "S[4,1], C[4,2], S[1,3]"; break; //Test multiple altitudes, with overlap
-            case 7: outsideInstructions = "S[2,1], C[2,2], S[1,3]"; break; //Test multiple altitudes, with overlap, with 1 step apart
-            case 8: outsideInstructions = "W[8,1]"; break; //Test circle
-            case 9: outsideInstructions = "S[1,4], W[8,1], W[9,2], W[10,3], W[11,4]"; break; //Test multiple altitudes, with circles
-            case 10: outsideInstructions = "P[2,4], R[100]";  break; //Test 2x2 pillars
-            case 11: outsideInstructions = "P[1,4], R[100]";  break; //Test 1x1 pillars
-            case 12: break; //Test enclosed slope square with inner corner slope
-            case 13: break; //Test outer corner slope
-            case 14: break; //Test steep incline. Should be unwalkable
-            case 15: break; //Test unsteep incline. Should be walkable
-            case 16: break; //Test multiple inclines (One slope more steep than the other, next to eachother)
-            case 17: houseInstructions = "P[2,2], D[6,6]"; break; //Test to build a house by itself
-            case 18: outsideInstructions = "S[4,2]"; houseInstructions = "P[2,2], D[6,6]"; break; //Test to build a house in an environment
-            default: return;
-        }
-        OnGenerateOneRoom(true, outsideInstructions, houseInstructions);
-    }
-    public void OnGenerateOneRoom(bool withEntrances, string outsideInstructions = "", string houseInstructions = "")
+    [SerializeField] FurnitureDatabase furnitureDatabase;
+
+    RoomTemplate fullTemplate; //Saved in case of build house. Only to be used now when we dont generate HQ from a seed yet.
+
+    public void OnGenerateOneRoom(bool withEntrances, SettlementData settlementData, string outsideInstructions = "", string houseInstructions = "", Vector2Int? size = null)
     {
         LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
         Room currentRoom = currentLevel.sections[0].rooms[0];
@@ -81,7 +47,7 @@ public partial class LevelGenerator : MonoBehaviour
         currentLevel.sectionData.Add(new SectionData());
         currentLevel.sectionData[0].rooms.Add(new RoomData());
         RoomData currentRoomData = currentLevel.sectionData[0].rooms[0];
-        currentRoomData.Initialise(new Vector2Int(20, 20), 0, ref templates, outsideInstructions, houseInstructions);
+        currentRoomData.Initialise(size != null? size.Value : new Vector2Int(20,20), 0, ref templates, outsideInstructions, houseInstructions);
         if(withEntrances)
         {
             currentRoomData.GetDirections().ActivateAllEntrances();
@@ -90,16 +56,39 @@ public partial class LevelGenerator : MonoBehaviour
         templates[0].IdentifyWalls();
         RoomTemplate template = templates[0];
         RoomTemplateReader reader = new RoomTemplateReader(template, currentRoom.transform);
-        reader.CreateLevel(ref template, Resources.Load<Material>("Materials/Wall"), Resources.Load<Material>("Materials/Ground"),
+        reader.CreateLevel(ref template, Resources.Load<Material>("Materials/Ground"), materialDatabase, settlementData,
             currentRoomData.GetDirections());
-        currentRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"));
+        currentRoom.CreateRoom(ref template, Resources.Load<Material>("Materials/Ground"), furnitureDatabase);
         currentRoom.roomData = currentRoomData;
-        currentRoomData.CreateMaps(ref template);
+        currentRoomData.CreateMaps(template);
+
+        CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x, currentRoom.transform.position.x + Mathf.Abs(currentRoom.roomData.size.x) - 20),
+                new Vector2(-currentRoom.transform.position.y, -(currentRoom.transform.position.y - Mathf.Abs(currentRoom.roomData.size.y) + 20)));
+
+        fullTemplate = template;
+    }
+    public void GenerateHouse(string instructions, SettlementData settlementData)
+    {
+        if(fullTemplate == null) { return; }
+        LevelData currentLevel = DunGenes.Instance.gameData.CurrentLevel;
+        Room currentRoom = currentLevel.sections[0].rooms[0];
+        currentRoom.OnReset();
+        List<RoomTemplate> templates = new List<RoomTemplate>();
+        RoomData currentRoomData = currentLevel.sectionData[0].rooms[0];
+
+        fullTemplate.AddHouse(instructions);
+        fullTemplate.IdentifyWalls();
+        RoomTemplateReader reader = new RoomTemplateReader(fullTemplate, currentRoom.transform);
+        reader.CreateLevel(ref fullTemplate, Resources.Load<Material>("Materials/Ground"), materialDatabase, settlementData,
+            currentRoomData.GetDirections());
+        currentRoom.CreateRoom(ref fullTemplate, Resources.Load<Material>("Materials/Ground"), furnitureDatabase);
+        currentRoom.roomData = currentRoomData;
+        currentRoomData.CreateMaps(fullTemplate);
     }
 
-    public void GenerateStartArea()
+    public void GenerateStartArea(SettlementData settlementData)
     {
-        OnGenerateOneRoom(false);
+        OnGenerateOneRoom(false, settlementData);
     }
     public void GenerateTemplates(LevelData data, Vector2Int RoomSize, Vector2Int amountOfRooms, Vector2Int amountOfSections)
     {
@@ -204,7 +193,7 @@ public partial class LevelGenerator : MonoBehaviour
                 DebugLog.AddToMessage("Room", j.ToString());
                 DebugLog.AddToMessage("Section", i.ToString());
                 
-                Vector2Int currentRoomSize = new Vector2Int(5,5);
+                Vector2Int currentRoomSize = new Vector2Int(Random.Range(1, 5), Random.Range(1, 5));
                 
                 Tuple<RoomData, List<Room.Entrances.Entrance>> originRoom = new Tuple<RoomData, List<Room.Entrances.Entrance>>(new RoomData(), new List<Room.Entrances.Entrance>(){});
 
@@ -431,12 +420,6 @@ public partial class LevelGenerator : MonoBehaviour
                 roomSize = potentialSizes[i];
             }
         }
-        for(int i = 0; i < choice.Count; i++)
-        {
-            //Debug.Log("Adding: " + choice[i].position);
-        }
-       // roomGrid.AddRange(choice);
-       // Debug.Log("Added " + choice.Count + " amount of rooms");
         DebugLog.AddToMessage("New Size", roomSize.ToString());
     }
     void OnAttemptExpansion(RoomData room, ref int currentSide, ref int otherSide, int direction, Vector2Int origin, Vector2Int coordinate, ref List<Vector2Int> potentialSizes, ref List<List<LevelData.RoomGridEntry>> potentialExpansions, LevelData data)
@@ -743,7 +726,7 @@ public partial class LevelGenerator : MonoBehaviour
     }
     private void OnRenderObject() 
     {
-        if(!renderSections && DunGenes.Instance != null)
+       /* if(!renderSections && DunGenes.Instance != null)
         {
             for(int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sectionData.Count; i++)
             {
@@ -755,7 +738,7 @@ public partial class LevelGenerator : MonoBehaviour
                     GLFunctions.DrawSquareFromCorner(DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j].originalPosition.ToV3() - new Vector3(10, 10, 0), DunGenes.Instance.gameData.CurrentLevel.sectionData[i].rooms[j].size, transform, sectionColor);
                 }
             }
-        }
+        }*/
     }
     private void OnDrawGizmos() 
     {

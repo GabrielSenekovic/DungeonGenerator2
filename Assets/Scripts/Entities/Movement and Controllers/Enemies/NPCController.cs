@@ -21,7 +21,7 @@ public class NPCController : MonoBehaviour
     NPCAttackModel attackModel;
     SphereCollider visionCollider;
     Transform target;
-    CharacterData characterData;
+    [SerializeField] CharacterData characterData;
 
     public float gizmoWidth;
 
@@ -131,6 +131,11 @@ public class NPCController : MonoBehaviour
             movementState = NPCMovementState.WANDERING;
             target = null;
         }
+    }
+
+    public CharacterData GetData()
+    {
+        return characterData;
     }
 
     private void OnDrawGizmos() 

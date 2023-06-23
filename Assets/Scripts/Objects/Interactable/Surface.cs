@@ -2,17 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Surface : MonoBehaviour
+public class Surface : MonoBehaviour, IInteractable
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] List<Transform> chairPlacements = new List<Transform>();
+    public bool GetIsInteractable()
     {
-        
+        return true;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnCreate(LevelManager levelManager, FurnitureDatabase furnitureDatabase)
     {
-        
+        //Create chairs?
+        for(int i = 0; i < chairPlacements.Count; i++)
+        {
+            levelManager.currentRoom.Furnish("Chair", levelManager, furnitureDatabase, chairPlacements[i]);
+        }
+    }
+
+    public void OnInteract(PlayerInteractionModel interactionModel, StatusConditionModel statusConditionModel)
+    {
+        //Pick things off surface, or interact with things on surface
+    }
+
+    public void OnLeaveInteractable()
+    {
     }
 }

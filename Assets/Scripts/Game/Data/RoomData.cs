@@ -79,7 +79,7 @@ public class RoomData
         }
         return openEntrances;
     }
-    public void CreateMaps(ref RoomTemplate template)
+    public void CreateMaps(RoomTemplate template)
     {
         mapTexture = template.CreateMap();
         SaveTemplateTexture(template);

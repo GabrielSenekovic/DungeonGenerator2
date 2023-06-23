@@ -59,13 +59,14 @@ public partial class MeshMaker: MonoBehaviour
         FIRST = 1 << 1, //when the previous wall is rounded at the end
         INNER = 1 << 2 //We only need one, not both inner and outer
     }
-    public static void CreateWall(GameObject wall, Dictionary<TileType, Material> wallMaterials, List<WallData> instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, float roundedness)
+    public static void CreateWall(GameObject wall, MaterialDatabase materialDatabase, WallInstructions instructions, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, float roundedness)
     {
         if (instructions.Count == 0)
         {
             DebugLog.WarningMessage("There were no instructions sent!");
             return;
         }
+        List<WallData> data = instructions.Data;
 
         Vector2Int currentGridPosition = Vector2Int.zero;
         List<Vector3> allVertices = new List<Vector3>();
@@ -75,23 +76,23 @@ public partial class MeshMaker: MonoBehaviour
 
         for (int wallIndex = 0; wallIndex < instructions.Count; wallIndex++)
         {
-            WallData currentWall = instructions[wallIndex];
+            WallData currentWall = data[wallIndex];
             if (currentWall.type == TileType.HOUSE_WALL)
             {
-                OnCreateHouseWall(instructions, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
+                OnCreateHouseWall(data, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
             }
             else
             {
-                OnCreateOutdoorsWall(instructions, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
+                OnCreateOutdoorsWall(data, ref currentGridPosition, wrap, tiles, wallIndex, ref indexJump, roundedness, ref allVertices, ref allIndices, ref allUVs);
             }
-            if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != instructions[wallIndex-1].elevation))
+            if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != data[wallIndex-1].elevation))
             {
-                wallMaterials.TryGetValue(instructions[wallIndex].type, out Material mat);
-                CreateWall_Finish(wall, instructions[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
+                Material mat = materialDatabase.entries.First(m => m.name == instructions.MaterialName).material;
+                CreateWall_Finish(wall, data[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
             }
         }
-        wallMaterials.TryGetValue(instructions[instructions.Count - 1].type, out Material mat2);
-        CreateWall_Finish(wall, instructions[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
+        Material mat2 = materialDatabase.entries.First(m => m.name == instructions.MaterialName).material;
+        CreateWall_Finish(wall, data[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
     }
     public static void OnCreateOutdoorsWall(List<WallData> instructions, ref Vector2Int currentGridPosition, bool wrap, Grid<Room.RoomTemplate.TileTemplate> tiles, int wallIndex, ref int indexJump, float roundedness, ref List<Vector3> allVertices, ref List<int> allIndices, ref List<Vector2> allUVs)
     {
@@ -266,17 +267,38 @@ public partial class MeshMaker: MonoBehaviour
                 }
             }
             //Add all vertices on length. We assume the wall is only one tile high
-
             for (int y = 0; y <= currentWall.divisions.y + 1; y++) //if divisions is 0, we want it to run twice
             {
                 int limit = (currentWall.divisions.x + 1) * length;
                 int limitMinusLastWall = limit - (currentWall.divisions.x + 1);
-                for (int x = 0; x <= limit; x++) //If division is 0, we want to run this at normal length
-                {
-                    float x_increment = 1 / ((float)currentWall.divisions.x + 1);
-                    float y_increment = 1 / ((float)currentWall.divisions.y + 1);
+                float y_increment = 1 / ((float)currentWall.divisions.y + 1);
+                float x_increment = 0;
+                int x;
+                Vector3 newVertex;
 
-                    Vector3 newVertex = new Vector3(
+                //First, add the start of the outer/inner wall
+                if (i == 0)
+                {
+                    newVertex = new Vector3(
+                            wallPosition.x - offset[i],
+                            wallPosition.y - offset[i],
+                            wallPosition.z - y * y_increment);
+                    newVertices.Add(newVertex);
+                }
+                else
+                {
+                    newVertex = new Vector3(
+                            wallPosition.x - 1 - offset[i],
+                            wallPosition.y - offset[i],
+                            wallPosition.z - y * y_increment);
+                    newVertices.Add(newVertex);
+                }
+
+                for (x = 0; x <= limit; x++) //If division is 0, we want to run this at normal length
+                {
+                    x_increment = 1 / ((float)currentWall.divisions.x + 1);
+                    
+                    newVertex = new Vector3(
                         wallPosition.x + x * x_increment,
                         wallPosition.y - offset[i],
                         wallPosition.z - y * y_increment);
@@ -303,20 +325,38 @@ public partial class MeshMaker: MonoBehaviour
 
                     newVertices.Add(newVertex);
                 }
+                //First, add the end of the outer/inner wall
+                if(i == 0)
+                {
+                    newVertex = new Vector3(
+                        wallPosition.x + (x - 1) * x_increment + offset[i],
+                        wallPosition.y - offset[i],
+                        wallPosition.z - y * y_increment);
+                    newVertices.Add(newVertex);
+                }
+                else
+                {
+                    newVertex = new Vector3(
+                        wallPosition.x + x * x_increment + offset[i],
+                        wallPosition.y - offset[i],
+                        wallPosition.z - y * y_increment);
+                    newVertices.Add(newVertex);
+                }
             }
             CreateWall_Rotate(newVertices, instructions[wallIndex]);
 
+            int lengthWithAddedStartAndEnd = length + 2;
             int[] indexValues;
             if (i == 0)
             {
                 indexValues = new int[]
                 {
-                2 + (currentWall.divisions.x + 1) * length,
+                2 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd,
                 1,
                 0,
 
-                1 + (currentWall.divisions.x + 1) * length,
-                2 + (currentWall.divisions.x + 1) * length,
+                1 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd,
+                2 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd,
                 0
                 };
             }
@@ -324,21 +364,21 @@ public partial class MeshMaker: MonoBehaviour
             {
                 indexValues = new int[]
                 {
-                2 + (currentWall.divisions.x + 1) * length,
+                2 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd,
                 0,
                 1,
 
-                1 + (currentWall.divisions.x + 1) * length,
+                1 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd,
                 0,
-                2 + (currentWall.divisions.x + 1) * length
+                2 + (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd
                 };
             }
             //Add all indices
             for (int y = 0; y < currentWall.divisions.y + 1; y++) //If divisions is 0, then we want to go through once
             {
-                for (int x = 0; x < (currentWall.divisions.x + 1) * length; x++) //If divisions is 0, then we want to go through all except the end
+                for (int x = 0; x < (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd; x++) //If divisions is 0, then we want to go through all except the end
                 {
-                    int j = x + ((currentWall.divisions.x + 1) * length + 1) * y; //The width here is the vertex to start from
+                    int j = x + ((currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd + 1) * y; //The width here is the vertex to start from
                     foreach (var indexValue in indexValues)
                     {
                         newIndices.Add(indexJump + indexValue + j);
@@ -348,7 +388,7 @@ public partial class MeshMaker: MonoBehaviour
             //Add all UVs
             for (int y = 0; y <= currentWall.divisions.y + 1; y++)
             {
-                for (int x = 0; x <= (currentWall.divisions.x + 1) * length; x++)
+                for (int x = 0; x <= (currentWall.divisions.x + 1) * lengthWithAddedStartAndEnd; x++)
                 {
                     float xIncrement = 1 / ((float)currentWall.divisions.x + 1);
                     float yIncrement = 1 / ((float)currentWall.divisions.y + 1);
@@ -363,7 +403,7 @@ public partial class MeshMaker: MonoBehaviour
     }
     static void CreateWall_Finish(GameObject wall, WallData currentWall, ref List<Vector3> allVertices,ref List<int> allIndices, ref List<Vector2> allUVs, Material wallMaterial)
     {
-        GameObject wallObject = new GameObject("Wall Object ");
+        GameObject wallObject = new GameObject("Wall Object");
         wallObject.transform.parent = wall.transform;
         wallObject.transform.position -= new Vector3(0, 0, currentWall.elevation);
 
