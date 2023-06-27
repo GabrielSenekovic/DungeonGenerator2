@@ -10,7 +10,8 @@ public class DealDamage : MonoBehaviour
         BLUDGEONING = 1,
         SLASHING = 2,
         PIERCING = 3,
-        MAGIC = 4
+        MAGIC = 4,
+        CLEAVING = 5
     }
     [System.Serializable]public struct Damage
     {
@@ -24,7 +25,6 @@ public class DealDamage : MonoBehaviour
     {
         if(other.GetComponent<HealthModel>())
         {
-            Debug.Log(gameObject.name + " hit: " + other.gameObject.name);
             Hit(other.gameObject);
         }
         OnImpact();
@@ -33,7 +33,6 @@ public class DealDamage : MonoBehaviour
     {
         if(other.gameObject.GetComponent<HealthModel>())
         {
-            Debug.Log(gameObject.name + " hit: " + other.gameObject.name);
             Hit(other.gameObject);
         }
         OnImpact();

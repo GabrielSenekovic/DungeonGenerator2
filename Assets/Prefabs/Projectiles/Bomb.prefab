@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 2152144852259274542}
   - component: {fileID: 3921600846153947477}
   - component: {fileID: 1730272225649778168}
+  - component: {fileID: 7415522652879517504}
+  - component: {fileID: 6767047716263311515}
   m_Layer: 0
   m_Name: Bomb
   m_TagString: Projectile (Debug)
@@ -46,20 +48,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
-  blastRadius: 4
-  explosionPower: 20
+  moveTimer: 0
   currentTarget: {fileID: 0}
-  accelerationMode: 0
-  homingMode: 0
-  targets: []
-  gravitySpeed: 0
   placedProjectile: 1
   collideWithCaster: 1
   visuals: []
   lifeLength: 200
+  ID: 0
 --- !u!54 &3921600846153947477
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -89,6 +86,37 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.3
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7415522652879517504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470773790073338347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe651d467c4f750478d43b50a15bb7ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagesOverTime: []
+  baseSpeed: 0
+  moveTimerMax: 0
+  canInteract: 0
+  physiology: 0
+--- !u!114 &6767047716263311515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470773790073338347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dffa8fb5c8f6a742841b81c21938cf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blastRadius: 5
+  explosionPower: 20
 --- !u!1 &5550673950167377779
 GameObject:
   m_ObjectHideFlags: 0

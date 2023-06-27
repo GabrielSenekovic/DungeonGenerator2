@@ -32,7 +32,7 @@ public class ProjectileAttackIdentifier : AttackIdentifier
         waveIndex = 0;
     }
 
-    public override void OnFixedUpdate(Vector3 direction, Vector3 source, Collider collider)
+    public override void OnFixedUpdate(Vector3 direction, Vector3 source, Collider castersCollider)
     {
         if(UpdateCasting()) //If this attack is not done yet
         {
@@ -61,11 +61,11 @@ public class ProjectileAttackIdentifier : AttackIdentifier
 
                     if (w.orbitSpeed == 0)
                     {
-                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), collider);
+                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), castersCollider);
                     }
                     else
                     {
-                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), w.position, w.orbitSpeed, collider);
+                        OnAttack((((Vector3)w.globalDirection + direction).normalized + (Vector3)spread).normalized, source + new Vector3(x, y, 0), w.position, w.orbitSpeed, castersCollider);
                     }
                 }
                 waveIndex++; waveIndex %= waveData.Count;

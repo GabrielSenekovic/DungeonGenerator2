@@ -7,15 +7,20 @@ using UnityEngine.VFX;
 
 public enum Condition
 {
+    NONE = 0,
     Burning,
     Chilled,
     Frozen,
     Jolted,
     Rigid,
     Wet,
+    Bleeding,
+    Confusion,
+    Immobilized,
 
     Sitting = 5000,
-    Cutscene = 5001
+    Cutscene = 5001,
+    InCombat = 5002
 }
 public class StatusConditionModel : MonoBehaviour
 {
@@ -161,6 +166,13 @@ public class StatusConditionModel : MonoBehaviour
             case Condition.Cutscene:
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
             break;
+            case Condition.InCombat:
+                statistics.canInteract = false;
+            break;
+            case Condition.Immobilized:
+                statistics.canInteract = false;
+                statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
+                break;
         }
     }
     public void RemoveCondition(Condition condition)

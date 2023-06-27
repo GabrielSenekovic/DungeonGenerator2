@@ -75,6 +75,12 @@ public partial class Room: MonoBehaviour
         rock.AddComponent<SphereCollider>();
         rock.transform.localPosition = FindRandomPlacementPositionOfSize(rock, new Vector2Int(1,1));
         rock.AddComponent<Carryable>();
+        HealthModel health = rock.AddComponent<HealthModel>();
+        health.maxHealth = 1;
+        health.currentHealth = 1;
+        EntityStatistics entityStatistics = rock.AddComponent<EntityStatistics>();
+        entityStatistics.physiology = EntityStatistics.Physiology.ROCKEN;
+        entityStatistics.SetPhysiology();
 
         //GameObject chest = new GameObject("Chest");
         //MeshMaker.CreateChest(chest, 0);

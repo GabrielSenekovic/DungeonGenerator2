@@ -1,22 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 using UnityEngine.UI;
 
+[System.Serializable]
+public struct SelectionData
+{
+    public int selectedSkill;
+    public bool fromList;
+    public SelectionData(int selectedSkill_in, bool fromList_in)
+    {
+        selectedSkill = selectedSkill_in;
+        fromList = fromList_in;
+    }
+}
 public class SkillManager : MonoBehaviour
 {
-    [System.Serializable]
-    public struct SelectionData
-    {
-        public int selectedSkill;
-        public bool fromList;
-        public SelectionData(int selectedSkill_in, bool fromList_in)
-        {
-            selectedSkill = selectedSkill_in;
-            fromList = fromList_in;
-        }
-    }
+    
     public List<PlayerAttackModel> players;
 
     public int currentPlayer;
@@ -75,7 +75,6 @@ public class SkillManager : MonoBehaviour
         {
             if(skillSlots[i].state == SkillSlot.EquipState.WAITING)  //If one of the skills is "Waiting", it means the manager is supposed to unequip it
             {
-                Debug.Log("Trying to unequip a skill");
                 if(i == selection.selectedSkill) //If the skill is also the skill youve got selected, deselect it before unequipping
                 {
                     Deselect(i);

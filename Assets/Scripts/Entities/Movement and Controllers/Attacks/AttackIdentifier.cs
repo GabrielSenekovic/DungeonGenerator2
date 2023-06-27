@@ -25,12 +25,12 @@ public class AttackIdentifier : MonoBehaviour
                 state = CastingState.DONE;
                 castTimer = 0;
                 Initialize();
-                return true; //Yes you may cast
             }
+            return true; //Yes you may cast
         }
         return false; //No you may not cast
     }
-    public void Attack()
+    public virtual void Attack()
     {
         state = CastingState.COMMENCED;
         //OnAttack(direction, source, collider);

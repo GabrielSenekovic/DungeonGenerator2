@@ -7,12 +7,12 @@ public class Gravity : MonoBehaviour
     public float gravitySpeed;
     public float gravityRadius;
 
-    public void OnAttackStay(GameObject vic, ref List<ProjectileController.targetData> targets)
+    public void OnAttackStay(GameObject vic, Collider[] hits)
     {
         bool isNew = true;
-        for (int i = 0; i < targets.Count; i++)
+        for (int i = 0; i < hits.Length; i++)
         {
-            if (targets[i].target != vic)
+            if (hits[i].gameObject != vic)
             {
                 isNew = true;
             }
@@ -29,14 +29,14 @@ public class Gravity : MonoBehaviour
             Vector2 pushV2 = vectorToTarget.normalized * gravitySpeed * distanceModifier;
             //! Add gravity to target
 
-            targets.Add(new ProjectileController.targetData(vic, 0));
+            //targets.Add(new ProjectileController.targetData(vic, 0));
         }
         else
         {
-            if(gravitySpeed != 0){GravityEffect(vic, ref targets);}
+            //if(gravitySpeed != 0){GravityEffect(vic, ref targets);}
         }
     }
-    public void GravityEffect(GameObject vic, ref List<ProjectileController.targetData> targets)
+   /* public void GravityEffect(GameObject vic, ref List<ProjectileController.targetData> targets)
     {
         if (targets.Count > 0)
         {
@@ -59,5 +59,5 @@ public class Gravity : MonoBehaviour
                 targetVic.target.GetComponent<Rigidbody>().AddForce(value, ForceMode.Impulse);
             }
         }
-    }
+    }*/
 }

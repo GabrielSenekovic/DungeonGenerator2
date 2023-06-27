@@ -14,7 +14,7 @@ public class NPCController : MonoBehaviour
         WANDERING = 3,
         WORKING = 4 //Work if not finished instead of going idle
     }
-    NPCMovementState movementState = NPCMovementState.IDLE;
+    [SerializeField] NPCMovementState movementState = NPCMovementState.IDLE;
 
     MovementModel movementModel;
     StatusConditionModel statusConditionModel;
@@ -57,7 +57,7 @@ public class NPCController : MonoBehaviour
         else if(movementState == NPCMovementState.CHASING && target)
         {
             movementModel.SetMovementDirection((target.position - transform.position).normalized);
-            //Attack();
+            Attack();
         }
         else if(movementState == NPCMovementState.ESCAPING)
         {

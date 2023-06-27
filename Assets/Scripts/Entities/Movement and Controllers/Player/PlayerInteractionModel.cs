@@ -7,10 +7,12 @@ public class PlayerInteractionModel : MonoBehaviour
     [SerializeField]IInteractable interactable;
     Carryable carryable;
     StatusConditionModel statusConditionModel;
+    EntityStatistics entityStatistics;
 
     private void Start()
     {
         statusConditionModel = GetComponent<StatusConditionModel>();
+        entityStatistics = GetComponent<EntityStatistics>();
     }
 
     public void Initialize(Collider2D collider)
@@ -42,14 +44,14 @@ public class PlayerInteractionModel : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
-        if(collision.collider.TryGetComponent(out IInteractable interactable) && interactable.GetIsInteractable())
+        if(entityStatistics.canInteract && collision.collider.TryGetComponent(out IInteractable interactable) && interactable.GetIsInteractable())
         {
             this.interactable = interactable;
         } 
     }
     public void OnCollisionExit(Collision collision)
     {
-        if (collision.collider.GetComponent<IInteractable>() != null)
+        if (entityStatistics.canInteract && collision.collider.GetComponent<IInteractable>() != null)
         {
             if (interactable != null)
             {

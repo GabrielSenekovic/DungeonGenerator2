@@ -21,7 +21,7 @@ public class MovementModel : MonoBehaviour
     StatusConditionModel statusConditionModel;
 
     public int moveTimer = 0;
-    void Awake()
+    public void Awake()
     {
         movementDirection = Vector2.zero; facingDirection = new Vector2(0, -1);
         anim = GetComponentInChildren<Animator>();

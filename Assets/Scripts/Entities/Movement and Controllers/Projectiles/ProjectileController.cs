@@ -5,23 +5,7 @@ using UnityEngine.Experimental.GlobalIllumination;
 
 public class ProjectileController : MovementModel
 {
-    [System.Serializable]
-    public struct targetData
-    {
-        public GameObject target;
-        public int pushIndex;
-
-        public targetData(GameObject target_in, int pushIndex_in)
-        {
-            target = target_in;
-            pushIndex = pushIndex_in;
-        }
-    };
-    
     public GameObject currentTarget;
-    
-
-    public List<targetData> targets = new List<targetData>();
 
     public bool placedProjectile;
 
@@ -39,6 +23,14 @@ public class ProjectileController : MovementModel
     Gravity gravity;
     Homing homing;
     ProjectileAcceleration acceleration;
+    private void Awake()
+    {
+        base.Awake();
+        TryGetComponent(out explode);
+        TryGetComponent(out gravity);
+        TryGetComponent(out homing);
+        TryGetComponent(out acceleration);
+    }
     void Start()
     {
         VisualsRotator.renderers.AddRange(visuals);
@@ -78,7 +70,7 @@ public class ProjectileController : MovementModel
         Move();
         if(lifeTimer >= lifeLength)
         {
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         }
     }
     
@@ -86,14 +78,16 @@ public class ProjectileController : MovementModel
     {
         if(gravity)
         {
-            gravity.OnAttackStay(vic, ref targets);
+            Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
+            gravity.OnAttackStay(vic, hits);
         }
     }
     public virtual void OnDestroy()
     {
         if(explode)
         {
-            explode.OnExplode(ref targets);
+            Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
+            explode.OnExplode(hits);
         }
         EntityManager.Instance.Remove(ID);
     }

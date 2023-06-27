@@ -6,18 +6,27 @@ public class Explode : MonoBehaviour
 {
     public float blastRadius;
     public float explosionPower;
-    public void OnExplode(ref List<ProjectileController.targetData> targets)
+
+    [SerializeField] List<StatusConditionModel.StatusCondition> conditionsInflicted = new List<StatusConditionModel.StatusCondition>();
+    public void OnExplode(Collider[] hits)
     {//? If this projectile is supposed to explode, explode
-        foreach(ProjectileController.targetData t in targets)
+        foreach(Collider hit in hits)
         {
-            if(t.target != null && t.target.GetComponent<Rigidbody>())
+            if(hit.TryGetComponent(out Rigidbody body))
             {
-                Vector2 vectorToTarget = (Vector2)(transform.position - t.target.transform.position);
+                Vector2 vectorToTarget = (Vector2)(transform.position - hit.transform.position);
                 float distanceModifier = vectorToTarget.magnitude <= blastRadius ? (blastRadius - vectorToTarget.magnitude) / blastRadius : 0;
                 Vector2 value = vectorToTarget.normalized * explosionPower * distanceModifier;
-                t.target.GetComponent<Rigidbody>().AddForce(-value, ForceMode.Impulse);
+                body.AddForce(-value, ForceMode.Impulse);
                 Debug.Log("Exploding with value: " + value);
                 //t.target.GetComponent<EntityMovementModel>().push[t.pushIndex] = -value;
+                if(hit.TryGetComponent(out StatusConditionModel statusConditionModel))
+                {
+                    for(int i = 0; i < conditionsInflicted.Count; i++)
+                    {
+                        statusConditionModel.AddCondition(conditionsInflicted[i]);
+                    }
+                }
             }
         }
     }

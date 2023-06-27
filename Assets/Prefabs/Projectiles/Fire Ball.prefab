@@ -90,6 +90,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &4701112413953490541
@@ -106,6 +107,7 @@ GameObject:
   - component: {fileID: 7684103589162224298}
   - component: {fileID: 7209424329547378775}
   - component: {fileID: 8797032918738716209}
+  - component: {fileID: 1995855077748475690}
   m_Layer: 0
   m_Name: Fire Ball
   m_TagString: Untagged
@@ -141,20 +143,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 8
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
-  blastRadius: 0
-  explosionPower: 0
+  moveTimer: 0
   currentTarget: {fileID: 0}
-  accelerationMode: 0
-  homingMode: 0
   targets: []
-  gravitySpeed: 0
   placedProjectile: 0
   collideWithCaster: 0
   visuals: []
   lifeLength: 100
+  ID: 0
 --- !u!54 &6277076494950937607
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -212,6 +210,21 @@ MonoBehaviour:
   - type: 4
     element: 2
     damage: 3
+--- !u!114 &1995855077748475690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4701112413953490541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe651d467c4f750478d43b50a15bb7ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagesOverTime: []
+  baseSpeed: 3
+  moveTimerMax: 3
 --- !u!1 &6704648871559327394
 GameObject:
   m_ObjectHideFlags: 0
