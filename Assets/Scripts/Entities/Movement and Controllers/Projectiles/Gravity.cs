@@ -1,63 +1,59 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Gravity : MonoBehaviour
 {
-    public float gravitySpeed;
-    public float gravityRadius;
-
-    public void OnAttackStay(GameObject vic, Collider[] hits)
+    public enum GravityBehavior
     {
-        bool isNew = true;
-        for (int i = 0; i < hits.Length; i++)
-        {
-            if (hits[i].gameObject != vic)
-            {
-                isNew = true;
-            }
-            else
-            {
-                isNew = false;
-                break;
-            }
-        }
-        if (isNew) //Check if this target is a new target
-        {
-            Vector2 vectorToTarget = (Vector2)(transform.position - vic.transform.position);
-            float distanceModifier = vectorToTarget.magnitude <= gravityRadius ? (gravityRadius - vectorToTarget.magnitude) / gravityRadius : 0;
-            Vector2 pushV2 = vectorToTarget.normalized * gravitySpeed * distanceModifier;
-            //! Add gravity to target
-
-            //targets.Add(new ProjectileController.targetData(vic, 0));
-        }
-        else
-        {
-            //if(gravitySpeed != 0){GravityEffect(vic, ref targets);}
-        }
+        ATTRACT = 0,
+        REPEL = 1,
+        TRAP = 2
     }
-   /* public void GravityEffect(GameObject vic, ref List<ProjectileController.targetData> targets)
+    [SerializeField] float gravitySpeed;
+    [SerializeField] float gravityRadius;
+    [SerializeField] GravityBehavior gravityBehavior;
+    public void OnAttackStay()
     {
-        if (targets.Count > 0)
+        Rigidbody[] hits = Physics.OverlapSphere(transform.position, gravityRadius).Where(c => c.GetComponent<Rigidbody>()).Select(c => c.GetComponent<Rigidbody>()).ToArray();
+
+        if(gravitySpeed != 0)
         {
-            ProjectileController.targetData targetVic = targets[0]; //If the list isnt empty, take the first element
-            foreach (ProjectileController.targetData t in targets)
+            foreach (Rigidbody body in hits)
             {
-                if (t.target == vic) //Check if you already have the new element
+                switch(gravityBehavior)
                 {
-                    targetVic = t; //If you do, then your target is it
-                    break;
+                    case GravityBehavior.ATTRACT: Attract(body);
+                        break;
+                    case GravityBehavior.REPEL: Repel(body);
+                        break;
+                    case GravityBehavior.TRAP: Trap(body);
+                        break;
                 }
             }
-            if (targetVic.target != null)
-            {
-                Vector2 vectorToTarget = (Vector2)(transform.position - vic.transform.position);
-                float distanceModifier = vectorToTarget.magnitude <= gravityRadius ? (gravityRadius - vectorToTarget.magnitude) / gravityRadius : 0;
-                Vector2 value = vectorToTarget.normalized * gravitySpeed * distanceModifier;
-                //! Apply gravity to all the targets
-
-                targetVic.target.GetComponent<Rigidbody>().AddForce(value, ForceMode.Impulse);
-            }
         }
-    }*/
+    }
+    void Attract(Rigidbody body)
+    {
+        Vector2 vectorToTarget = (Vector2)(transform.position - body.transform.position);
+        float distanceModifier = vectorToTarget.magnitude <= gravityRadius ? (gravityRadius - vectorToTarget.magnitude) / gravityRadius : 0;
+        Vector2 speedOfGravity = vectorToTarget.normalized * gravitySpeed * distanceModifier;
+        body.AddForce(speedOfGravity, ForceMode.Impulse);
+    }
+    void Repel(Rigidbody body)
+    {
+        Vector2 vectorToTarget = (Vector2)(body.transform.position - transform.position);
+        float distanceModifier = vectorToTarget.magnitude <= gravityRadius ? (gravityRadius - vectorToTarget.magnitude) / gravityRadius : 0;
+        Vector2 speedOfGravity = vectorToTarget.normalized * gravitySpeed * distanceModifier;
+        body.AddForce(speedOfGravity, ForceMode.Impulse);
+    }
+    void Trap(Rigidbody body)
+    {
+        Vector2 vectorToTarget = (Vector2)(transform.position - body.transform.position); //pulling force
+        //But only when trying to exit the radius
+        float distanceModifier = vectorToTarget.magnitude >= gravityRadius - 0.5f ? 1 : 0;
+        Vector2 speedOfGravity = vectorToTarget.normalized * gravitySpeed * distanceModifier;
+        body.AddForce(speedOfGravity, ForceMode.Impulse);
+    }
 }

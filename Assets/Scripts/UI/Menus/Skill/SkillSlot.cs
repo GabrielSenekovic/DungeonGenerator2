@@ -5,22 +5,23 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+public enum EquipState
+{
+    NONE,
+    EQUIPPED,
+    WAITING, //a flag to tell the skillmanager to unequip it
+    SKILL, //a flag to tell the skillmanager this is a skill in the skill list
+    EQUIPPED_LIST //a flag to tell the skillmanager this is a skill in the skill list that is equipped
+}
+public enum SelectState
+{
+    NONE,
+    SELECTED,
+    WAITING
+}
 public class SkillSlot : InventorySlot, IPointerClickHandler
 {
-    public enum EquipState
-    {
-        NONE,
-        EQUIPPED,
-        WAITING, //a flag to tell the skillmanager to unequip it
-        SKILL, //a flag to tell the skillmanager this is a skill in the skill list
-        EQUIPPED_LIST //a flag to tell the skillmanager this is a skill in the skill list that is equipped
-    }
-    public enum SelectState
-    {
-        NONE,
-        SELECTED,
-        WAITING
-    }
+    
     public AttackIdentifier attack;
     public EquipState state = EquipState.NONE;
     public SelectState selectState = SelectState.NONE;

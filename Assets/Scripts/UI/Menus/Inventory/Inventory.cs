@@ -27,6 +27,9 @@ public class Inventory : MonoBehaviour
     InventorySlot inventorySlotPrefab;
     [SerializeField] FurnitureDatabase furnitureDatabase;
 
+    [SerializeField] Equipment sword;
+    [SerializeField] Sprite swordSprite;
+
     int selectedSlot = -1;
 
     void Start()
@@ -92,6 +95,15 @@ public class Inventory : MonoBehaviour
                 return;
             }
         }
+    }
+    public void AddSword()
+    {
+        Item item = new Item();
+        item.myObject = sword.gameObject;
+        item.types.Add(Item.ItemType.WeaponItem);
+        item.name = "Sword";
+        item.sprite = swordSprite;
+        AddItem(item);
     }
 
     public void SelectItem(InventorySlot slot)

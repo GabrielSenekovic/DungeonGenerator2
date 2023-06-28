@@ -95,6 +95,8 @@ GameObject:
   - component: {fileID: 3781577276053894830}
   - component: {fileID: 4803876165974465650}
   - component: {fileID: 6675969655243590660}
+  - component: {fileID: 2539762197336464644}
+  - component: {fileID: 3171077856247394984}
   m_Layer: 0
   m_Name: Vacuum Ball
   m_TagString: Projectile (Debug)
@@ -129,20 +131,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
-  canMove: 1
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
-  blastRadius: 4
-  explosionPower: 0
+  moveTimer: 0
   currentTarget: {fileID: 0}
-  accelerationMode: 0
-  homingMode: 0
-  targets: []
-  gravitySpeed: 3
+  placedProjectile: 0
+  collideWithCaster: 0
   visuals:
   - {fileID: 1891306394831330166}
   lifeLength: 200
+  ID: 0
 --- !u!54 &4803876165974465650
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -172,3 +170,35 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2539762197336464644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7512497904578034126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe651d467c4f750478d43b50a15bb7ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagesOverTime: []
+  baseSpeed: 0.5
+  moveTimerMax: 0
+  canInteract: 0
+  physiology: 0
+--- !u!114 &3171077856247394984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7512497904578034126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49d0ed4fdc7b8774b9ab156856b285e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gravitySpeed: 1
+  gravityRadius: 5
+  gravityBehavior: 0

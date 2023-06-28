@@ -22,4 +22,5 @@ public class Item
     //Sometimes an item can be both ingredient and material, for example
     public int size; //determines how much space it takes up in the inventory
     public string name;
+    public GameObject myObject; //Object it corresponds to
 }

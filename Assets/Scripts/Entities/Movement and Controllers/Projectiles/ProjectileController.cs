@@ -23,7 +23,7 @@ public class ProjectileController : MovementModel
     Gravity gravity;
     Homing homing;
     ProjectileAcceleration acceleration;
-    private void Awake()
+    private new void Awake()
     {
         base.Awake();
         TryGetComponent(out explode);
@@ -51,14 +51,7 @@ public class ProjectileController : MovementModel
     }
     new private void FixedUpdate() 
     {
-        if(explode)
-        {
-            Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
-            for (int i = 0; i < hits.Length; i++)
-            {
-                OnAttackStay(hits[i].gameObject);
-            }
-        }
+        OnAttackStay();
 
         lifeTimer++;
         if(placedProjectile && explode)
@@ -74,13 +67,9 @@ public class ProjectileController : MovementModel
         }
     }
     
-    private void OnAttackStay(GameObject vic)
+    private void OnAttackStay()
     {
-        if(gravity)
-        {
-            Collider[] hits = Physics.OverlapSphere(transform.position, explode.blastRadius);
-            gravity.OnAttackStay(vic, hits);
-        }
+        gravity?.OnAttackStay();
     }
     public virtual void OnDestroy()
     {

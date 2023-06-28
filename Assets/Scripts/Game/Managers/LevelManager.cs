@@ -85,7 +85,7 @@ public class LevelManager : MonoBehaviour
             Party.instance.GetPartyLeader().GetStatusConditionModel().AddCondition(new StatusConditionModel.StatusCondition(Condition.Cutscene));
             CameraMovement.SetMovingRoom(true);
         }
-        if(currentRoom.grass != null)
+        if(currentRoom?.grass != null)
         {
             entityManager.CheckProjectileGrassCollision(currentRoom);
         }
@@ -108,6 +108,8 @@ public class LevelManager : MonoBehaviour
     }
     bool CheckIfChangeRoom()
     {
+        if (currentRoom == null) { return false; }
+
         Vector2Int playerGridPos = (party.GetPartyLeader().transform.position / 20f).ToV2Int();
         playerGridPos *= new Vector2Int(1, -1);
         Vector2 playerPos = party.GetPartyLeader().transform.position * new Vector2(1, -1);

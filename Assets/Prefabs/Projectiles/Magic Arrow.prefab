@@ -90,6 +90,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &1694541252664348501
@@ -104,6 +105,8 @@ GameObject:
   - component: {fileID: 1953871669434644296}
   - component: {fileID: 5765521824955202322}
   - component: {fileID: 4680236352855365051}
+  - component: {fileID: 3882121762976459806}
+  - component: {fileID: 5774405298468008495}
   m_Layer: 0
   m_Name: Magic Arrow
   m_TagString: Untagged
@@ -139,18 +142,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 20
-  canMove: 1
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
-  blastRadius: 0
-  explosionPower: 0
+  moveTimer: 0
   currentTarget: {fileID: 0}
-  accelerationMode: 0
-  homingMode: 0
-  gravitySpeed: 0
+  placedProjectile: 0
+  collideWithCaster: 0
   visuals: []
   lifeLength: 200
+  ID: 0
 --- !u!54 &5765521824955202322
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -180,6 +180,39 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: -1, z: 0}
+--- !u!114 &3882121762976459806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694541252664348501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe651d467c4f750478d43b50a15bb7ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagesOverTime: []
+  baseSpeed: 0
+  moveTimerMax: 0
+  canInteract: 0
+  physiology: 0
+--- !u!114 &5774405298468008495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694541252664348501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d70e5a19cc0e6c4ca1b424943266bf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageToDeal:
+  - type: 4
+    element: 256
+    damage: 1
 --- !u!1 &3173050079008608000
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,4 +307,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a3850abba34ef840bf679c1c81cc75f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  multipleSprites: 0
+  spriteSize: {x: 0, y: 0}
   scale: {x: 1, y: 1}

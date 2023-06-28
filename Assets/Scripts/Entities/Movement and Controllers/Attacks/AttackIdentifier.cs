@@ -25,8 +25,9 @@ public class AttackIdentifier : MonoBehaviour
                 state = CastingState.DONE;
                 castTimer = 0;
                 Initialize();
+                return true; //Yes you may cast
             }
-            return true; //Yes you may cast
+            //If you put true here, then you will spawn the same projectile multiple times
         }
         return false; //No you may not cast
     }

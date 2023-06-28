@@ -173,6 +173,9 @@ public class StatusConditionModel : MonoBehaviour
                 statistics.canInteract = false;
                 statistics.speedModifiers.Add(new EntityStatistics.SpeedModifier(condition.value, 0));
                 break;
+            case Condition.Confusion:
+
+                break;
         }
     }
     public void RemoveCondition(Condition condition)

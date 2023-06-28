@@ -66,8 +66,6 @@ public class CommandBox : MonoBehaviour
                     {
                         FurnitureDatabase database = Resources.Load<FurnitureDatabase>("FurnitureDatabase");
                         TextAsset reader = Resources.Load<TextAsset>("FurnitureDatabase");
-                        //Load the info how to make the grass and tulips from a file
-                        //Read the text from directly from the test.txt file
                         database.Initialise(reader.text);
                         Party.instance.inventory.FillInventoryWithFurniture();
                     }
@@ -84,10 +82,14 @@ public class CommandBox : MonoBehaviour
             break;
             case "Give" :
                 if(partsOfCommand.Length == 1){return;}
-                if(partsOfCommand[1] == "Key")
+                if (partsOfCommand[1] == "Key")
                 {
                     Party.AddKey();
                     //Add a key to the counter
+                }
+                else if (partsOfCommand[1] == "Sword")
+                {
+                    Party.instance.inventory.AddSword();
                 }
                 else
                 {
