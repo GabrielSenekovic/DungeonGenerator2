@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class Party : MonoBehaviour
 {
     public static Party instance;
-    List<PlayableCharacter> partyMembers;
+    List<PlayableCharacter> partyMembers = new List<PlayableCharacter>();
     [SerializeField]PlayableCharacter partyLeader; //Currently played by player
 
     public Inventory inventory;
@@ -20,6 +21,11 @@ public class Party : MonoBehaviour
         {
             instance = this;
             keys = 0;
+            partyMembers.Add(partyLeader);
+            for(int i = 0; i < partyMembers.Count; i++)
+            {
+                partyMembers[i].GetComponent<HealthModel>().onDeath += OnDeath;
+            }
         }
         else
         {
@@ -50,5 +56,31 @@ public class Party : MonoBehaviour
             return true;
         }
         return false;
+    }
+    public void OnDeath(GameObject entity)
+    {
+        if(entity == partyLeader.gameObject)
+        {
+            if(!ChangePartyLeader())
+            {
+                TotalPartyKill();
+            }
+        }
+    }
+    public bool ChangePartyLeader()
+    {
+        for(int i = 0; i < partyMembers.Count; i++)
+        {
+            if(!partyMembers[i].GetComponent<HealthModel>().isDead())
+            {
+                partyLeader = partyMembers[i];
+                return true;
+            }
+        }
+        return false;
+    }
+    void TotalPartyKill()
+    {
+        SceneManager.LoadSceneAsync("HQ");
     }
 }

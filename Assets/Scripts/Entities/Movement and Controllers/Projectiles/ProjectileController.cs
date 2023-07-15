@@ -23,6 +23,7 @@ public class ProjectileController : MovementModel
     Gravity gravity;
     Homing homing;
     ProjectileAcceleration acceleration;
+    ProjectileMovementBehavior projectileMovementBehavior;
     private new void Awake()
     {
         base.Awake();
@@ -30,6 +31,7 @@ public class ProjectileController : MovementModel
         TryGetComponent(out gravity);
         TryGetComponent(out homing);
         TryGetComponent(out acceleration);
+        TryGetComponent(out projectileMovementBehavior);
     }
     void Start()
     {
@@ -60,7 +62,7 @@ public class ProjectileController : MovementModel
         }
         if(acceleration){acceleration.CheckAccelerationMode();}
         if(homing){homing.CheckHomingMode();}
-        Move();
+        if (projectileMovementBehavior) { projectileMovementBehavior.Move(); }
         if(lifeTimer >= lifeLength)
         {
             Destroy(gameObject);

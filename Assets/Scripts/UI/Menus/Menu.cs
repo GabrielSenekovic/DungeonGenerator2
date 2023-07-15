@@ -15,7 +15,7 @@ public class Menu : MonoBehaviour
 
         public string tooltip;
 
-        public CanvasGroup canvas;
+        public GameObject menu;
     }
     [System.Serializable]struct ButtonLayout
     {
@@ -92,11 +92,13 @@ public class Menu : MonoBehaviour
                     buttons[j].GetComponent<Button>().onClick.AddListener(() => {Application.Quit(); Debug.Log("Quit the game from Menu");});
                 }
                 buttons[j].GetComponent<Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_click"));
-                if(buttonLayouts[i].buttons[j].canvas != null)
+                if(buttonLayouts[i].buttons[j].menu != null)
                 {
-                    UnityEngine.Events.UnityAction temp = () => UIManager.OpenOrClose(buttonLayouts[index_1].buttons[index_2].canvas);
+                    UnityEngine.Events.UnityAction temp = () => UIManager.OpenOrClose(buttonLayouts[index_1].buttons[index_2].menu.GetComponent<IMenu>().GetCanvas());
                     buttons[j].GetComponent<Button>().onClick.AddListener(temp);
-                    temp = () => UI.AddMenu(buttonLayouts[index_1].buttons[index_2].canvas);
+                    temp = () => UI.AddMenu(buttonLayouts[index_1].buttons[index_2].menu.GetComponent<IMenu>().GetCanvas());
+                    buttons[j].GetComponent<Button>().onClick.AddListener(temp);
+                    temp = () => buttonLayouts[index_1].buttons[index_2].menu.GetComponent<IMenu>().OnOpen();
                     buttons[j].GetComponent<Button>().onClick.AddListener(temp);
                 }
             }
@@ -112,10 +114,11 @@ public class Menu : MonoBehaviour
                 buttons[j].GetComponent<Image>().color = UIManager.Instance.UIColor.primary;
                 buttons[j].GetComponent<Image>().raycastTarget = true;
                 buttons[j].GetComponentInChildren<SpriteText>().Write("Return");
-                buttons[j].GetComponent<Button>().onClick.RemoveAllListeners();
-                buttons[j].GetComponent<Button>().onClick.AddListener(() => SwitchMenu(buttonLayouts[i].parentMenu) );
-                buttons[j].GetComponent<Button>().onClick.AddListener(() => AudioManager.PlaySFX("button_return"));
-                buttons[j].GetComponent<Button>().onClick.AddListener(() => UI.EmptyMenus());
+                Button button = buttons[j].GetComponent<Button>();
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => SwitchMenu(buttonLayouts[i].parentMenu) );
+                button.onClick.AddListener(() => AudioManager.PlaySFX("button_return"));
+                button.onClick.AddListener(() => UI.EmptyMenus());
                 entry.callback.AddListener( (data) => MenuTooltip.UpdateUpperTooltip("return"));
                 EventTrigger.Entry exit_entry = new EventTrigger.Entry();
                 exit_entry.eventID = EventTriggerType.PointerExit;

@@ -181,51 +181,51 @@ MonoBehaviour:
     - name: Party
       destination: 1
       tooltip: Edit the members of the party
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Equipment
       destination: 2
       tooltip: Change your equipment
-      canvas: {fileID: 3171072869549293098}
+      menu: {fileID: 0}
     - name: Inventory
       destination: 3
       tooltip: Check your inventory
-      canvas: {fileID: 5543759762340606166}
+      menu: {fileID: 0}
     - name: Craft
       destination: 4
       tooltip: Craft things using material
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Abilities
       destination: 5
       tooltip: Change your skillset
-      canvas: {fileID: 2897031998621742472}
+      menu: {fileID: 0}
     - name: Quests
       destination: 6
       tooltip: Check your quests
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Map
       destination: 7
       tooltip: Check the map
-      canvas: {fileID: 6399572639253554811}
+      menu: {fileID: 0}
     - name: Journal
       destination: 8
       tooltip: Browse your knowledge
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Jukebox
       destination: 9
       tooltip: Play music
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Achievement
       destination: 10
       tooltip: Browse your achievements
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Tutorial
       destination: 11
       tooltip: Learn how to play
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Config
       destination: 12
       tooltip: Change the options
-      canvas: {fileID: 7579452770484993547}
+      menu: {fileID: 0}
     parentMenu: 0
   - name: Party Menu
     buttons: []
@@ -238,27 +238,27 @@ MonoBehaviour:
     - name: All Items
       destination: 0
       tooltip: Show all items
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Materials
       destination: 0
       tooltip: Show materials
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Weaponry
       destination: 0
       tooltip: Show weaponry
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Armor
       destination: 0
       tooltip: Show armor
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Acc
       destination: 0
       tooltip: Show accessories
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Key Items
       destination: 0
       tooltip: Show key items
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     parentMenu: 0
   - name: Crafting Menu
     buttons: []
@@ -271,11 +271,11 @@ MonoBehaviour:
     - name: Active Quests
       destination: 0
       tooltip: Show active quests
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Past Quests
       destination: 0
       tooltip: Show quests youve already completed
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     parentMenu: 0
   - name: Map Menu
     buttons: []
@@ -285,11 +285,11 @@ MonoBehaviour:
     - name: Bestiary
       destination: 0
       tooltip: 
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     - name: Relationships
       destination: 0
       tooltip: 
-      canvas: {fileID: 0}
+      menu: {fileID: 0}
     parentMenu: 0
   - name: Jukebox Menu
     buttons: []
@@ -1764,7 +1764,6 @@ GameObject:
   - component: {fileID: 4683288608607656803}
   - component: {fileID: 2897031998621742472}
   - component: {fileID: 8863719161763789303}
-  - component: {fileID: 7366013205591449413}
   m_Layer: 0
   m_Name: SkillManager
   m_TagString: Untagged
@@ -1830,29 +1829,10 @@ MonoBehaviour:
   skillSlotPrefab: {fileID: 17575030856535249, guid: 0d46f728fab08914da4cca3efe0f70da,
     type: 3}
   emptySlot: {fileID: 21300000, guid: 4bc9c3fd3b8e42a44a6920d71f8a058c, type: 3}
+  skillLibrary: {fileID: 0}
   selection:
     selectedSkill: 0
     fromList: 0
---- !u!114 &7366013205591449413
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 252307946647272020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6195163997085143addaba48e8862c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attacks:
-  - {fileID: 7355480413160132774, guid: 6ad3d191f0186cb438ddebe3ba3da8af, type: 3}
-  - {fileID: 5555049954952746810, guid: 3614913b58e89654f9ee585c7e2e788b, type: 3}
-  - {fileID: 4170734055188522066, guid: 8fd2f6bbce40ce84788f4ac0ae95fc94, type: 3}
-  - {fileID: 1017492598223587076, guid: c6b20e2faf277654c8bb7df813aaab34, type: 3}
-  - {fileID: 5630531227613990820, guid: 2e130a020f3b0884db0da8eeda389eb6, type: 3}
-  - {fileID: 2046435759120404535, guid: a680f4d907d34574f97aa20fd8698813, type: 3}
-  - {fileID: 1180290955081879570, guid: d4f6195bbb408374c95b7ebf27b839b9, type: 3}
 --- !u!1 &627002437595737300
 GameObject:
   m_ObjectHideFlags: 0
@@ -4237,16 +4217,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   players: []
   currentPlayer: 0
-  leftHand: {fileID: 1574362690251702544}
-  rightHand: {fileID: 846900437057318112}
-  skillSlots: []
+  equipSlots: []
   inventorySlots: []
   inventoryGrid: {fileID: 0}
   skillSlotPrefab: {fileID: 0}
   emptySlot: {fileID: 0}
+  skillManager: {fileID: 0}
   selection:
     selectedSkill: 0
     fromList: 0
+  inventory: {fileID: 0}
 --- !u!1 &7415034132012518269
 GameObject:
   m_ObjectHideFlags: 0
@@ -4875,7 +4855,6 @@ MonoBehaviour:
   hotbarGrid: {fileID: 4544815333942093006}
   inventorySlots:
   - {fileID: 0}
-  itemGenerator: {fileID: 0}
   furnitureDatabase: {fileID: 0}
 --- !u!1 &8877574426425093580
 GameObject:

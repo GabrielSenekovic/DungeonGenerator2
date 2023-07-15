@@ -117,6 +117,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blastRadius: 5
   explosionPower: 20
+  VFX: {fileID: 8926484042661614526, guid: 7b6efd52a0825994baf2c11a2990cc4e, type: 3}
+  conditionsInflicted: []
 --- !u!1 &5550673950167377779
 GameObject:
   m_ObjectHideFlags: 0

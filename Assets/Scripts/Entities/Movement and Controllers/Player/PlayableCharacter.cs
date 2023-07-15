@@ -9,7 +9,7 @@ public class PlayableCharacter : MonoBehaviour
     MovementModel movementModel;
     PlayerInteractionModel interactionModel;
 
-    StatusConditionModel CM;
+    StatusConditionModel statusConditionModel;
 
     EntityStatistics statistics;
 
@@ -17,7 +17,7 @@ public class PlayableCharacter : MonoBehaviour
     {
         movementModel = GetComponent<MovementModel>();
         interactionModel = GetComponent<PlayerInteractionModel>();
-        CM = GetComponent<StatusConditionModel>();
+        statusConditionModel = GetComponent<StatusConditionModel>();
     }
 
     private void Start()
@@ -35,7 +35,7 @@ public class PlayableCharacter : MonoBehaviour
     }
     public StatusConditionModel GetStatusConditionModel()
     {
-        return CM;
+        return statusConditionModel;
     }
     public EntityStatistics GetEntityStatistics()
     {

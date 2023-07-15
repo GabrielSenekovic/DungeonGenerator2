@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(EntityStatistics))]
 public class MovementModel : MonoBehaviour
 {
-    Vector3 movementDirection;
+    public Vector3 movementDirection;
     Vector2 facingDirection;
 
     public Vector2 orbitPoint; //Anything that can move could orbit around something at some point
@@ -41,11 +41,6 @@ public class MovementModel : MonoBehaviour
             facingDirection.x = 0;
         };
         facingDirection.x = Mathf.RoundToInt(facingDirection.x); facingDirection.y = Mathf.RoundToInt(facingDirection.y);
-        if(anim != null)
-        {
-            anim.SetFloat("DirectionX", facingDirection.x);
-            anim.SetFloat("DirectionY", facingDirection.y);
-        }
     }
     public void FixedUpdate()
     {
@@ -96,6 +91,8 @@ public class MovementModel : MonoBehaviour
     {
         movementDirection = movementDirection_in;
         facingDirection = movementDirection_in;
+        float angle = Mathf.Atan2(movementDirection.x, movementDirection.y) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, -angle);
     }
     public void SetConstantVelocity(Vector3 velocity_in)
     {

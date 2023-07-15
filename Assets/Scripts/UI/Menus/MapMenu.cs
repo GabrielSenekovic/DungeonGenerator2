@@ -18,11 +18,17 @@ public class MapMenu : MonoBehaviour, IMenu
     List<MapContainer> mapContainers = new List<MapContainer>();
     MapContainer currentMapContainer;
     [SerializeField] Image mapImage;
+    [SerializeField] CanvasGroup canvasGroup;
     public void AddMap(MapContainer maps)
     {
         mapContainers.Add(maps);
         currentMapContainer = maps;
         SetMap(maps);
+    }
+
+    public CanvasGroup GetCanvas()
+    {
+        return canvasGroup;
     }
 
     public void OnClose()

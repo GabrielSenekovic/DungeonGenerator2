@@ -55,7 +55,7 @@ public class LevelManager : MonoBehaviour
     {
         if (DunGenes.Instance.gameData != null)
         {
-            Party.instance.GetPartyLeader().transform.position = Vector2.zero;
+            Party.instance.GetPartyLeader().transform.position = new Vector3(0, 0, Party.instance.GetPartyLeader().transform.position.z);
             // DunGenes.Instance.gameData.SetPlayerPosition(new Vector2(-RoomSize.x/2, -RoomSize.y/2));
         }
         party = Party.instance;
@@ -87,7 +87,7 @@ public class LevelManager : MonoBehaviour
         }
         if(currentRoom?.grass != null)
         {
-            entityManager.CheckProjectileGrassCollision(currentRoom);
+            entityManager?.CheckProjectileGrassCollision(currentRoom);
         }
     }
     private void LateUpdate()

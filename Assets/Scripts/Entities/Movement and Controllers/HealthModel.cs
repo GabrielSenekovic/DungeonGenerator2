@@ -4,16 +4,21 @@ using UnityEngine;
 
 public class HealthModel : MonoBehaviour
 {
+    public delegate void OnDeath(GameObject entity);
+    public OnDeath onDeath;
+
     public float currentHealth;
     public int maxHealth;
 
     public string deathSound;
 
     EntityStatistics statistics;
+    DropItems dropItems;
     private void Start() 
     {
         currentHealth = maxHealth;
         statistics = GetComponent<EntityStatistics>();
+        TryGetComponent(out dropItems);
     }
 
     private void FixedUpdate() 
@@ -27,12 +32,7 @@ public class HealthModel : MonoBehaviour
     {
         if(currentHealth - damage <= 0)
         {
-            AudioManager.PlaySFX(deathSound);
-            gameObject.SetActive(false);
-            if(GetComponent<DropItems>())
-            {
-                GetComponent<DropItems>().Drop(3, Vector3.zero);
-            }
+            Die();
         }
         else
         {
@@ -52,12 +52,8 @@ public class HealthModel : MonoBehaviour
 
         if(currentHealth - damage.damage <= 0)
         {
-            AudioManager.PlaySFX(deathSound);
-            gameObject.SetActive(false);
-            if(GetComponent<DropItems>())
-            {
-                GetComponent<DropItems>().Drop(3, Vector3.zero);
-            }
+            currentHealth = 0;
+            Die();
         }
         else
         {
@@ -71,6 +67,15 @@ public class HealthModel : MonoBehaviour
     public float GetHealthPercentage(float modifier)
     {
         return (currentHealth + modifier) / (float)maxHealth;
+    }
+
+    public void Die()
+    {
+        AudioManager.PlaySFX(deathSound);
+        gameObject.SetActive(false);
+        onDeath?.Invoke(gameObject);
+
+        dropItems?.Drop(3, Vector3.zero);
     }
 
     public bool isDead()

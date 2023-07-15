@@ -44,7 +44,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 0.6544731, g: 0.2584905, b: 1, a: 1}
   m_Intensity: 10
-  m_Range: 10
+  m_Range: 5
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementDirection: {x: 0, y: 0, z: 0}
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
   moveTimer: 0
@@ -193,7 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damagesOverTime: []
-  baseSpeed: 0
+  baseSpeed: 20
   moveTimerMax: 0
   canInteract: 0
   physiology: 0
@@ -212,6 +213,9 @@ MonoBehaviour:
   damageToDeal:
   - type: 4
     element: 256
+    damage: 1
+  - type: 3
+    element: 0
     damage: 1
 --- !u!1 &3173050079008608000
 GameObject:

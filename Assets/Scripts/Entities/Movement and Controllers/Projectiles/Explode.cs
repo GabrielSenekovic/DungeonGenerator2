@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Explode : MonoBehaviour
 {
     public float blastRadius;
     public float explosionPower;
+    [SerializeField] VisualEffectAsset VFX;
 
     [SerializeField] List<StatusConditionModel.StatusCondition> conditionsInflicted = new List<StatusConditionModel.StatusCondition>();
     public void OnExplode(Collider[] hits)
@@ -29,5 +31,9 @@ public class Explode : MonoBehaviour
                 }
             }
         }
+        GameObject gameObject = new GameObject("Explosion VFX"); //Create VFX for fire
+        gameObject.AddComponent<VisualEffect>();
+        gameObject.transform.position = transform.position;
+        gameObject.GetComponent<VisualEffect>().visualEffectAsset = VFX;
     }
 }

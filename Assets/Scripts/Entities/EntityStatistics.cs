@@ -172,7 +172,7 @@ public class EntityStatistics : MonoBehaviour
 
     public void AdjustDamage(ref DealDamage.Damage damage)
     {
-        float totalModifier = 0;
+        float totalModifier = 1;
         for(int i = 0; i < elementWeaknesses.Count; i++)
         {
             if(damage.element == elementWeaknesses[i].element)

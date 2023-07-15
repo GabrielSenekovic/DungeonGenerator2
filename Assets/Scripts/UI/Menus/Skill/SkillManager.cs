@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 [System.Serializable]
 public struct SelectionData
@@ -14,7 +15,7 @@ public struct SelectionData
         fromList = fromList_in;
     }
 }
-public class SkillManager : MonoBehaviour
+public class SkillManager : MonoBehaviour, IMenu
 {
     
     public List<PlayerAttackModel> players;
@@ -30,6 +31,7 @@ public class SkillManager : MonoBehaviour
     [SerializeField] SkillSlot skillSlotPrefab;
 
     [SerializeField] Sprite emptySlot;
+    [SerializeField] SkillLibrary skillLibrary;
 
     public SelectionData selection;
 
@@ -49,12 +51,12 @@ public class SkillManager : MonoBehaviour
             skillSlots[i].attack = players[currentPlayer].attacks[i].attack;
         }
 
-        for (int i = 0; i < GetComponent<SkillLibrary>().attacks.Count; i++)
+        for (int i = 0; i < skillLibrary.attacks.Count; i++)
         {
             skillListSlots.Add(Instantiate(skillSlotPrefab, skillGrid));
             skillListSlots[i].index += i;
-            skillListSlots[i].attack = GetComponent<SkillLibrary>().attacks[i];
-            skillListSlots[i].GetComponentInChildren<Image>().sprite = GetComponent<SkillLibrary>().attacks[i].icon;
+            skillListSlots[i].attack = skillLibrary.attacks[i];
+            skillListSlots[i].GetComponentInChildren<Image>().sprite = skillLibrary.attacks[i].icon;
             CheckIfEquipped(i);
         }
     }
@@ -62,7 +64,7 @@ public class SkillManager : MonoBehaviour
     {
         for (int j = 0; j < 4; j++)
         {
-            if (players[currentPlayer].attacks[j].attack.name == (skillListSlots[index] as SkillSlot).attack.name)
+            if (players[currentPlayer].attacks[j].attack.name == (skillListSlots[index]).attack.name)
             {
                 skillListSlots[index].GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f);
                 skillListSlots[index].state = EquipState.EQUIPPED_LIST;
@@ -208,5 +210,47 @@ public class SkillManager : MonoBehaviour
     {
         skillSlots[i].SetColor(skillSlots[i].attack ? Color.white : Color.clear);
         skillSlots[i].selectState = SelectState.NONE;
+    }
+
+    public void EquipWeaponSkill(Equipment.EquipmentType type)
+    {
+        SkillSlot correspondingSkill = skillListSlots.First(s =>
+        {
+            if (s.attack is WeaponAttackIdentifier && (s.attack as WeaponAttackIdentifier).EquipmentType == type)
+            {
+                return s.attack;
+            }
+            return false;
+        });
+        SkillSlot equippedSlot = skillSlots[0];
+
+        correspondingSkill.SetColor(new Color(0.4f, 0.4f, 0.4f));
+        correspondingSkill.state = EquipState.EQUIPPED_LIST;
+        for (int i = 0; i < skillListSlots.Count; i++)
+        {
+            if (equippedSlot.attack && equippedSlot.attack.name == skillListSlots[i].attack.name)
+            {
+                skillListSlots[i].UnEquip();
+            }
+        }
+        players[currentPlayer].attacks[equippedSlot.index].attack = correspondingSkill.attack;
+        equippedSlot.state = EquipState.EQUIPPED;
+        equippedSlot.attack = correspondingSkill.attack;
+        equippedSlot.SetImage(players[currentPlayer].attacks[equippedSlot.index].attack.icon);
+        selection.selectedSkill = -1; selection.fromList = false;
+        Deselect(equippedSlot.index);
+    }
+
+    public void OnOpen()
+    {
+    }
+
+    public void OnClose()
+    {
+    }
+
+    public CanvasGroup GetCanvas()
+    {
+        return GetComponent<CanvasGroup>();
     }
 }

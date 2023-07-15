@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Inventory : MonoBehaviour
+public class Inventory : MonoBehaviour, IMenu
 {
     public enum InventoryState
     {
@@ -20,19 +20,16 @@ public class Inventory : MonoBehaviour
     [SerializeField] Transform inventoryGrid;
     [SerializeField] Transform hotbarGrid;
     public List<InventorySlot> inventorySlots = new List<InventorySlot>();
-    List<Item> inventorySlots_Item = new List<Item>();
-    [SerializeField] ItemGenerator itemGenerator;
+    public List<Item> inventorySlots_Item = new List<Item>();
     //Either show them as a continual list with a weight value, or visually as differently sized boxes
 
     InventorySlot inventorySlotPrefab;
     [SerializeField] FurnitureDatabase furnitureDatabase;
-
-    [SerializeField] Equipment sword;
-    [SerializeField] Sprite swordSprite;
+    CanvasGroup canvasGroup;
 
     int selectedSlot = -1;
 
-    void Start()
+    void Awake()
     {
         inventorySlotPrefab = Resources.Load<InventorySlot>("Inventory Slot");
         inventorySlots_Item.Add(null);
@@ -52,58 +49,7 @@ public class Inventory : MonoBehaviour
             inventorySlots[30 + i].index += i + 30;
             inventorySlots_Item.Add(null);
         }
-    }
-    public void FillInventoryWithRandomItems()
-    {
-        for(int i = 0; i < inventorySlots.Count; i++)
-        {
-            Sprite temp = itemGenerator.GenerateItemSprite();
-            if (temp == null) { return; }
-            AddItem(GenerateRandomItem(temp));
-        }
-    }
-    public void FillInventoryWithFurniture()
-    {
-        for (int i = 0; i < inventorySlots.Count; i++)
-        {
-            Item temp = new Item();
-            temp.types.Add(Item.ItemType.InventoryItem);
-            FurnitureDatabase.DatabaseEntry entry = furnitureDatabase.GetDatabaseEntry(i);
-            temp.sprite = entry.inventorySprite;
-            temp.name = entry.name;
-            temp.size = 1;
-            AddItem(temp);
-        }
-    }
-    public Item GenerateRandomItem(Sprite sprite)
-    {
-        Item temp = new Item();
-        temp.types.Add(Item.ItemType.IngredientItem);
-        temp.sprite = sprite;
-        temp.size = 1;
-
-        return temp;
-    }
-    public void AddItem(Item item)
-    {
-        for(int i = 0; i < inventorySlots.Count; i++)
-        {
-            if(inventorySlots_Item[i] == null)
-            {
-                inventorySlots_Item[i] = item;
-                inventorySlots[i].GetComponentInChildren<Image>().sprite = item.sprite;
-                return;
-            }
-        }
-    }
-    public void AddSword()
-    {
-        Item item = new Item();
-        item.myObject = sword.gameObject;
-        item.types.Add(Item.ItemType.WeaponItem);
-        item.name = "Sword";
-        item.sprite = swordSprite;
-        AddItem(item);
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void SelectItem(InventorySlot slot)
@@ -115,6 +61,18 @@ public class Inventory : MonoBehaviour
             inventorySlots_Item[slot.index] = inventorySlots_Item[selectedSlot];
             inventorySlots_Item[selectedSlot] = temp;
         }
+    }
+    public List<Item> FetchAllItemsOfType(Item.ItemType type)
+    {
+        List<Item> items = new List<Item>();
+        for(int i = 0; i < inventorySlots_Item.Count; i++)
+        {
+            if(inventorySlots_Item[i] != null && inventorySlots_Item[i].types.Contains(type))
+            {
+                items.Add(inventorySlots_Item[i]);
+            }
+        }
+        return items;
     }
     public void ChangeState(int value)
     {
@@ -133,5 +91,18 @@ public class Inventory : MonoBehaviour
     public void SortByTypeAndName()
     {
         //Sort by type, and then within those types, sort by name
+    }
+
+    public void OnOpen()
+    {
+    }
+
+    public void OnClose()
+    {
+    }
+
+    public CanvasGroup GetCanvas()
+    {
+        return canvasGroup;
     }
 }

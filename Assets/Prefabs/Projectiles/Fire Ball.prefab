@@ -108,6 +108,7 @@ GameObject:
   - component: {fileID: 7209424329547378775}
   - component: {fileID: 8797032918738716209}
   - component: {fileID: 1995855077748475690}
+  - component: {fileID: 7259003520377812761}
   m_Layer: 0
   m_Name: Fire Ball
   m_TagString: Untagged
@@ -143,11 +144,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d69cad26f669748b1447f9ef8812d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementDirection: {x: 0, y: 0, z: 0}
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
   moveTimer: 0
   currentTarget: {fileID: 0}
-  targets: []
   placedProjectile: 0
   collideWithCaster: 0
   visuals: []
@@ -225,6 +226,24 @@ MonoBehaviour:
   damagesOverTime: []
   baseSpeed: 3
   moveTimerMax: 3
+  canInteract: 0
+  physiology: 0
+--- !u!114 &7259003520377812761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4701112413953490541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9114bbd20b1c9754bb7cbcefe8eee0cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visuals: {fileID: 6704648871559327394}
+  light: {fileID: 3872093544396204675}
+  curveSpeed: 0.2
+  axis: 3
 --- !u!1 &6704648871559327394
 GameObject:
   m_ObjectHideFlags: 0

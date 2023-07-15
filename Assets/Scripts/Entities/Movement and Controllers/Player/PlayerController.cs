@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
         {
             Interact();
         }
-        GetComponentInChildren<PlayerAttackModel>().UpdateAttack();
+        party.GetPartyLeader().GetComponent<PlayerAttackModel>().UpdateAttack();
     }
     private void LateUpdate() 
     {
@@ -108,11 +108,11 @@ public class PlayerController : MonoBehaviour
 
                 party.GetPartyLeader().GetPMM().SetMovementDirection(Quaternion.Euler(0, 0, camera.transform.rotation.eulerAngles.z) * temp);
             }
-            GetComponentInChildren<Animator>().SetBool("Walking", true);
+            //GetComponentInChildren<Animator>().SetBool("Walking", true);
         }
         else
         {
-            GetComponentInChildren<Animator>().SetBool("Walking", false);
+           // GetComponentInChildren<Animator>().SetBool("Walking", false);
         }
     }
     public void OnMove(KeyCode key)

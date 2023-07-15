@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
-public class SkillLibrary : MonoBehaviour
+[System.Serializable]
+[CreateAssetMenu(fileName = "SkillLibrary", menuName = "AleaStory/SkillLibrary", order = 4)]
+public class SkillLibrary : ScriptableObject
 {
     public List<AttackIdentifier> attacks;
 
-    private void Update()
-    {
-        Sort();
-        EliminateDuplicates();
-    }
     private void Sort()
     {
         attacks.Sort((x, y) => x.gameObject.name.CompareTo(y.gameObject.name));  

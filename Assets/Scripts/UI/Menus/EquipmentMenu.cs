@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EquipmentMenu : MonoBehaviour
+public class EquipmentMenu : MonoBehaviour, IMenu
 {
     public List<EquipmentModel> players;
 
     public int currentPlayer;
 
-    public EquipmentSlot leftHand;
-    public EquipmentSlot rightHand;
+    public List<EquipmentSlot> equipSlots;
 
     public List<EquipmentSlot> inventorySlots; //The skills in the list of skills
 
@@ -19,9 +18,11 @@ public class EquipmentMenu : MonoBehaviour
     [SerializeField] EquipmentSlot skillSlotPrefab;
 
     [SerializeField] Sprite emptySlot;
+    [SerializeField] SkillManager skillManager;
 
     public SelectionData selection;
     [SerializeField] Inventory inventory;
+    CanvasGroup canvasGroup;
 
     //There are 4 skills that can be switched between
     //There are also a list of all viable skills. When one skill is equipped, it is then darkened in the list
@@ -33,34 +34,51 @@ public class EquipmentMenu : MonoBehaviour
     private void Start()
     {
         selection = new SelectionData(-1, false);
-
-        OpenMenu();
-
-        for (int i = 0; i < 30; i++) //normal inventory
+        canvasGroup = GetComponent<CanvasGroup>();
+    }
+    void FetchEquipment()
+    {
+        //Fetch weapons from inventory
+        List<Item> items = inventory.FetchAllItemsOfType(Item.ItemType.WeaponItem);
+        int i = 0;
+        for(; i < inventorySlots.Count; i++)
+        {
+            inventorySlots[i].state = EquipState.SKILL;
+            inventorySlots[i].equipment = items[i].myObject.GetComponent<Equipment>();
+            inventorySlots[i].equipment.name = items[i].name;
+            inventorySlots[i].equipment.icon = items[i].sprite;
+            inventorySlots[i].GetComponent<Image>().sprite = items[i].sprite;
+        }
+        for(; i < items.Count; i++)
         {
             EquipmentSlot slot = Instantiate(skillSlotPrefab, inventoryGrid);
             inventorySlots.Add(slot);
             inventorySlots[i].index += i;
             inventorySlots[i].state = EquipState.SKILL;
-        }
-    }
-    void OpenMenu()
-    {
-        //Fetch weapons from inventory
-    }
-    void CheckIfEquipped(int index)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            if (players[currentPlayer].leftHandItem.name == (inventorySlots[index]).equipment.name)
-            {
-                inventorySlots[index].GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f);
-                inventorySlots[index].state = EquipState.EQUIPPED_LIST;
-            }
+            inventorySlots[i].equipment = items[i].myObject.GetComponent<Equipment>();
+            inventorySlots[i].equipment.name = items[i].name;
+            inventorySlots[i].equipment.icon = items[i].sprite;
+            inventorySlots[i].GetComponent<Image>().sprite = items[i].sprite;
         }
     }
     private void Update()
     {
+        for(int i = 0; i < equipSlots.Count; i++)
+        {
+            if (equipSlots[i].state == EquipState.WAITING)  //If one of the skills is "Waiting", it means the manager is supposed to unequip it
+            {
+                if (i == selection.selectedSkill) //If the skill is also the skill youve got selected, deselect it before unequipping
+                {
+                    Deselect(i);
+                    selection.selectedSkill = -1;
+                }
+                UnEquip(equipSlots[i]); //Unequip the skill
+            }
+            else if (equipSlots[i].selectState == SelectState.WAITING) //If it's not supposed to be unequipped, check if it is instead supposed to be selected
+            {
+                SelectSkill(equipSlots[i]); //The select it
+            }
+        }
         for (int i = 0; i < inventorySlots.Count; i++) //Go through all the skills in the list of skills
         {
             if (inventorySlots[i].selectState == SelectState.WAITING) //Check if it is supposed to be selected
@@ -91,7 +109,7 @@ public class EquipmentMenu : MonoBehaviour
         {
             case EquipState.EQUIPPED:
                 //If you have selected a skill from the equipped skill
-                //if (selection.selectedSkill == -1 && selection.fromList == false) { OnSelect(slot.index); return; }
+                if (selection.selectedSkill == -1 && selection.fromList == false) { OnSelect(slot.index); return; }
                 //The above checks if you have not selected anything yet
                 SelectEquippedSkill(slot);
                 break;
@@ -100,7 +118,7 @@ public class EquipmentMenu : MonoBehaviour
                 SelectSkillFromList(slot);
                 break;
             case EquipState.NONE:
-                //if (selection.selectedSkill == -1 && selection.fromList == false) { OnSelect(slot.index); return; }
+                if (selection.selectedSkill == -1 && selection.fromList == false) { OnSelect(slot.index); return; }
                 SelectEquippedSkill(slot);
                 break;
         }
@@ -110,13 +128,16 @@ public class EquipmentMenu : MonoBehaviour
         if (selection.fromList == false)
         {
             //If you have already selected something from your equipped skills
-            /*AttackIdentifier temp = players[currentPlayer].attacks[slot.index].attack;
-            players[currentPlayer].attacks[slot.index].attack = players[currentPlayer].attacks[selection.selectedSkill].attack;
-            players[currentPlayer].attacks[selection.selectedSkill].attack = temp;
-            slot.equipment = players[currentPlayer].attacks[slot.index].equ;
             slot.RefreshImage();
 
-            selection.selectedSkill = -1;*/
+            equipSlots[selection.selectedSkill].SetImage(equipSlots[selection.selectedSkill].GetIcon());
+            Deselect(slot.index); //Deselect
+            Deselect(selection.selectedSkill);
+
+            slot.state = slot.equipment ? EquipState.EQUIPPED : EquipState.NONE;
+            equipSlots[selection.selectedSkill].state = equipSlots[selection.selectedSkill].equipment ? EquipState.EQUIPPED : EquipState.NONE;
+
+            selection.selectedSkill = -1;
         }
         else
         {
@@ -133,10 +154,12 @@ public class EquipmentMenu : MonoBehaviour
                 }
             }
             players[currentPlayer].leftHandItem = inventorySlots[selection.selectedSkill].equipment;
+            skillManager.EquipWeaponSkill(inventorySlots[selection.selectedSkill].equipment.Type);
             slot.state = EquipState.EQUIPPED;
             slot.equipment = inventorySlots[selection.selectedSkill].equipment;
             slot.SetImage(players[currentPlayer].leftHandItem.icon);
             selection.selectedSkill = -1; selection.fromList = false;
+            Deselect(slot.index);
         }
     }
     void SelectSkillFromList(EquipmentSlot slot)
@@ -144,6 +167,7 @@ public class EquipmentMenu : MonoBehaviour
         if (selection.selectedSkill != -1 && selection.fromList == false)
         {
             //If you already have a skill from the equipped skills selected, deselect it
+            Deselect(selection.selectedSkill); selection.selectedSkill = -1;
         }
         else if (selection.selectedSkill != -1 && selection.fromList == true)
         {
@@ -160,6 +184,32 @@ public class EquipmentMenu : MonoBehaviour
             inventorySlots[slot.index].SetColor(Color.blue);
             inventorySlots[slot.index].selectState = SelectState.SELECTED;
         }
+    }
+
+    void OnSelect(int i)
+    {
+        selection.selectedSkill = i;
+        equipSlots[i].SetColor(Color.blue);
+        equipSlots[i].selectState = SelectState.SELECTED;
+    }
+    void Deselect(int i)
+    {
+        equipSlots[i].SetColor(equipSlots[i].equipment ? Color.white : Color.clear);
+        equipSlots[i].selectState = SelectState.NONE;
+    }
+
+    public void OnOpen()
+    {
+        FetchEquipment();
+    }
+
+    public void OnClose()
+    {
+    }
+
+    public CanvasGroup GetCanvas()
+    {
+        return canvasGroup;
     }
 }
 

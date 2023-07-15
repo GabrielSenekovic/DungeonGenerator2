@@ -4,29 +4,40 @@ using UnityEngine;
 
 public class NPCAttackModel : AttackModel
 {
-    public AttackIdentifier[] attacks;
+    List<AttackIdentifier> attacks = new List<AttackIdentifier>();
     public int attackTimer = 0;
     public int attackTimerFrequency; //Also known as Agression. How often will you try to attack
-    float brutality; //Likelihood of attack
+    float brutality = 0.5f; //Likelihood of attack
+    MovementModel movementModel;
 
     private void Start() 
     {
-        if(attacks.Length > 0)
-        {
-            currentAttack = attacks[0];
-        }
+        movementModel = GetComponent<MovementModel>();
+    }
+    private void FixedUpdate()
+    {
+        if (currentAttack == null || currentAttack.state == AttackIdentifier.CastingState.DONE) { return; }
+        currentAttack.OnFixedUpdate(movementModel.GetFacingDirection(), new Vector3(transform.position.x, transform.position.y, transform.position.z - castingHeight), GetComponent<Collider>());
     }
 
     public void Attack(Vector2 direction)
     {
-        if(attacks.Length == 0){return;}
+        if(attacks.Count == 0){return;}
         attackTimer++;
-        if(attackTimer >= attackTimerFrequency && Random.Range(0.0f, 1.0f) < brutality)
+        if(attackTimer >= attackTimerFrequency && Random.Range(0.0f, 1.0f) <= brutality)
         {
             attackTimer = 0;
-            int i = Random.Range(0, attacks.Length);
+            int i = Random.Range(0, attacks.Count);
             currentAttack = attacks[i];
             attacks[i].Attack();
+        }
+    }
+    public void AddAttack(AttackIdentifier attack)
+    {
+        attacks.Add(attack);
+        if(attack is MovementAttackIdentifier)
+        {
+            (attack as MovementAttackIdentifier).SetController(GetComponent<NPCController>());
         }
     }
 }

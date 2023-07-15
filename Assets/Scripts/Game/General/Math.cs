@@ -45,6 +45,7 @@ public class Math : MonoBehaviour
     }
     public static float SemiSuperEllipse(float x, float interval, float limit, float curve)
     {
+        //A superellipse is a shape
         return 1 - interval * Mathf.Pow(x, curve) / Mathf.Pow(limit, curve - 1);
     }
     public static float Mod(float a, float b)

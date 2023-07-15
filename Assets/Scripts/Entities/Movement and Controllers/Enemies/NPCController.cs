@@ -8,11 +8,15 @@ public class NPCController : MonoBehaviour
     public int directionShiftFrequency;
     public enum NPCMovementState
     {
-        CHASING = 0,
-        ESCAPING = 1,
-        IDLE = 2,
-        WANDERING = 3,
-        WORKING = 4 //Work if not finished instead of going idle
+        NONE = 0,
+        CHASING = 1,
+        ESCAPING = 2,
+        IDLE = 3,
+        WANDERING = 4,
+        WORKING = 5, //Work if not finished instead of going idle
+
+        //Special attack states
+        SWOOP = 100, //Swoop attack
     }
     [SerializeField] NPCMovementState movementState = NPCMovementState.IDLE;
 
@@ -20,8 +24,15 @@ public class NPCController : MonoBehaviour
     StatusConditionModel statusConditionModel;
     NPCAttackModel attackModel;
     SphereCollider visionCollider;
+    CapsuleCollider massCollider;
     Transform target;
     [SerializeField] CharacterData characterData;
+
+    Vector3 preSwoopPosition;
+    Vector2 vectorOfAttack;
+    Vector3 lastPositionOfTarget;
+    [SerializeField] float swoopTimerMax;
+    float swoopTimer;
 
     public float gizmoWidth;
 
@@ -35,6 +46,8 @@ public class NPCController : MonoBehaviour
         visionCollider = gameObject.AddComponent<SphereCollider>();
         visionCollider.radius = 6;
         visionCollider.isTrigger = true;
+
+        massCollider = GetComponent<CapsuleCollider>();
         
         VisualsRotator.Add(GetComponentInChildren<MeshRenderer>());
 
@@ -71,6 +84,47 @@ public class NPCController : MonoBehaviour
             {
                 movementState = NPCMovementState.IDLE;
             }
+        }
+        else if(movementState == NPCMovementState.SWOOP)
+        {
+            swoopTimer++;
+            float percentage = swoopTimer / swoopTimerMax;
+            float currentAngle = percentage * 180f * Mathf.Deg2Rad;
+            Vector2 vectorBetween = (Vector2)preSwoopPosition - (Vector2)lastPositionOfTarget;
+            float angleToTarget = -Mathf.Atan2(vectorBetween.x, vectorBetween.y) * Mathf.Rad2Deg + 90;
+
+            float horizontalRadius = vectorBetween.magnitude;
+            float verticalRadius = lastPositionOfTarget.z - preSwoopPosition.z;
+            float radius = (horizontalRadius * verticalRadius) / Mathf.Sqrt(
+                Mathf.Pow(horizontalRadius, 2) * Mathf.Pow(Mathf.Sin(currentAngle), 2) +
+                Mathf.Pow(verticalRadius, 2) * Mathf.Pow(Mathf.Cos(currentAngle), 2)
+                );
+
+            float x = Mathf.Cos(currentAngle) * radius - radius;
+            float z = Mathf.Sin(currentAngle) * radius;
+            Vector3 newPosition = new Vector3(x, 0, z) + preSwoopPosition;
+            newPosition = Quaternion.Euler(0, 0, angleToTarget) * newPosition;
+            transform.position = newPosition;
+
+            if(swoopTimer >= swoopTimerMax)
+            {
+                movementState = NPCMovementState.NONE;
+                massCollider.isTrigger = false;
+                visionCollider.enabled = true;
+            }
+        }
+    }
+    public void SwapState(NPCMovementState newState)
+    {
+        movementState = newState;
+        directionShiftTimer = 0;
+        if(newState == NPCMovementState.SWOOP)
+        {
+            massCollider.isTrigger = true;
+            visionCollider.enabled = false;
+            preSwoopPosition = transform.position;
+            vectorOfAttack = (target.position - transform.position).normalized;
+            lastPositionOfTarget = target.position;
         }
     }
 
@@ -116,9 +170,23 @@ public class NPCController : MonoBehaviour
         characterData.profession.Reset();
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Player"))
+        {
+            if(movementState == NPCMovementState.SWOOP)
+            {
+                if (other.GetComponent<HealthModel>())
+                {
+                    target.GetComponent<HealthModel>().TakeDamage(3);
+                }
+            }
+        }
+    }
+
     private void OnTriggerStay(Collider other) 
     {
-        if(!target && other.CompareTag("Player"))
+        if(!target && other.CompareTag("Player") && (int)movementState < 100)
         {
             movementState = NPCMovementState.CHASING;
             target = other.transform;
@@ -126,7 +194,7 @@ public class NPCController : MonoBehaviour
     }
     private void OnTriggerExit(Collider other) 
     {
-        if(other.CompareTag("Player"))
+        if(other.CompareTag("Player") && movementState != NPCMovementState.SWOOP)
         {
             movementState = NPCMovementState.WANDERING;
             target = null;

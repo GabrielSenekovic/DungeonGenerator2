@@ -69,9 +69,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   castingHeight: 0
-  attacks: []
   attackTimer: 0
-  attackTimerFrequency: 0
+  attackTimerFrequency: 20
 --- !u!114 &6001731313342861754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,8 +98,8 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5
-  m_Height: 1
-  m_Direction: 1
+  m_Height: 2
+  m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &6519857914931832672
 Rigidbody:
@@ -132,10 +131,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   directionShiftTimer: 0
   directionShiftFrequency: 0
+  movementState: 1
   characterData:
     givenName: 
     profession:
       professionType: 0
+  swoopTimerMax: 50
   gizmoWidth: 0
 --- !u!114 &1800112978
 MonoBehaviour:
@@ -169,6 +170,8 @@ MonoBehaviour:
   damagesOverTime: []
   baseSpeed: 0.2
   moveTimerMax: 0
+  canInteract: 0
+  physiology: 0
 --- !u!114 &1800112980
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,6 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd526ad0cf6213f4ca72a1cc5eacdedc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementDirection: {x: 0, y: 0, z: 0}
   orbitPoint: {x: 0, y: 0}
   orbitSpeed: 0
   moveTimer: 0
@@ -277,7 +281,6 @@ GameObject:
   - component: {fileID: 6087183482499480026}
   - component: {fileID: 1695004025908614872}
   - component: {fileID: 6734161107318154948}
-  - component: {fileID: 3181483048352117683}
   m_Layer: 0
   m_Name: Visuals
   m_TagString: Untagged
@@ -348,17 +351,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &3181483048352117683
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8648400499233769847}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}

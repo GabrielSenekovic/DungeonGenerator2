@@ -16,4 +16,6 @@ public class Equipment : MonoBehaviour
     public string name;
     public Sprite icon;
     [SerializeField] EquipmentType type;
+
+    public EquipmentType Type => type;
 }

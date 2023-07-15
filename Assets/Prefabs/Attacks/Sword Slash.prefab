@@ -46,3 +46,4 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 12bdd0b1fd185694e9322d2face256de, type: 3}
   castTime: 0
   type: 1
+  equipmentType: 1

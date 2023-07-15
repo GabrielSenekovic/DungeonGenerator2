@@ -15,6 +15,7 @@ public class CommandBox : MonoBehaviour
     [SerializeField] LevelGenerator_Debugger levelGeneration_Debugger;
     [SerializeField] NPCGenerator_Debugger npcGeneration_Debugger;
     [SerializeField] EntityGenerator entityGenerator;
+    [SerializeField] ItemGenerator_Debugger itemGenerator_Debugger;
 
     public void OpenBox()
     {
@@ -59,7 +60,7 @@ public class CommandBox : MonoBehaviour
                 FindObjectOfType<LevelManager>().SetPlacementRenderMode(LevelManager.PlacementRenderMode.BUILD);
             break;
             case "FillInventory" :
-                if (partsOfCommand.Length == 1) { Party.instance.inventory.FillInventoryWithRandomItems(); }
+                if (partsOfCommand.Length == 1) { itemGenerator_Debugger.FillInventoryWithRandomItems(); }
                 else
                 {
                     if (partsOfCommand[1] == "Furniture")
@@ -67,7 +68,7 @@ public class CommandBox : MonoBehaviour
                         FurnitureDatabase database = Resources.Load<FurnitureDatabase>("FurnitureDatabase");
                         TextAsset reader = Resources.Load<TextAsset>("FurnitureDatabase");
                         database.Initialise(reader.text);
-                        Party.instance.inventory.FillInventoryWithFurniture();
+                        itemGenerator_Debugger.FillInventoryWithFurniture();
                     }
                 }
             break;
@@ -89,7 +90,11 @@ public class CommandBox : MonoBehaviour
                 }
                 else if (partsOfCommand[1] == "Sword")
                 {
-                    Party.instance.inventory.AddSword();
+                    itemGenerator_Debugger.AddSword();
+                }
+                else if (partsOfCommand[1] == "Bow")
+                {
+                    itemGenerator_Debugger.AddBow();
                 }
                 else
                 {

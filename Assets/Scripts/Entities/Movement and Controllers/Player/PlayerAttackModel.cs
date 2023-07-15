@@ -35,12 +35,14 @@ public class PlayerAttackModel : AttackModel
 
     public void UpdateAttack() //This is called from Playercontroller
     {
-        if(currentAttack.state == AttackIdentifier.CastingState.DONE) //Only attack if you are done with previous attack
+        if(currentAttack.state != AttackIdentifier.CastingState.DONE) { return; }
+
+        if (Input.GetKeyDown(KeyCode.U) || Input.GetKeyDown(KeyCode.I) || Input.GetKeyDown(KeyCode.O) || Input.GetKeyDown(KeyCode.P))
         {
-            for(int i = 0; i < 4; i++) //Go through all skillslots
+            for (int i = 0; i < 4; i++) //Go through all skillslots
             {
-                if(attacks[i].attack == null) { continue; } //If this skillslot is empty, continue
-                if(Input.GetKeyDown(attacks[i].key)) //This is where it checks the button to cause the attack
+                if (attacks[i].attack == null) { continue; } //If this skillslot is empty, continue
+                if (Input.GetKeyDown(attacks[i].key)) //This is where it checks the button to cause the attack
                 {
                     statusConditionModel.AddCondition(new StatusConditionModel.StatusCondition(Condition.InCombat));
                     equipmentModel.TakeOutWeapons();
