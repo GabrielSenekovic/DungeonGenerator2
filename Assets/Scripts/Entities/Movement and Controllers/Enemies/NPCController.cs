@@ -130,7 +130,7 @@ public class NPCController : MonoBehaviour
 
     void Attack()
     {
-        attackModel.Attack(movementModel.GetFacingDirection());
+        attackModel?.Attack(movementModel.GetFacingDirection());
     }
 
     void Wander()

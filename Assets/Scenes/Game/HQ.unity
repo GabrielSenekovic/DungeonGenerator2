@@ -993,6 +993,10 @@ PrefabInstance:
       propertyPath: state
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1321475789, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
+      propertyPath: canInteract
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1476085651, guid: bfe3b47843c9e2a4f99335c023db45a3, type: 3}
       propertyPath: state
       value: 1

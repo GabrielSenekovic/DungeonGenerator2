@@ -19,7 +19,7 @@ public class NPCGenerator_Debugger : MonoBehaviour
     {
         for (int i = 0; i < debugColors.Length; i++)
         {
-            GameObject NPC = Instantiate(NPCPrefab, new Vector2(2  + i, 2), Quaternion.identity, null);
+            GameObject NPC = Instantiate(NPCPrefab, new Vector3(2  + i, 2, -1), Quaternion.identity, null);
             NPCinteractions.Add(NPC.GetComponent<NPCInteraction>());
             CharacterData data = NPC.GetComponent<NPCController>().GetData();
             data.profession.SwitchProfession(professions[i]);

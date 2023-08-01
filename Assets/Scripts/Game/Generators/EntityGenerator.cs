@@ -1,14 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Animations;
 
 public class EntityGenerator : MonoBehaviour
 {
     [SerializeField] GameObject enemyBluePrint;
     [SerializeField] AttackIdentifier swoop;
     [SerializeField] WeaponAttackIdentifier maceAttack;
-    [SerializeField] AnimatorController animationController;
+    [SerializeField] RuntimeAnimatorController animationController;
     [SerializeField] GameObject maceWeapon;
     public GameObject SpawnRandomEntity()
     {
