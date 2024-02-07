@@ -7,7 +7,6 @@ using Unity.Mathematics;
 //Core code
 public partial class Room: MonoBehaviour
 {
-    
     public class EntranceData
     {
         public List<Vector3> leftVertices = new List<Vector3>(); //From inside the room looking towards north door. Left vertices are saved at the end of the left wall, right vertices are saved at the beginning of the right wall;

@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -10,13 +10,17 @@ Material:
   m_Name: Ground
   m_Shader: {fileID: -6465566751694194690, guid: 8a409d3d292d95746bc089d2baec56b9,
     type: 3}
-  m_ShaderKeywords: 
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -36,12 +40,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - Vector1_0eda62cc09b74e2d9500dc80386e8322: 7
     - Vector1_91fd1f84b7ab450280d845538423b865: 0.5
     - Vector1_aa965b7aee3d496da333fdcfe3f7218f: -0.5
     - Vector1_ae7b6d5c82744b11a659537891850d18: -0.5
     - Vector1_f31c1fb8f8214ac98e6c34feeba8bb9d: 20
+    - _QueueControl: 0
+    - _QueueOffset: 0
     m_Colors:
     - Color_199531ff373e4a1fa8154d0e08b3b344: {r: 0.5960785, g: 0.36078426, b: 0.25490198,
         a: 0}
@@ -50,3 +57,16 @@ Material:
     - Color_8639d8ac8bb547e49241121c007856c8: {r: 0.19215685, g: 0.737255, b: 0.29019606,
         a: 0}
   m_BuildTextureStacks: []
+--- !u!114 &8003721476303480856
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7

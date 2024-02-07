@@ -7,7 +7,7 @@ using System.Linq;
 
 public class GrassTrampleObject : MonoBehaviour
 {
-    [SerializeField]ForwardRendererData rendererSettings = null;
+    [SerializeField]UniversalRendererData rendererSettings = null;
 
     bool TryGetFeature(out GrassTrampleFeature feature)
     {

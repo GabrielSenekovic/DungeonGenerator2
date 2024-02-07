@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
 
-using RoomTemplate = Room.RoomTemplate;
-using Entrances = Room.Entrances;
-using System.Diagnostics;
 using Color = UnityEngine.Color;
 using Debug = UnityEngine.Debug;
 
@@ -87,18 +84,18 @@ public class RoomData
     void SaveTemplateTexture(RoomTemplate template)
     {
         templateTexture = new Texture2D(template.size.x, template.size.y, TextureFormat.ARGB32, false);
-        Grid<RoomTemplate.TileTemplate> grid = template.positions.FlipVertically();
+        Grid<TileTemplate> grid = template.positions.FlipVertically();
 
         for (int x = 0; x < template.size.x; x++)
         {
             for (int y = 0; y < template.size.y; y++)
             {
-                RoomTemplate.TileTemplate temp = grid[x, y];
+                TileTemplate temp = grid[x, y];
                 Color color = /*temp.startVertices.Count > 0 ? Color.white: temp.endVertices.Count > 0? Color.black : temp.ceilingVertices.Count > 0 ? (Color)new Color32(160, 30, 200, 255):*/
                     temp.door ? Color.red :
                     temp.error ? Color.green :
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.FINISHED ? new Color(0.75f, 0.6f, 0) :
-                    temp.read == RoomTemplate.TileTemplate.ReadValue.READFIRST ? Color.magenta :
+                    temp.read == TileTemplate.ReadValue.FINISHED ? new Color(0.75f, 0.6f, 0) :
+                    temp.read == TileTemplate.ReadValue.READFIRST ? Color.magenta :
                     temp.wall ? Color.white : new Color(0.1f, 0.1f, 0.3f);
                 templateTexture.SetPixel(x, y, color);
             }

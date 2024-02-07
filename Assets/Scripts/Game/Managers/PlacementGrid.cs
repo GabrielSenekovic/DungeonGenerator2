@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using RoomTemplate = Room.RoomTemplate;
 [System.Serializable]
 public class PlacementGrid
 {

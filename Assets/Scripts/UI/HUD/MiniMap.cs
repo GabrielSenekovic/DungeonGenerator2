@@ -11,7 +11,7 @@ public class MiniMap : MonoBehaviour
     Texture FullSpriteMap;
     public RawImage map;
 
-    public void CreateMap(List<Room.RoomTemplate> templates)
+    public void CreateMap(List<RoomTemplate> templates)
     {
         //This function also needs to know how far to the left the map should go and how far to the right
         //Use the centering function from vertical slice

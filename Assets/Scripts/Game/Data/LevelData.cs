@@ -5,14 +5,11 @@ using UnityEngine;
 [System.Serializable]
 public class LevelData
 {
-    List<AudioClip> melody = new List<AudioClip>();
-    List<AudioClip> baseLine = new List<AudioClip>();
-
     public Vector2Int amountOfRoomsCap = new Vector2Int(10, 20);
     public Vector2Int amountOfSections = new Vector2Int(1, 1);
 
-    public List<Room.RoomTemplate> templates;
-    public Room.RoomTemplate bigTemplate;
+    public List<RoomTemplate> templates;
+    public RoomTemplate bigTemplate;
 
     public int openDoorProbability = 10;
 
