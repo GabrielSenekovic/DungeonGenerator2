@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
-
-public class LevelManager : MonoBehaviour
+public class LevelManager : MonoBehaviour, ILevelManager
 {
     public Vector2Int RoomSize = new Vector2Int(20,20);
 
@@ -20,6 +19,7 @@ public class LevelManager : MonoBehaviour
     Party party;
 
     LevelGenerator generator;
+    ILevelBuilder levelBuilder;
 
     bool renderGrassChunks;
 
@@ -42,14 +42,17 @@ public class LevelManager : MonoBehaviour
 
     private void Awake() 
     {
-        //GameData.m_LevelConstructionSeed = Random.Range(0, int.MaxValue);
-        //GameData.m_LevelDataSeed = Random.Range(0, int.MaxValue);
         meshBatchRenderer = GetComponent<MeshBatchRenderer>();
         renderGrassChunks = true;
         placementQuad = MeshMaker.GetQuad();
         placementMat = Resources.Load<Material>("Materials/Placement");
         placementRenderMode = PlacementRenderMode.NONE;
         entityManager = GetComponent<EntityManager>();
+
+        //I feel like the manager shouldnt need generator or levelbuilder,
+        //and that they should be done before the level manager appears
+        generator = GetComponent<LevelGenerator>();
+        levelBuilder = GetComponent<LevelBuilder>();
     }
     private void Start() 
     {
@@ -61,18 +64,17 @@ public class LevelManager : MonoBehaviour
         party = Party.instance;
         levelData = DunGenes.Instance.gameData.GetCurrentLevelData();
         questData = DunGenes.Instance.gameData.GetCurrentQuestData();
-        generator = FindObjectOfType<LevelGenerator>();
 
-        meshBatchRenderer.Initialise();
+        meshBatchRenderer?.Initialise();
 
-        UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
+        //UIManager.Instance.miniMap.SwitchMap(currentRoom.roomData.mapTexture);
         CameraMovement.SetCameraAnchor(new Vector2(currentRoom.transform.position.x, currentRoom.transform.position.x + currentRoom.roomData.size.x - 20) , new Vector2(currentRoom.transform.position.y - currentRoom.roomData.size.y + 20, currentRoom.transform.position.y));
         CameraMovement.movementMode = CameraMovement.CameraMovementMode.SingleRoom;
     }
 
     private void Update()
     {
-        if(!generator.levelGenerated){generator.BuildLevel(levelData, currentRoom);}
+        //if(!levelBuilder.HasGenerated()){levelBuilder.BuildLevel(this, generator.levelData, currentRoom);}
         if(party == null){return;}
         if(UpdateQuest())
         {
@@ -106,7 +108,7 @@ public class LevelManager : MonoBehaviour
         }
 
     }
-    bool CheckIfChangeRoom()
+    public bool CheckIfChangeRoom()
     {
         if (currentRoom == null) { return false; }
 
@@ -144,7 +146,7 @@ public class LevelManager : MonoBehaviour
         }
         return false;
     }
-    bool UpdateQuest()
+    public bool UpdateQuest()
     {
         return false;
     }

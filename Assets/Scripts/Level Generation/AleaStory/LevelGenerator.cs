@@ -8,20 +8,15 @@ using Random = UnityEngine.Random;
 using SectionData = LevelData.SectionData;
 using Color = UnityEngine.Color;
 
-public partial class LevelGenerator : MonoBehaviour
+public partial class LevelGenerator : MonoBehaviour, ILevelGenerator
 {
-    List<Tuple<Vector2Int, Room>> surroundingPositions = new List<Tuple<Vector2Int, Room>>();
-    [SerializeField]protected Room RoomPrefab;
-
     int numberOfRooms = 1;
-
-    bool renderSections = false;
 
     int furthestDistanceFromSpawn = 0;
 
-    int amountOfRandomOpenEntrances = 0;
+    int amountOfRandomOpenEntrances;
 
-    public bool levelGenerated = false;
+    bool renderSections;
 
     public Texture2D map;
 
@@ -32,6 +27,7 @@ public partial class LevelGenerator : MonoBehaviour
     public Vector2Int sizeOfMap = Vector2Int.zero;
 
     [SerializeField] FurnitureDatabase furnitureDatabase;
+    [SerializeField] MaterialDatabase materialDatabase;
 
     RoomTemplate fullTemplate; //Saved in case of build house. Only to be used now when we dont generate HQ from a seed yet.
 
@@ -162,12 +158,6 @@ public partial class LevelGenerator : MonoBehaviour
     }
     void GenerateTerrain(ref List<RoomTemplate> templates, LevelData data, out RoomTemplate bigTemplate)
     {
-        for(int i = 0; i < surroundingPositions.Count; i++)
-        {
-            Destroy(surroundingPositions[i].Item2.gameObject);
-        }
-        surroundingPositions.Clear();
-
         //Keep spawning rooms within the bounds :)
         sizeOfMap = new Vector2Int((rightestPoint + 1) - leftestPoint, northestPoint - (southestPoint - 1)) * new Vector2Int(20, 20);
         bigTemplate = new RoomTemplate(sizeOfMap, "B[4], N");

@@ -87,11 +87,11 @@ public partial class MeshMaker: MonoBehaviour
             }
             if (allVertices.Count > 10000 || (wallIndex > 0 && currentWall.elevation != data[wallIndex-1].elevation))
             {
-                Material mat = materialDatabase.entries.First(m => m.name == instructions.MaterialName).material;
+                Material mat = materialDatabase.entries.FirstOrDefault(m => m.name == instructions.MaterialName).material;
                 CreateWall_Finish(wall, data[instructions.Count - 1], ref allVertices, ref allIndices, ref allUVs, mat);
             }
         }
-        Material mat2 = materialDatabase.entries.First(m => m.name == instructions.MaterialName).material;
+        Material mat2 = materialDatabase.entries.FirstOrDefault(m => m.name == instructions.MaterialName)?.material;
         CreateWall_Finish(wall, data[instructions.Count-1], ref allVertices, ref allIndices, ref allUVs, mat2);
     }
     public static void OnCreateOutdoorsWall(List<WallData> instructions, ref Vector2Int currentGridPosition, bool wrap, Grid<TileTemplate> tiles, int wallIndex, ref int indexJump, float roundedness, ref List<Vector3> allVertices, ref List<int> allIndices, ref List<Vector2> allUVs)

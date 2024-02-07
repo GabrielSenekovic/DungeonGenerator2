@@ -41,6 +41,9 @@ public class QuestSelect : MonoBehaviour
     BulletinBoard board = null;
 
     public LevelGenerator generator;
+    public LevelBuilder builder;
+
+    [SerializeField] LevelManager levelManager;
 
     public void Initialize(Tuple<int[], int[], int[]> seeds_in, BulletinBoard board_in)
     {
@@ -74,7 +77,7 @@ public class QuestSelect : MonoBehaviour
         board = null;
         EventSystem.current.SetSelectedGameObject(null);
     }
-    public void OnLoadLevel()
+    public void OnLoadLevel() //This is called from the start button of the Quest Select
     {
         Time.timeScale = 1;
         DunGenes.Instance.gameData.CurrentLevel = levels[index];
@@ -85,6 +88,7 @@ public class QuestSelect : MonoBehaviour
         OnClose();
         Time.timeScale = 1;
         mapMenu.AddMap(new MapContainer(Sprite.Create(levels[index].map, new Rect(0, 0, levels[index].map.width, levels[index].map.height), new Vector2(0.5f, 0.5f), 16)));
+        builder.BuildLevel(levelManager, ref levels[index].templates, ref levels[index].bigTemplate, null);
     }
 
     private void Update() 

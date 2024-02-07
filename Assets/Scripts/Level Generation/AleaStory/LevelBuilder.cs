@@ -6,10 +6,21 @@ using System.Linq;
 
 using Section = LevelData.Section;
 
-public partial class LevelGenerator : MonoBehaviour
+public class LevelBuilder : MonoBehaviour, ILevelBuilder
 {
     [SerializeField] MaterialDatabase materialDatabase;
-    public void GenerateLevel(LevelManager level, ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
+    [SerializeField] FurnitureDatabase furnitureDatabase;
+    [SerializeField] protected Room RoomPrefab;
+
+    public int leftestPoint = 0;
+    public int northestPoint = 0;
+    public int rightestPoint = 0;
+    public int southestPoint = 0;
+
+    List<Tuple<Vector2Int, Room>> surroundingPositions = new List<Tuple<Vector2Int, Room>>();
+
+    bool levelGenerated = false;
+    public void BuildLevel(LevelManager level, ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
     {
         DateTime before = DateTime.Now;
         //GenerateSurroundings(ref templates, DunGenes.Instance.gameData.CurrentLevel);
@@ -26,22 +37,7 @@ public partial class LevelGenerator : MonoBehaviour
         TimeSpan duration = after.Subtract(before);
         Debug.Log("<color=blue>Time to generate: </color>" + duration.TotalMilliseconds + " milliseconds, which is: " + duration.TotalSeconds + " seconds");
     }
-    public void PutDownQuestObjects(LevelManager level, QuestData data)
-    {
-    }
-    public void BuildLevel(LevelData data, Room currentRoom)
-    {
-        Debug.LogWarning("<color=blue>Time to build rooms!</color>");
-        levelGenerated = true;
-        /*foreach(Room room in rooms)
-        {
-            if(room != currentRoom && !DebuggingTools.spawnOnlyBasicRooms)
-            {
-               // room.gameObject.SetActive(false);
-            }
-        }*/
-    }
-    void BuildRooms(ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
+    public void BuildRooms(ref List<RoomTemplate> templates, ref RoomTemplate bigTemplate, SettlementData settlementData)
     {
         //Now that all entrances have been set, you can put the entrances down on each room template and adjust the templates to make sure there is always space to get to each door
         //Then build the rooms
@@ -76,36 +72,7 @@ public partial class LevelGenerator : MonoBehaviour
         }
         PlantFlora(ref templates);
     }
-   /* void SaveWallVertices(ref List<Room.RoomTemplate> templates, Room.RoomTemplate originTemplate, Room origin, LevelData data)
-    {
-        //Set the entrance vertices of all adjacent rooms
-        List<Tuple<Vector2Int, Vector2Int, Room>> roomList = GetAllAdjacentRooms(origin, data);
-        Debug.Log("The room: " + origin.gameObject.name + " found this many neighbors: " + roomList.Count);
-        //Item1 is the adjacent gridposition, Item2 is the gridposition it connects to in the origin room
-        for (int k = 0; k < roomList.Count; k++)
-        {
-            int n = 0;
-            for (int l = 0; l < DunGenes.Instance.gameData.CurrentLevel.sections.Count; l++)
-            {
-                for (int m = 0; m < DunGenes.Instance.gameData.CurrentLevel.sections[l].rooms.Count; m++)
-                {
-                    n++;
-                    if (roomList[k].Item1 == DunGenes.Instance.gameData.CurrentLevel.sections[l].rooms[m].transform.position.ToV2Int() / 20) //found the index for templates
-                    {
-                        Debug.Log("Saving wall vertices from: " + roomList[k].Item2 + " to: " + roomList[k].Item1);
-                        Room.RoomTemplate adjTemplate = templates[n - 1];
-
-                        Vector2 direction = (new Vector2(roomList[k].Item1.x, roomList[k].Item1.y) - roomList[k].Item2).normalized;
-                        Tuple<bool, Room.Entrances.Entrance> adjEntrance = roomList[k].Item3.roomData.GetDirections().GetEntrance(roomList[k].Item1, -direction.ToV2Int());
-                        Tuple<bool, Room.Entrances.Entrance> myEntrance = origin.roomData.GetDirections().GetEntrance(roomList[k].Item1 + adjEntrance.Item2.dir, -adjEntrance.Item2.dir);
-
-                        roomList[k].Item3.roomData.GetDirections().SetEntranceVertices(ref adjTemplate, originTemplate, adjEntrance.Item2, myEntrance.Item2, origin.transform.position, roomList[k].Item3.transform.position);
-                    }
-                }
-            }
-        }
-    }*/
-    public void PlantFlora(ref List<RoomTemplate> templates)
+    void PlantFlora(ref List<RoomTemplate> templates)
     {
         for (int i = 0; i < DunGenes.Instance.gameData.CurrentLevel.sections.Count; i++)
         {
@@ -163,6 +130,8 @@ public partial class LevelGenerator : MonoBehaviour
             data.sections[i].rooms.Clear();
         }
         data.sections.Clear();
-        numberOfRooms = 1;
+        //numberOfRooms = 1;
     }
+
+    public bool HasGenerated() => levelGenerated;
 }
